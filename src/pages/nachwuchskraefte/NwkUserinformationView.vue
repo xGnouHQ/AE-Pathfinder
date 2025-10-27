@@ -2,98 +2,62 @@
   <v-container>
     <h1 class="mb-6">Mein Konto</h1>
 
-    <!-- Profilinformation -->
-    <v-card class="mt-4">
-      <v-card-title class="d-flex justify-space-between align-center">
-        <span>Profilinformationen</span>
-        <v-btn
-          color="primary"
-          variant="outlined"
-          @click="dialogProfileOpen = true"
-          size="small"
-        >
-          Bearbeiten
-        </v-btn>
-      </v-card-title>
-      <v-divider></v-divider>
-
-      <v-card-text>
-        <v-row>
-          <v-col cols="12">Personalnummer: {{ nwk.personalnumber }}</v-col>
-        </v-row>
-        <v-row>
-          <v-col cols="12" md="6">Nachname: {{ nwk.surename }}</v-col>
-          <v-col cols="12" md="6">Vorname: {{ nwk.firstname }}</v-col>
-        </v-row>
-        <v-row>
-          <v-col cols="12">E-Mail: {{ nwk.mail }}</v-col>
-        </v-row>
-        <v-row>
-          <v-col cols="12" md="6">Jahrgang: {{ nwk.year }}</v-col>
-          <v-col cols="12" md="6">Studienrichtung: {{ nwk.major }}</v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
-
-    <!-- Mehrfach-Datei Upload -->
-    <v-card class="mt-4">
-      <v-card-title class="d-flex justify-space-between align-center">
-        <span>Dokumente</span>
-        <v-btn color="secondary" @click="dialogOpen = true" small>
-          Dokumente hochladen
-        </v-btn>
-      </v-card-title>
-      <v-divider></v-divider>
-
-      <v-card-text>
-        <div v-if="savedFiles.length === 0" class="text--disabled">
-          Keine Dokumente hochgeladen.
-        </div>
-
-        <v-list v-else dense>
-          <v-list-item v-for="file in savedFiles" :key="file.id">
-            <v-list-item-icon>
-              <v-icon>mdi-file-document-outline</v-icon>
-            </v-list-item-icon>
-
-            <v-list-item-content>
-              <v-list-item-title>
-                <a
-                  v-if="file.url"
-                  :href="file.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {{ file.name }}
-                </a>
-                <span v-else>{{ file.name }}</span>
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
-      </v-card-text>
-
-      <NwkUploadDocumentsDialog
-        v-model="dialogOpen"
-        :savedFiles="savedFiles"
-        @save="handleSave"
-      />
-    </v-card>
-
-    <!-- Profil bearbeiten Dialog -->
-    <NwkUpdateDialog
-      v-model="dialogProfileOpen"
+    <!-- Profil -->
+    <NwkProfileCard
       :nwk="nwk"
-      @save="handleProfileSave"
+      editable
+      class="mt-4"
+      @edit="dialogProfileOpen = true"
     />
+
+    <!-- Erfahrungen & Interessen -->
+        <NwkExperienceAndInterestsCard
+          :nwk="nwkExperience"
+          editable
+          class="mt-4"
+          @edit="dialogExperienceOpen = true"
+        />
+
+        <!-- Dialoge -->
+        <NwkUploadDocumentsDialog
+          v-model="dialogOpen"
+          :savedFiles="savedFiles"
+          @save="handleSave"
+        />
+
+        <NwkUpdateProfileDialog
+          v-model="dialogProfileOpen"
+          :nwk="nwk"
+          @save="handleProfileSave"
+        />
+
+        <NwkUpdateExpierenceAndIntrestsDialog
+          v-model="dialogExperienceOpen"
+          :nwk="nwkExperience"
+          @save="handleExperienceSave"
+        />
+
+    <!-- Dokumente -->
+    <NwkDocumentsCard
+      :savedFiles="savedFiles"
+      editable
+      @upload="dialogOpen = true"
+    />
+
+
   </v-container>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import NwkUploadDocumentsDialog from "@/components/nachwuchskraefte/NwkUploadDocumentsDialog.vue";
-import NwkUpdateDialog from "@/components/nachwuchskraefte/NwkUpdateDialog.vue";
+import NwkUpdateProfileDialog from "@/components/nachwuchskraefte/NwkUpdateProfileDialog.vue";
+import NwkProfileCard from "@/components/nachwuchskraefte/NwkProfileCard.vue";
+import NwkDocumentsCard from "@/components/nachwuchskraefte/NwkDocumentsCard.vue";
+import NwkExperienceAndInterestsCard from "@/components/nachwuchskraefte/NwkExperienceAndInterestsCard.vue";
+import NwkUpdateExpierenceAndIntrestsDialog from "@/components/nachwuchskraefte/NwkUpdateExpierenceAndIntrestsDialog.vue";
 
+// Beispiel-Daten Profil
 const nwk = ref({
   gender: 'männlich',
   personalnumber: '123456',
@@ -104,6 +68,7 @@ const nwk = ref({
   major: 'Informatik',
 });
 
+// Beispiel-Dateien
 interface StoredFile {
   id: string;
   name: string;
@@ -116,13 +81,15 @@ const savedFiles = ref<StoredFile[]>([
   { id: '2', name: 'Zeugnis_MaxMueller.pdf', url: '/uploads/Zeugnis_MaxMueller.pdf' },
 ]);
 
+// Dialog-States
 const dialogOpen = ref(false);
 const dialogProfileOpen = ref(false);
+const dialogExperienceOpen = ref(false);
 
+// Methoden Profil & Dokumente
 function handleSave(files: StoredFile[]) {
   savedFiles.value = files;
   console.log('Aktualisierte Dateien:', savedFiles.value);
-  // Hier: Upload an Server, API-Call, etc.
 }
 
 function handleProfileSave(updatedNwk: typeof nwk.value) {
@@ -130,7 +97,24 @@ function handleProfileSave(updatedNwk: typeof nwk.value) {
   alert('Profil wurde aktualisiert.');
 }
 
-function editProfile() {
-  dialogProfileOpen.value = true;
+// Beispiel-Daten Erfahrungen & Interessen
+interface NwkExperience {
+  experiences: string[];
+  knowsProgramming: boolean;
+  programmingLanguages: string[];
+  interests: string[];
+}
+
+const nwkExperience = ref<NwkExperience>({
+  experiences: ['', '', '', '', ''],
+  knowsProgramming: false,
+  programmingLanguages: [],
+  interests: ['', '', '', '', ''],
+});
+
+// Methode Erfahrung & Interessen speichern
+function handleExperienceSave(updated: NwkExperience) {
+  nwkExperience.value = { ...updated };
+  alert('Erfahrungen & Interessen gespeichert!');
 }
 </script>
