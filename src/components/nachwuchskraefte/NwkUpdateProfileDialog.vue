@@ -91,7 +91,7 @@ const valid = ref(false);
 const rules = {
   required: (v: string) => !!v || 'Pflichtfeld',
   email: (v: string) => /.+@.+\..+/.test(v) || 'Ungültige E-Mail',
-  year: (v: string) => /^\d{4}$/.test(v) || 'Jahrgang muss 4-stellig sein',
+  year: (v: string) => /^\d{2}\/\d{2}$/.test(v) || 'Jahrgang muss im Format XX/XX angegeben werden',
 };
 
 function closeDialog() {
