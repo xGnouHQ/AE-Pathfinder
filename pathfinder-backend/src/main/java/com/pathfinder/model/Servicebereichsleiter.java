@@ -22,7 +22,7 @@ public class Servicebereichsleiter {
 
     private LocalDateTime erstelltAm = LocalDateTime.now();
 
-    // Beziehung zu Stellen: 1:n (ein Bereichsleiter hat mehrere Stellen)
+    // Beziehung zu Stellen (1:n)
     @OneToMany(mappedBy = "servicebereichsleiter", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Stelle> stellen = new ArrayList<>();
 }

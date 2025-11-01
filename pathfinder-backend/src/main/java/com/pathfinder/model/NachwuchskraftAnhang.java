@@ -1,5 +1,7 @@
 package com.pathfinder.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -15,6 +17,7 @@ public class NachwuchskraftAnhang {
 
     @ManyToOne
     @JoinColumn(name = "nachwuchskraft_id", nullable = false)
+    @JsonBackReference
     private Nachwuchskraft nachwuchskraft;
 
     private String dateipfad;

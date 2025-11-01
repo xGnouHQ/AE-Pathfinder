@@ -1,8 +1,12 @@
 package com.pathfinder.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -20,10 +24,13 @@ public class Stelle {
     @Column(length = 2000)
     private String beschreibung;
 
-    @ElementCollection
-    @CollectionTable(name = "stelle_tags", joinColumns = @JoinColumn(name = "stelle_id"))
-    @Column(name = "tag")
-    private List<String> tags;  // z. B. ["Java", "Spring Boot", "Teamarbeit"]
+    @ManyToMany
+    @JoinTable(
+            name = "stelle_tag",
+            joinColumns = @JoinColumn(name = "stelle_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private List<Tag> tags = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private Status status = Status.OFFEN;
@@ -37,5 +44,10 @@ public class Stelle {
 
     @ManyToOne
     @JoinColumn(name = "servicebereichsleiter_id", nullable = false)
+    @JsonBackReference("sbl-stellen")
     private Servicebereichsleiter servicebereichsleiter;
+
+    @OneToMany(mappedBy = "stelle", cascade = CascadeType.ALL)
+    @JsonManagedReference("bewerbung-stelle")
+    private List<Bewerbung> bewerbungen = new ArrayList<>();
 }
