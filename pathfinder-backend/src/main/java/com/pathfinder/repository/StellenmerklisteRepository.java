@@ -6,7 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface StellenmerklisteRepository extends JpaRepository<Stellenmerkliste, StellenmerklisteId> {
-
     List<Stellenmerkliste> findByNachwuchskraftId(Long nachwuchskraftId);
-    List<Stellenmerkliste> findByStelleId(Long stelleId);
 }

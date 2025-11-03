@@ -30,17 +30,7 @@ VALUES
 -- ===========================
 -- STELLE_TAGS
 -- ===========================
-INSERT INTO STELLE_TAGS (STELLE_ID, TAG)
-VALUES
-(1, 'Java'),
-(1, 'Spring Boot'),
-(1, 'SQL'),
-(2, 'Excel'),
-(2, 'Reporting'),
-(3, 'Finanzen'),
-(3, 'SAP'),
-(4, 'Helpdesk'),
-(4, 'User Support');
+-- Testdaten entfernt
 
 -- ===========================
 -- BEWERBUNG

@@ -1,7 +1,6 @@
 package com.pathfinder.controller;
 
 import com.pathfinder.model.Stellenmerkliste;
-import com.pathfinder.model.StellenmerklisteId;
 import com.pathfinder.service.StellenmerklisteService;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -33,7 +32,7 @@ public class StellenmerklisteController {
     }
 
     @DeleteMapping
-    public void delete(@RequestBody StellenmerklisteId id) {
-        service.delete(id);
+    public void delete(@RequestBody Stellenmerkliste eintrag) {
+        service.delete(eintrag);
     }
 }
