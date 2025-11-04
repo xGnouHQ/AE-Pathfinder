@@ -16,6 +16,25 @@ public class MeinKontoController {
         this.service = service;
     }
 
+    // GET /api/meinKonto/personal/{id}
+    @GetMapping("/personal/{id}")
+    public ResponseEntity<?> getPersonalData(@PathVariable Long id) {
+        Nachwuchskraft nwk = service.getById(id);
+        if (nwk == null) return ResponseEntity.notFound().build();
+
+        // Nur relevante persönliche Daten zurückgeben
+        var dto = new Object() {
+            public final Long id = nwk.getId();
+            public final String vorname = nwk.getVorname();
+            public final String nachname = nwk.getNachname();
+            public final String email = nwk.getEmail();
+            public final String studienrichtung = nwk.getStudienrichtung();
+            public final int eintrittsjahr = nwk.getEintrittsjahr();
+        };
+
+        return ResponseEntity.ok(dto);
+    }
+
     // GET /api/meinKonto/experience/{id}
     @GetMapping("/experience/{id}")
     public ResponseEntity<Nachwuchskraft> getExperience(@PathVariable Long id) {
