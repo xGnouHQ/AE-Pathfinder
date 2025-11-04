@@ -7,7 +7,11 @@
         <v-col v-for="job in jobs" :key="job.id" cols="12">
           <v-card class="mb-4">
             <v-card-title class="d-flex justify-space-between align-center">
-              <router-link :to="job.link" class="no-underline">
+              <!-- Job-Titel: Weiterleitung zu ApplicationView via Pfad -->
+              <router-link
+                :to="`/bewerbungen/${job.id}/ApplicationView`"
+                class="no-underline"
+              >
                 <span class="text-h6">{{ job.title }}</span>
               </router-link>
 
@@ -15,7 +19,7 @@
               <ApplicationStatusDisplay :status="job.status" />
             </v-card-title>
 
-            <v-divider></v-divider>
+            <v-divider />
 
             <v-card-text>
               <v-row>
@@ -24,11 +28,9 @@
                 <v-col>Referat: {{ job.department }}</v-col>
               </v-row>
 
-              <div class="job-description">
-                {{ job.description }}
-              </div>
+              <div class="job-description">{{ job.description }}</div>
 
-              <!-- Aktion: Bewerbung zurückziehen -->
+              <!-- Bewerbung zurückziehen -->
               <v-btn
                 color="error"
                 variant="text"
@@ -56,10 +58,11 @@ interface Job {
   date: string
   payGrade: string
   department: string
-  link: string
+  description: string
   status: 'eingegangen' | 'in_bearbeitung' | 'akzeptiert' | 'abgelehnt'
 }
 
+// Dummy-Daten
 const jobs = ref<Job[]>([
   {
     id: 1,
@@ -67,7 +70,7 @@ const jobs = ref<Job[]>([
     date: '01.09.2025',
     payGrade: 'E10',
     department: 'it@M',
-    link: '/JobDisplayVorlage',
+    description: 'Du unterstützt das DevOps-Team bei der Automatisierung von Prozessen.',
     status: 'in_bearbeitung'
   },
   {
@@ -76,9 +79,9 @@ const jobs = ref<Job[]>([
     date: '15.08.2025',
     payGrade: 'E9',
     department: 'Web Development',
-    link: '/JobDisplayVorlage2',
+    description: 'Frontend-Entwicklung mit Vue.js und Vuetify.',
     status: 'abgelehnt'
-  },
+  }
 ])
 
 function withdrawApplication(id: number) {
@@ -88,7 +91,6 @@ function withdrawApplication(id: number) {
   }
 }
 </script>
-
 
 <style scoped>
 .box {

@@ -5,7 +5,8 @@
     <v-container class="box">
       <v-row>
         <v-col v-for="job in jobs" :key="job.id" cols="12">
-          <router-link :to="job.link" class="no-underline">
+          <!-- Link zu dynamischer Job-Seite via id -->
+          <router-link :to="`/stellen/${job.id}/JobpostingTemplateView`" class="no-underline">
             <v-card>
               <v-card-title class="d-flex justify-space-between align-center">
                 <span>{{ job.title }}</span>
@@ -30,8 +31,8 @@
 </template>
 
 <script setup lang="ts">
-import JobMatchScore from '@/components/stellen/JobMatchScore.vue'
 import { ref } from 'vue'
+import JobMatchScore from '@/components/stellen/JobMatchScore.vue'
 
 const nwkExperience = ref({
   experiences: ['Praktikum Webentwicklung', 'Backend bei Stadtverwaltung'],
@@ -40,24 +41,23 @@ const nwkExperience = ref({
   interests: ['Webentwicklung', 'Cloud', 'Datenbanken', 'IT-Sicherheit']
 })
 
+// Beispiel-Daten für offene Stellen
 const jobs = ref([
   {
     id: 1,
     title: 'DevOps Junior',
-    date: '12.11.2025',
-    payGrade: 'E10',
+    date: '01.11.2025',
+    payGrade: 'E10 TvöD',
     department: 'it@M',
-    description: 'Du arbeitest im Bereich Cloud-Automatisierung mit Linux und Docker.',
-    link: '/stellen/JobDisplayVorlage'
+    description: 'Du unterstützt unser DevOps-Team bei der Automatisierung und dem Betrieb von Cloud-Systemen.',
   },
   {
     id: 2,
     title: 'Frontend Developer',
-    date: '18.11.2025',
-    payGrade: 'E9',
+    date: '15.12.2025',
+    payGrade: 'E9 TvöD',
     department: 'Web Development',
-    description: 'Gestaltung moderner Benutzeroberflächen mit JavaScript und Vue.',
-    link: '/stellen/JobDisplayVorlage2'
+    description: 'Frontend-Entwicklung mit Vue.js, Vuetify und modernen Webtechnologien.',
   },
 ])
 </script>
@@ -69,6 +69,7 @@ const jobs = ref([
 }
 .no-underline {
   text-decoration: none;
+  color: inherit;
 }
 .job-description {
   margin-top: 10px;

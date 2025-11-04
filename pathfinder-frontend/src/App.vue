@@ -62,10 +62,10 @@ export default {
     const drawer = ref(true);
     const menuItems = ref([
       { title: 'Startseite', route: '/' },
-      { title: 'Stellenportal', route: '/stellen/JobpostingView' },
-      { title: 'Bewerbungen', route: '/bewerbungen/ApplicationView' },
+      { title: 'Stellenportal', route: '/stellen/JobpostingOverviewView' },
+      { title: 'Bewerbungen', route: '/bewerbungen/ApplicationListView' },
       { title: 'Mein Konto', route: '/nachwuchskraefte/NwkUserinformationView' },
-      { title: 'Mein Liste', route: '/nachwuchskraefte/NwkBookmarkView' },
+      { title: 'Meine Liste', route: '/merken/BookmarkView' },
     ]);
 
   const router = useRouter();

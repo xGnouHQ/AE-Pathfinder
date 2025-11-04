@@ -3,7 +3,7 @@
     <h1 class="mb-6">Mein Konto</h1>
 
     <!-- Profil -->
-    <NwkProfileCard
+    <BaseCardNwkPersonal
       :nwk="nwk"
       editable
       class="mt-4"
@@ -50,9 +50,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import NwkUploadDocumentsDialog from "@/components/nachwuchskraefte/NwkUploadDocumentsDialog.vue";
-import NwkUpdateProfileDialog from "@/components/nachwuchskraefte/NwkUpdateProfileDialog.vue";
-import NwkProfileCard from "@/components/nachwuchskraefte/NwkProfileCard.vue";
+import NwkUploadDocumentsDialog from "@/components/nachwuchskraefte/NwkUploadDocumentsDialog.vue"
+import BaseCardNwkPersonal from "@/components/nachwuchskraefte/BaseCardNwkPersonal.vue";
 import NwkDocumentsCard from "@/components/nachwuchskraefte/NwkDocumentsCard.vue";
 import NwkExperienceAndInterestsCard from "@/components/nachwuchskraefte/NwkExperienceAndInterestsCard.vue";
 import NwkUpdateExpierenceAndIntrestsDialog from "@/components/nachwuchskraefte/NwkUpdateExpierenceAndIntrestsDialog.vue";

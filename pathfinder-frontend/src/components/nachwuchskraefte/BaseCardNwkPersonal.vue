@@ -2,17 +2,6 @@
   <v-card>
     <v-card-title class="d-flex justify-space-between align-center">
       <span>Persönliche Daten</span>
-
-      <!-- Bearbeiten-Button direkt in der Card -->
-      <v-btn
-        v-if="editable"
-        color="primary"
-        variant="outlined"
-        size="small"
-        @click="$emit('edit')"
-      >
-        Bearbeiten
-      </v-btn>
     </v-card-title>
 
     <v-divider></v-divider>
@@ -37,6 +26,7 @@
 </template>
 
 <script setup lang="ts">
+
 interface Nachwuchs {
   gender: string;
   personalnumber: string;
