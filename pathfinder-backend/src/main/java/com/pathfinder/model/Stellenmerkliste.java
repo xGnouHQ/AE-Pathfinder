@@ -1,6 +1,5 @@
 package com.pathfinder.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -23,7 +22,9 @@ public class Stellenmerkliste {
     @JoinColumn(name = "stelle_id")
     private Stelle stelle;
 
+    @Column(name = "merken_status", nullable = false)
     private Boolean merkenStatus = true;
 
+    @Column(name = "erstellt_am", nullable = false)
     private LocalDateTime erstelltAm = LocalDateTime.now();
 }
