@@ -38,6 +38,13 @@ public class Nachwuchskraft {
     @Column(name = "ERSTELLT_AM")
     private LocalDateTime erstelltAm = LocalDateTime.now();
 
+    //vom Nachwuchskraft selbst bearbeitbar
+    @Column(name = "INTERESSEN", length = 1000)
+    private String interessen;
+
+    @Column(name = "ERFAHRUNGEN", length = 2000)
+    private String erfahrungen;
+
     // Beziehung zu Anhaenge (1:n)
     @OneToMany(mappedBy = "nachwuchskraft", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
