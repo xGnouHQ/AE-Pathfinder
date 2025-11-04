@@ -20,40 +20,26 @@ public class StellenmerklisteService {
         this.stelleRepository = stelleRepository;
     }
 
-    public List<Stellenmerkliste> getAll() {
-        return repository.findAll();
-    }
-
     public List<Stellenmerkliste> getByNachwuchskraft(Long id) {
+        if (id == null) throw new IllegalArgumentException("Nachwuchskraft-ID fehlt");
         return repository.findByNachwuchskraftId(id);
     }
 
-    public Stellenmerkliste save(Stellenmerkliste eintrag) {
-        if (eintrag.getNachwuchskraft() == null || eintrag.getNachwuchskraft().getId() == null)
-            throw new IllegalArgumentException("Nachwuchskraft-ID fehlt");
-        if (eintrag.getStelle() == null || eintrag.getStelle().getId() == null)
-            throw new IllegalArgumentException("Stellen-ID fehlt");
-
-        Nachwuchskraft nwk = nwkRepository.findById(eintrag.getNachwuchskraft().getId())
-                .orElseThrow(() -> new RuntimeException("Nachwuchskraft nicht gefunden"));
-        Stelle stelle = stelleRepository.findById(eintrag.getStelle().getId())
-                .orElseThrow(() -> new RuntimeException("Stelle nicht gefunden"));
-
-        eintrag.setNachwuchskraft(nwk);
-        eintrag.setStelle(stelle);
-        eintrag.setId(new StellenmerklisteId(nwk.getId(), stelle.getId()));
-
-        return repository.save(eintrag);
-    }
-
-    public void delete(Stellenmerkliste eintrag) {
-        if (eintrag.getNachwuchskraft() == null || eintrag.getStelle() == null)
+    // Validiertes Löschen
+    public boolean deleteByNachwuchskraftAndStelle(Long nwkId, Long stelleId) {
+        if (nwkId == null || stelleId == null)
             throw new IllegalArgumentException("IDs fehlen beim Löschen");
 
-        StellenmerklisteId id = new StellenmerklisteId(
-                eintrag.getNachwuchskraft().getId(),
-                eintrag.getStelle().getId()
-        );
+        StellenmerklisteId id = new StellenmerklisteId(nwkId, stelleId);
+        Stellenmerkliste eintrag = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Eintrag nicht gefunden"));
+
+        // Zugriff nur wenn NWK-Eigentümer
+        if (!eintrag.getNachwuchskraft().getId().equals(nwkId)) {
+            return false;
+        }
+
         repository.deleteById(id);
+        return true;
     }
 }
