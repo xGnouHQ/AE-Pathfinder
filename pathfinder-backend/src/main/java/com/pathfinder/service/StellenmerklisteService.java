@@ -42,4 +42,9 @@ public class StellenmerklisteService {
         repository.deleteById(id);
         return true;
     }
+
+    public Stellenmerkliste save(Stellenmerkliste eintrag) {
+        return repository.save(eintrag);
+    }
+
 }

@@ -35,8 +35,8 @@ public class MeinKontoDocumentsController {
         return ResponseEntity.ok(saved);
     }
 
-    // PUT /api/meinKonto/documents/{id}
-    @PutMapping("/{id}")
+    // PUT /api/meinKonto/documents/{nwkId}
+    @PutMapping("/{nwkId}")
     public ResponseEntity<NachwuchskraftAnhang> updateDocument(
             @PathVariable Long id,
             @RequestBody NachwuchskraftAnhang updated) {
@@ -47,8 +47,8 @@ public class MeinKontoDocumentsController {
         return ResponseEntity.ok(saved);
     }
 
-    // DELETE /api/meinKonto/documents/{id}
-    @DeleteMapping("/{id}")
+    // DELETE /api/meinKonto/documents/{nwkId}
+    @DeleteMapping("/{nwkId}")
     public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
         try {
             service.delete(id);

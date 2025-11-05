@@ -16,8 +16,8 @@ public class MeinKontoController {
         this.service = service;
     }
 
-    // GET /api/meinKonto/personal/{id}
-    @GetMapping("/personal/{id}")
+    // GET /api/meinKonto/personal/{nwkId}
+    @GetMapping("/personal/{nwkId}")
     public ResponseEntity<?> getPersonalData(@PathVariable Long id) {
         Nachwuchskraft nwk = service.getById(id);
         if (nwk == null) return ResponseEntity.notFound().build();
@@ -35,16 +35,16 @@ public class MeinKontoController {
         return ResponseEntity.ok(dto);
     }
 
-    // GET /api/meinKonto/experience/{id}
-    @GetMapping("/experience/{id}")
+    // GET /api/meinKonto/experience/{nwkId}
+    @GetMapping("/experience/{nwkId}")
     public ResponseEntity<Nachwuchskraft> getExperience(@PathVariable Long id) {
         Nachwuchskraft nwk = service.getById(id);
         if (nwk == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(nwk);
     }
 
-    // PUT /api/meinKonto/experience/{id}
-    @PutMapping("/experience/{id}")
+    // PUT /api/meinKonto/experience/{nwkId}
+    @PutMapping("/experience/{nwkId}")
     public ResponseEntity<Nachwuchskraft> updateExperience(
             @PathVariable Long id,
             @RequestBody Nachwuchskraft updated) {

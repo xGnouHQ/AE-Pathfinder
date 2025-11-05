@@ -10,11 +10,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/meineListe")
 @CrossOrigin
-public class StellenmerklisteController {
+public class MeineListeController {
 
     private final StellenmerklisteService service;
 
-    public StellenmerklisteController(StellenmerklisteService service) {
+    public MeineListeController(StellenmerklisteService service) {
         this.service = service;
     }
 
