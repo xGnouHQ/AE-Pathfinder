@@ -1,23 +1,18 @@
-/**
- * main.ts
- *
- * Bootstraps Vuetify and other plugins then mounts the App`
- */
-
-// Composables
 import { createApp } from 'vue'
-
-// Plugins
+import App from './App.vue'
+import LoginView from '@/pages/LoginView.vue'
 import { registerPlugins } from '@/plugins'
 
-// Components
-import App from './App.vue'
+// Prüfen, ob Benutzer eingeloggt ist
+const loggedIn = localStorage.getItem('loggedIn') === 'true'
 
-// Styles
-import 'unfonts.css'
+// Root-Komponente wählen
+const rootComponent = loggedIn ? App : LoginView
+const app = createApp(rootComponent)
 
-const app = createApp(App)
-
-registerPlugins(app)
+// Plugins nur für App.vue registrieren
+if (loggedIn) {
+  registerPlugins(app)
+}
 
 app.mount('#app')
