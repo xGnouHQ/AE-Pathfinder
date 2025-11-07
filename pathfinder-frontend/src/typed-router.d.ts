@@ -19,12 +19,13 @@ declare module 'vue-router/auto-routes' {
    */
   export interface RouteNamedMap {
     '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>,
-    '/bewerbungen/ApplicationView': RouteRecordInfo<'/bewerbungen/ApplicationView', '/bewerbungen/ApplicationView', Record<never, never>, Record<never, never>>,
-    '/nachwuchskraefte/NwkBookmarkView': RouteRecordInfo<'/nachwuchskraefte/NwkBookmarkView', '/nachwuchskraefte/NwkBookmarkView', Record<never, never>, Record<never, never>>,
+    '/bewerbungen/[id]/ApplicationView': RouteRecordInfo<'/bewerbungen/[id]/ApplicationView', '/bewerbungen/:id/ApplicationView', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    '/bewerbungen/ApplicationListView': RouteRecordInfo<'/bewerbungen/ApplicationListView', '/bewerbungen/ApplicationListView', Record<never, never>, Record<never, never>>,
+    '/LoginView': RouteRecordInfo<'/LoginView', '/LoginView', Record<never, never>, Record<never, never>>,
+    '/merken/BookmarkView': RouteRecordInfo<'/merken/BookmarkView', '/merken/BookmarkView', Record<never, never>, Record<never, never>>,
     '/nachwuchskraefte/NwkUserinformationView': RouteRecordInfo<'/nachwuchskraefte/NwkUserinformationView', '/nachwuchskraefte/NwkUserinformationView', Record<never, never>, Record<never, never>>,
-    '/stellen/JobDisplayVorlage': RouteRecordInfo<'/stellen/JobDisplayVorlage', '/stellen/JobDisplayVorlage', Record<never, never>, Record<never, never>>,
-    '/stellen/JobDisplayVorlage2': RouteRecordInfo<'/stellen/JobDisplayVorlage2', '/stellen/JobDisplayVorlage2', Record<never, never>, Record<never, never>>,
-    '/stellen/JobpostingView': RouteRecordInfo<'/stellen/JobpostingView', '/stellen/JobpostingView', Record<never, never>, Record<never, never>>,
+    '/stellen/[id]/JobpostingTemplateView': RouteRecordInfo<'/stellen/[id]/JobpostingTemplateView', '/stellen/:id/JobpostingTemplateView', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    '/stellen/JobpostingOverviewView': RouteRecordInfo<'/stellen/JobpostingOverviewView', '/stellen/JobpostingOverviewView', Record<never, never>, Record<never, never>>,
   }
 
   /**
@@ -42,28 +43,32 @@ declare module 'vue-router/auto-routes' {
       routes: '/'
       views: never
     }
-    'src/pages/bewerbungen/ApplicationView.vue': {
-      routes: '/bewerbungen/ApplicationView'
+    'src/pages/bewerbungen/[id]/ApplicationView.vue': {
+      routes: '/bewerbungen/[id]/ApplicationView'
       views: never
     }
-    'src/pages/nachwuchskraefte/NwkBookmarkView.vue': {
-      routes: '/nachwuchskraefte/NwkBookmarkView'
+    'src/pages/bewerbungen/ApplicationListView.vue': {
+      routes: '/bewerbungen/ApplicationListView'
+      views: never
+    }
+    'src/pages/LoginView.vue': {
+      routes: '/LoginView'
+      views: never
+    }
+    'src/pages/merken/BookmarkView.vue': {
+      routes: '/merken/BookmarkView'
       views: never
     }
     'src/pages/nachwuchskraefte/NwkUserinformationView.vue': {
       routes: '/nachwuchskraefte/NwkUserinformationView'
       views: never
     }
-    'src/pages/stellen/JobDisplayVorlage.vue': {
-      routes: '/stellen/JobDisplayVorlage'
+    'src/pages/stellen/[id]/JobpostingTemplateView.vue': {
+      routes: '/stellen/[id]/JobpostingTemplateView'
       views: never
     }
-    'src/pages/stellen/JobDisplayVorlage2.vue': {
-      routes: '/stellen/JobDisplayVorlage2'
-      views: never
-    }
-    'src/pages/stellen/JobpostingView.vue': {
-      routes: '/stellen/JobpostingView'
+    'src/pages/stellen/JobpostingOverviewView.vue': {
+      routes: '/stellen/JobpostingOverviewView'
       views: never
     }
   }
