@@ -11,21 +11,16 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 
 const props = defineProps<{
   jobId: number
-}>();
+}>()
 
 const bookmarked = ref(false)
-const router = useRouter()
 
 function toggleBookmark() {
   bookmarked.value = !bookmarked.value
-
-  if (bookmarked.value) {
-    // Navigiere zur Merkliste
-    router.push({ path: '/merken/BookmarkView', query: { jobId: props.jobId } })
-  }
+  // Kein Router-Navigation mehr
+  console.log(`Job ${props.jobId} bookmarked: ${bookmarked.value}`)
 }
 </script>

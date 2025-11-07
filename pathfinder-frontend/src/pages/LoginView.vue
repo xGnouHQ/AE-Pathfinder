@@ -1,9 +1,7 @@
 <template>
   <div class="login-background">
     <div class="login-card">
-      <!-- Bild oben -->
       <img src="@/assets/Pathfinder_Logo_1.0.png" alt="Logo" class="login-image" />
-
       <h1 class="text-h3 font-weight-bold mb-4">Login</h1>
 
       <form @submit.prevent="handleLogin">
@@ -18,6 +16,8 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue'
+import App from '@/App.vue'
+import { registerPlugins } from '@/plugins'
 
 const username = ref('')
 const password = ref('')
@@ -25,8 +25,13 @@ const error = ref('')
 
 function handleLogin() {
   if (username.value === 'admin' && password.value === '1234') {
+    // Login-Status speichern
     localStorage.setItem('loggedIn', 'true')
-    window.location.reload() // App.vue wird geladen
+
+    // Haupt-App starten
+    const app = createApp(App)
+    registerPlugins(app)
+    app.mount('#app')
   } else {
     error.value = 'Falscher Benutzername oder Passwort'
   }
@@ -41,9 +46,8 @@ function handleLogin() {
   height: 100vh;
   background-color: #f5f5f5;
 }
-
 .login-card {
-  background-color: #ffffff;
+  background-color: #fff;
   padding: 40px 30px;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
@@ -51,13 +55,10 @@ function handleLogin() {
   width: 100%;
   max-width: 400px;
 }
-
 .login-image {
   width: 100px;
-  height: auto;
   margin-bottom: 20px;
 }
-
 .login-input {
   display: block;
   width: 100%;
@@ -67,7 +68,6 @@ function handleLogin() {
   border: 1px solid #ccc;
   font-size: 16px;
 }
-
 .login-button {
   width: 100%;
   padding: 10px;
@@ -78,11 +78,9 @@ function handleLogin() {
   font-size: 16px;
   cursor: pointer;
 }
-
 .login-button:hover {
   background-color: #115293;
 }
-
 .error {
   color: red;
   margin-top: 10px;

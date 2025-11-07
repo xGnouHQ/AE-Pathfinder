@@ -10,6 +10,7 @@
         </v-col>
 
         <v-col cols="12" class="mt-3">
+
           <!-- Bewerbungsbutton -->
           <BaseButtonApplication v-if="job" @click="openDialog(job)" />
         </v-col>
@@ -34,6 +35,11 @@ import JobCard from "@/components/stellen/JobCard.vue"
 import BaseButtonApplication from "@/components/common/BaseButtonApplication.vue"
 import BaseDialogApplication from "@/components/bewerbungen/BaseDialogApplication.vue"
 
+interface Responsible {
+  name: string
+  email: string
+}
+
 interface Job {
   id: number
   title: string
@@ -45,6 +51,7 @@ interface Job {
   area: string
   expectations: string
   requirements: string
+  responsible: Responsible
 }
 
 // Dummy-Daten für alle Jobs
@@ -61,6 +68,7 @@ const jobs = ref<Job[]>([
     expectations:
       "Du unterstützt unser DevOps-Team bei der Automatisierung und dem Betrieb von Cloud-Systemen.",
     requirements: "Kenntnisse in CI/CD, Docker, Linux und Git sind wünschenswert.",
+    responsible: { name: "Max Mustermann", email: "max.mustermann@muenchen.de" },
   },
   {
     id: 2,
@@ -73,6 +81,7 @@ const jobs = ref<Job[]>([
     area: "Web Development",
     expectations: "Frontend-Entwicklung mit Vue.js und Vuetify.",
     requirements: "Kenntnisse in HTML, CSS, JavaScript und Vue erforderlich.",
+    responsible: { name: "Erika Musterfrau", email: "erika.musterfrau@muenchen.de" },
   },
 ])
 

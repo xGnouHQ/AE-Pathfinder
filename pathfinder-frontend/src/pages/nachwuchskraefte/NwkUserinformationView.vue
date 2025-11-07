@@ -2,7 +2,7 @@
   <v-container>
     <h1 class="mb-6">Mein Konto</h1>
 
-    <!-- Profil -->
+    <!-- Persönliche Daten -->
     <BaseCardNwkPersonal
       :nwk="nwk"
       editable
@@ -10,110 +10,127 @@
       @edit="dialogProfileOpen = true"
     />
 
-    <!-- Erfahrungen & Interessen -->
-        <NwkExperienceAndInterestsCard
-          :nwk="nwkExperience"
-          editable
-          class="mt-4"
-          @edit="dialogExperienceOpen = true"
-        />
+    <!-- Bevorzugte Abteilungen & Interessen -->
+    <BaseCardNwkExperienceAndInterests
+      :nwk="nwkExperience"
+      editable
+      class="mt-4"
+      @edit="dialogExperienceOpen = true"
+    />
 
-        <!-- Dialoge -->
-        <NwkUploadDocumentsDialog
-          v-model="dialogOpen"
-          :savedFiles="savedFiles"
-          @save="handleSave"
-        />
+    <!-- Dialoge -->
+    <BaseDialogNwkUploadDocuments
+      v-model="dialogOpen"
+      :savedFiles="savedFiles"
+      @save="handleSave"
+    />
 
-        <NwkUpdateProfileDialog
-          v-model="dialogProfileOpen"
-          :nwk="nwk"
-          @save="handleProfileSave"
-        />
-
-        <NwkUpdateExpierenceAndIntrestsDialog
-          v-model="dialogExperienceOpen"
-          :nwk="nwkExperience"
-          @save="handleExperienceSave"
-        />
+    <BaseDialogNwkUpdateExperienceAndInterests
+      v-model="dialogExperienceOpen"
+      :nwk="nwkExperience"
+      @save="handleExperienceSave"
+    />
 
     <!-- Dokumente -->
-    <NwkDocumentsCard
+    <BaseCardNwkDocuments
       :savedFiles="savedFiles"
       editable
       @upload="dialogOpen = true"
     />
-
-
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import NwkUploadDocumentsDialog from "@/components/nachwuchskraefte/NwkUploadDocumentsDialog.vue"
-import BaseCardNwkPersonal from "@/components/nachwuchskraefte/BaseCardNwkPersonal.vue";
-import NwkDocumentsCard from "@/components/nachwuchskraefte/NwkDocumentsCard.vue";
-import NwkExperienceAndInterestsCard from "@/components/nachwuchskraefte/NwkExperienceAndInterestsCard.vue";
-import NwkUpdateExpierenceAndIntrestsDialog from "@/components/nachwuchskraefte/NwkUpdateExpierenceAndIntrestsDialog.vue";
+import { ref } from 'vue'
 
-// Beispiel-Daten Profil
-const nwk = ref({
+// ----------------------------
+// Komponenten
+// ----------------------------
+import BaseDialogNwkUploadDocuments from '@/components/nachwuchskraefte/BaseDialogNwkUploadDocuments.vue'
+import BaseCardNwkPersonal from '@/components/nachwuchskraefte/BaseCardNwkPersonal.vue'
+import BaseCardNwkDocuments from '@/components/nachwuchskraefte/BaseCardNwkDocuments.vue'
+import BaseCardNwkExperienceAndInterests from '@/components/nachwuchskraefte/BaseCardNwkExperienceAndInterests.vue'
+import BaseDialogNwkUpdateExperienceAndInterests from '@/components/nachwuchskraefte/BaseDialogNwkUpdateExperienceAndInterests.vue'
+
+// ----------------------------
+// Persönliche Daten
+// ----------------------------
+interface Nachwuchs {
+  gender: string
+  personalnumber: string
+  surename: string
+  firstname: string
+  mail: string
+  year: string
+  major: string
+  departments: string
+}
+
+const nwk = ref<Nachwuchs>({
   gender: 'männlich',
-  personalnumber: '123456',
+  personalnumber: '20231057',
   surename: 'Mustermann',
   firstname: 'Max',
-  mail: 'max.mustermann@example.com',
-  year: '23/26',
-  major: 'Informatik',
-});
+  mail: 'max.mustermann@muenchen.de',
+  year: '2023/2026',
+  major: 'Verwaltungsinformatik',
+  departments: 'IT@M, Kommunalreferat GPAM, Kreisverwaltungsreferat'
+})
 
-// Beispiel-Dateien
+// ----------------------------
+// Dokumente
+// ----------------------------
 interface StoredFile {
-  id: string;
-  name: string;
-  url?: string;
-  fileObject?: File;
+  id: string
+  name: string
+  url?: string
+  fileObject?: File
 }
 
 const savedFiles = ref<StoredFile[]>([
-  { id: '1', name: 'Lebenslauf_MaxMueller.pdf', url: '/uploads/Lebenslauf_MaxMueller.pdf' },
-  { id: '2', name: 'Zeugnis_MaxMueller.pdf', url: '/uploads/Zeugnis_MaxMueller.pdf' },
-]);
+  { id: '1', name: 'Lebenslauf_MaxMustermann.pdf', url: '/uploads/Lebenslauf_MaxMustermann.pdf' },
+  { id: '2', name: 'Motivationsschreiben_MaxMustermann.pdf', url: '/uploads/Motivationsschreiben_MaxMustermann.pdf' },
+  { id: '3', name: 'Zeugnis_FH_Muenchen_2024.pdf', url: '/uploads/Zeugnis_FH_Muenchen_2024.pdf' }
+])
 
+// ----------------------------
 // Dialog-States
-const dialogOpen = ref(false);
-const dialogProfileOpen = ref(false);
-const dialogExperienceOpen = ref(false);
+// ----------------------------
+const dialogOpen = ref(false)
+const dialogProfileOpen = ref(false)
+const dialogExperienceOpen = ref(false)
 
-// Methoden Profil & Dokumente
+// ----------------------------
+// Upload & Dokumente speichern
+// ----------------------------
 function handleSave(files: StoredFile[]) {
-  savedFiles.value = files;
-  console.log('Aktualisierte Dateien:', savedFiles.value);
+  savedFiles.value = files
+  console.log('Aktualisierte Dateien:', savedFiles.value)
 }
 
-function handleProfileSave(updatedNwk: typeof nwk.value) {
-  nwk.value = { ...updatedNwk };
-  alert('Profil wurde aktualisiert.');
-}
-
-// Beispiel-Daten Erfahrungen & Interessen
+// ----------------------------
+// Bevorzugte Abteilungen & Interessen
+// ----------------------------
 interface NwkExperience {
-  experiences: string[];
-  knowsProgramming: boolean;
-  programmingLanguages: string[];
-  interests: string[];
+  departments: string[]
+  knowsProgramming: boolean
+  programmingLanguages: string[]
+  interests: string[]
 }
 
 const nwkExperience = ref<NwkExperience>({
-  experiences: ['', '', '', '', ''],
-  knowsProgramming: false,
-  programmingLanguages: [],
-  interests: ['', '', '', '', ''],
-});
+  departments: [
+    'IT@M - IT-Dienstleistungen',
+    'Kommunalreferat - Stadtplanung',
+    'Kreisverwaltungsreferat - Bürgerdienste'
+  ],
+  knowsProgramming: true,
+  programmingLanguages: ['Java', 'Python', 'JavaScript'],
+  interests: ['Digitale Verwaltung', 'Smart City Projekte', 'Nachhaltige IT-Lösungen']
+})
 
-// Methode Erfahrung & Interessen speichern
 function handleExperienceSave(updated: NwkExperience) {
-  nwkExperience.value = { ...updated };
-  alert('Erfahrungen & Interessen gespeichert!');
+  nwkExperience.value = { ...updated }
+  alert('Bevorzugte Abteilungen & Interessen gespeichert!')
 }
 </script>

@@ -5,24 +5,8 @@
     <v-container class="box">
       <v-row>
         <v-col v-for="job in jobs" :key="job.id" cols="12">
-          <!-- Link zu dynamischer Job-Seite via id -->
           <router-link :to="`/stellen/${job.id}/JobpostingTemplateView`" class="no-underline">
-            <v-card>
-              <v-card-title class="d-flex justify-space-between align-center">
-                <span>{{ job.title }}</span>
-                <!-- Matching-Komponente -->
-                <JobMatchScore :job="job" :profile="nwkExperience" />
-              </v-card-title>
-
-              <v-card-text>
-                <v-row>
-                  <v-col>Datum: {{ job.date }}</v-col>
-                  <v-col>Entgeltgruppe: {{ job.payGrade }}</v-col>
-                  <v-col>Referat: {{ job.department }}</v-col>
-                </v-row>
-                <div class="job-description">{{ job.description }}</div>
-              </v-card-text>
-            </v-card>
+            <BaseCardJobMini :job="job" :profile="nwkExperience" />
           </router-link>
         </v-col>
       </v-row>
@@ -32,7 +16,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import JobMatchScore from '@/components/stellen/JobMatchScore.vue'
+import BaseCardJobMini from '@/components/stellen/BaseCardJobMini.vue'
 
 const nwkExperience = ref({
   experiences: ['Praktikum Webentwicklung', 'Backend bei Stadtverwaltung'],
@@ -41,7 +25,6 @@ const nwkExperience = ref({
   interests: ['Webentwicklung', 'Cloud', 'Datenbanken', 'IT-Sicherheit']
 })
 
-// Beispiel-Daten für offene Stellen
 const jobs = ref([
   {
     id: 1,
@@ -70,8 +53,5 @@ const jobs = ref([
 .no-underline {
   text-decoration: none;
   color: inherit;
-}
-.job-description {
-  margin-top: 10px;
 }
 </style>

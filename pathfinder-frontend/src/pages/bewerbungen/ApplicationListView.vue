@@ -58,7 +58,6 @@ interface Job {
   date: string
   payGrade: string
   department: string
-  description: string
   status: 'eingegangen' | 'in_bearbeitung' | 'akzeptiert' | 'abgelehnt'
 }
 
@@ -70,7 +69,6 @@ const jobs = ref<Job[]>([
     date: '01.09.2025',
     payGrade: 'E10',
     department: 'it@M',
-    description: 'Du unterstützt das DevOps-Team bei der Automatisierung von Prozessen.',
     status: 'in_bearbeitung'
   },
   {
@@ -79,7 +77,6 @@ const jobs = ref<Job[]>([
     date: '15.08.2025',
     payGrade: 'E9',
     department: 'Web Development',
-    description: 'Frontend-Entwicklung mit Vue.js und Vuetify.',
     status: 'abgelehnt'
   }
 ])
