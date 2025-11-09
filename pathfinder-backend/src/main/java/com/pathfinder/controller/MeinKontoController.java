@@ -2,6 +2,7 @@ package com.pathfinder.controller;
 
 import com.pathfinder.model.Abteilung;
 import com.pathfinder.model.Nachwuchskraft;
+import com.pathfinder.model.Tag;
 import com.pathfinder.service.AbteilungService;
 import com.pathfinder.service.NachwuchskraftService;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +41,7 @@ public class MeinKontoController {
             public final String email = nwk.getEmail();
             public final String studienrichtung = nwk.getStudienrichtung();
             public final String jahrgang = nwk.getJahrgang();
-            public final String praktika = nwk.getPraktika();
+            public final List<Abteilung> praktika = nwk.getPraktika();
         };
 
         return ResponseEntity.ok(dto);
@@ -57,12 +58,13 @@ public class MeinKontoController {
 
         var dto = new Object() {
             public final Long id = nwk.getId();
-            public final String interessen = nwk.getInteressen();
+            public final List<Tag> interessen = nwk.getInteressen();
             public final List<Abteilung> wunschabteilungen = nwk.getWunschabteilungen();
         };
 
         return ResponseEntity.ok(dto);
     }
+
 
     // ========================================================
     // PUT /api/meinKonto/experience/{nwkId}
@@ -76,8 +78,10 @@ public class MeinKontoController {
         Nachwuchskraft existing = nwkService.getById(id);
         if (existing == null) return ResponseEntity.notFound().build();
 
-        // Interessen direkt übernehmen
-        existing.setInteressen(updated.getInteressen());
+        // Interessen aktualisieren
+        if (updated.getInteressen() != null) {
+            existing.setInteressen(updated.getInteressen());
+        }
 
         // Wunschabteilungen aktualisieren
         if (updated.getWunschabteilungen() != null) {
@@ -85,11 +89,11 @@ public class MeinKontoController {
                     .map(a -> abteilungService.getById(a.getId()))
                     .filter(a -> a != null)
                     .collect(Collectors.toCollection(ArrayList::new));
-
             existing.setWunschabteilungen(neueAbteilungen);
         }
 
         Nachwuchskraft saved = nwkService.save(existing);
         return ResponseEntity.ok(saved);
     }
+
 }

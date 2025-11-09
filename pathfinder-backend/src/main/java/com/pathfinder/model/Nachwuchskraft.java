@@ -41,13 +41,25 @@ public class Nachwuchskraft {
     private LocalDateTime erstelltAm = LocalDateTime.now();
 
     // vom Nachwuchskraft selbst bearbeitbar
-    @Column(name = "INTERESSEN", length = 1000)
-    private String interessen;
+    @ManyToMany
+    @JoinTable(
+            name = "nachwuchskraft_interesse",
+            joinColumns = @JoinColumn(name = "nachwuchskraft_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private List<Tag> interessen = new ArrayList<>();
 
     // umbenannt: Erfahrungen -> Praktika
     // nicht mehr über /meinKonto von NWK bearbeitbar
-    @Column(name = "PRAKTIKA", length = 2000)
-    private String praktika;
+    // absolvierte Praktika (n:m)
+    @ManyToMany
+    @JoinTable(
+            name = "nachwuchskraft_praktikum",
+            joinColumns = @JoinColumn(name = "nachwuchskraft_id"),
+            inverseJoinColumns = @JoinColumn(name = "abteilung_id")
+    )
+    private List<Abteilung> praktika = new ArrayList<>();
+
 
     // Beziehung zu Anhaenge (1:n)
     @OneToMany(mappedBy = "nachwuchskraft", cascade = CascadeType.ALL, orphanRemoval = true)

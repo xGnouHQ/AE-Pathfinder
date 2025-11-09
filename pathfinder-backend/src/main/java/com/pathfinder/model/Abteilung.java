@@ -25,4 +25,9 @@ public class Abteilung {
     @ManyToMany(mappedBy = "wunschabteilungen")
     @JsonIgnore
     private List<Nachwuchskraft> interessierteNachwuchskraefte = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "praktika")
+    @JsonIgnore
+    private List<Nachwuchskraft> praktikumNachwuchskraefte = new ArrayList<>();
+
 }
