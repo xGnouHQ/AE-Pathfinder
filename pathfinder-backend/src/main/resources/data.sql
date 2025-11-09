@@ -10,12 +10,40 @@ VALUES
 -- ===========================
 -- NACHWUCHSKRAFT
 -- ===========================
-INSERT INTO NACHWUCHSKRAFT (ID, EINTRITTSJAHR, EMAIL, ERSTELLT_AM, NACHNAME, PERSONALNUMMER, STUDIENRICHTUNG, VORNAME)
+INSERT INTO NACHWUCHSKRAFT
+(ID, JAHRGANG, EMAIL, ERSTELLT_AM, NACHNAME, PERSONALNUMMER, STUDIENRICHTUNG, VORNAME, INTERESSEN, PRAKTIKA)
 VALUES
-(1, 2022, 'max.mustermann@bwi.de', '2024-01-05', 'Mustermann', 'P1001', 'Wirtschaftsinformatik', 'Max'),
-(2, 2023, 'sophie.meier@bwi.de', '2024-02-12', 'Meier', 'P1002', 'Informatik', 'Sophie'),
-(3, 2021, 'leon.schneider@bwi.de', '2024-03-18', 'Schneider', 'P1003', 'BWL', 'Leon'),
-(4, 2024, 'lena.huber@bwi.de', '2024-04-22', 'Huber', 'P1004', 'Verwaltungsinformatik', 'Lena');
+(1, '2022/2025', 'max.mustermann@bwi.de', '2024-01-05T09:00:00', 'Mustermann', 'P1001',
+ 'Wirtschaftsinformatik', 'Max',
+ 'IT-Architektur, Cloud, Java',
+ 'IT@M - IT-Dienstleistungen'),
+(2, '2023/2026', 'sophie.meier@bwi.de', '2024-02-12T10:00:00', 'Meier', 'P1002',
+ 'Informatik', 'Sophie',
+ 'Frontend, UX, E-Government',
+ 'Kommunalreferat - Stadtplanung'),
+(3, '2021/2024', 'leon.schneider@bwi.de', '2024-03-18T11:00:00', 'Schneider', 'P1003',
+ 'BWL', 'Leon', 'Finanzen, Controlling', 'Finanzen'),
+(4, '2024/2027', 'lena.huber@bwi.de', '2024-04-22T12:00:00', 'Huber', 'P1004',
+ 'Verwaltungsinformatik', 'Lena',
+ 'Bürgerdienste, Prozessdigitalisierung',
+ 'Kreisverwaltungsreferat - Bürgerdienste');
+
+INSERT INTO ABTEILUNG (ID, NAME) VALUES
+(1, 'IT@M - IT-Dienstleistungen'),
+(2, 'IT-Architektur'),
+(3, 'Finanzen'),
+(4, 'Kreisverwaltungsreferat - Bürgerdienste'),
+(5, 'Kommunalreferat - Stadtplanung');
+
+INSERT INTO WUNSCHABTEILUNG (NACHWUCHSKRAFT_ID, ABTEILUNG_ID) VALUES
+(1, 1),
+(1, 2),
+(1, 4),
+(2, 1),
+(2, 5),
+(3, 3),
+(4, 4),
+(4, 5);
 
 -- ===========================
 -- STELLE
@@ -28,9 +56,38 @@ VALUES
 (4, 'Unterstützung IT-Support', '2024-12-15', 'München', 'OFFEN', 'IT-Support Assistent (m/w/d)', 1);
 
 -- ===========================
--- STELLE_TAGS
+-- TAG
 -- ===========================
--- Testdaten entfernt
+INSERT INTO TAG (ID, NAME)
+VALUES
+(1, 'Java'),
+(2, 'Spring Boot'),
+(3, 'HR'),
+(4, 'Controlling'),
+(5, 'Finanzen'),
+(6, 'Support'),
+(7, 'IT');
+
+-- ===========================
+-- STELLE_TAG
+-- ===========================
+INSERT INTO STELLE_TAG (STELLE_ID, TAG_ID)
+VALUES
+-- Softwareentwickler (m/w/d)
+(1, 1),
+(1, 2),
+(1, 7),
+
+-- HR Analyst (m/w/d)
+(2, 3),
+(2, 4),
+
+-- Sachbearbeiter Finanzen
+(3, 5),
+
+-- IT-Support Assistent (m/w/d)
+(4, 6),
+(4, 7);
 
 -- ===========================
 -- BEWERBUNG
