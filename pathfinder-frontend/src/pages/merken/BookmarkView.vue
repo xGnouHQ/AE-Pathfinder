@@ -13,27 +13,42 @@
         <BaseCardMarkJob
           :job="job"
           :profile="userProfile"
-          :savedJobs="bookmarkedJobs"
+          @remove="removeJob(job.id)"
         />
+      </v-col>
+
+      <v-col v-if="bookmarkedJobs.length === 0" cols="12">
+        <p>Keine gemerkten Stellen vorhanden.</p>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
 import BaseCardMarkJob from '@/components/stellen/BaseCardMarkJob.vue'
 
-interface JobMini {
+interface Stelle {
   id: number
-  title: string
-  date: string
-  payGrade: string
-  department: string
-  description: string
+  titel: string
+  standort: string
+  art?: string
+  vertragsart?: string
+  entgeltgruppe?: string
+  bereich?: string
+  beschreibung?: string
+  erwartungen?: string
+  anforderungen?: string
 }
 
-// Beispielprofil des Users (für Matching)
+interface GemerkteStelle {
+  id: number // entspricht stelle.id
+  stelle: Stelle
+  erstelltAm: string
+}
+
+// Beispielprofil des Users
 const userProfile = ref({
   experiences: ['DevOps', 'CI/CD', 'Linux'],
   knowsProgramming: true,
@@ -41,23 +56,41 @@ const userProfile = ref({
   interests: ['Automatisierung', 'Cloud', 'Sicherheit']
 })
 
-// Beispielhafte gemerkte Jobs
-const bookmarkedJobs = ref<JobMini[]>([
-  {
-    id: 1,
-    title: 'DevOps Junior',
-    date: '01.11.2025',
-    payGrade: 'E10 TVöD',
-    department: 'it@M',
-    description: 'Unterstütze das DevOps-Team bei der Automatisierung unserer Systeme.'
-  },
-  {
-    id: 2,
-    title: 'Softwareentwickler Frontend',
-    date: '15.12.2025',
-    payGrade: 'E11 TVöD',
-    department: 'Digitalisierung',
-    description: 'Entwickle moderne Webanwendungen auf Basis von Vue.js und TypeScript.'
+// Nachwuchskraft-ID (hier festgesetzt, kann dynamisch aus Login kommen)
+const nwkId = 1
+
+// Gemerkte Stellen
+const bookmarkedJobs = ref<Stelle[]>([])
+
+// Gemerkte Stellen vom Backend laden
+const ladeGemerkteStellen = async () => {
+  try {
+    const response = await axios.get<GemerkteStelle[]>(`http://localhost:8080/api/meineListe/nachwuchskraft/${nwkId}`)
+    // Nur die Stelle selbst extrahieren
+    bookmarkedJobs.value = response.data.map(e => ({ ...e.stelle }))
+  } catch (error) {
+    console.error('Fehler beim Laden der gemerkten Stellen:', error)
+    bookmarkedJobs.value = []
   }
-])
+}
+
+// Eintrag aus der Merkliste löschen
+const removeJob = async (stellenId: number) => {
+  if (!confirm('Möchtest du diese Stelle wirklich aus der Merkliste entfernen?')) return
+  try {
+    await axios.delete(`http://localhost:8080/api/meineListe/${stellenId}/nachwuchskraft/${nwkId}`)
+    bookmarkedJobs.value = bookmarkedJobs.value.filter(job => job.id !== stellenId)
+  } catch (error) {
+    console.error('Fehler beim Entfernen der Stelle:', error)
+    alert('Fehler beim Entfernen der Stelle')
+  }
+}
+
+onMounted(ladeGemerkteStellen)
 </script>
+
+<style scoped>
+h1 {
+  margin-bottom: 20px;
+}
+</style>

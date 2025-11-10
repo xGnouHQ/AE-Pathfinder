@@ -28,7 +28,7 @@
 import { ref, watch, defineProps, defineEmits } from 'vue'
 
 interface StoredFile {
-  id: string
+  id: string | number
   name: string
   fileObject?: File
   url?: string
@@ -38,6 +38,7 @@ interface StoredFile {
 const props = defineProps<{
   modelValue: boolean
   savedFiles: StoredFile[]
+  nwkId: number
 }>()
 
 // Emits
@@ -66,8 +67,32 @@ function onFilesSelected(event: Event) {
 }
 
 // Dateien speichern
-function saveFiles() {
-  const allFiles = [...props.savedFiles, ...internalFiles.value]
+async function saveFiles() {
+  const nwkId = props.nwkId
+  const allFiles: StoredFile[] = [...props.savedFiles]
+
+  for (const file of internalFiles.value) {
+    if (!file.fileObject) continue
+    const formData = new FormData()
+    formData.append('file', file.fileObject)
+    formData.append('nwkId', nwkId.toString())
+
+    const res = await fetch(`/api/meinKonto/documents`, {
+      method: 'POST',
+      body: formData
+    })
+    if (!res.ok) {
+      console.error(`Upload fehlgeschlagen: ${res.status}`)
+      continue
+    }
+    const saved = await res.json()
+    allFiles.push({
+      id: saved.id,
+      name: saved.dateipfad.split('/').pop() ?? saved.name,
+      url: saved.dateipfad
+    })
+  }
+
   emit('save', allFiles)
   closeDialog()
 }

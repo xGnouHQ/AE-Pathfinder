@@ -36,44 +36,90 @@
     <BaseDialogNwkUploadDocuments
       v-model="dialogOpen"
       :savedFiles="files"
+      :nwkId="nwkId"
       @save="handleUploadSave"
     />
   </v-card>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import BaseDialogNwkUploadDocuments from './BaseDialogNwkUploadDocuments.vue' // Pfad anpassen
+import { ref, onMounted, defineProps } from 'vue'
+import BaseDialogNwkUploadDocuments from './BaseDialogNwkUploadDocuments.vue'
 
 interface StoredFile {
-  id: string
+  id: number | string
   name: string
   url?: string
   fileObject?: File
 }
 
-const files = ref<StoredFile[]>([
-  { id: '1', name: 'Lebenslauf.pdf', url: '/files/Lebenslauf.pdf' },
-  { id: '2', name: 'Zeugnis.docx', url: '/files/Zeugnis.docx' },
-])
+// Props
+const props = defineProps<{
+  nwkId: number
+}>();
 
+const nwkId = props.nwkId ?? 1
+
+const files = ref<StoredFile[]>([])
 const snackbar = ref({ show: false, message: '' })
 const dialogOpen = ref(false)
 
-// Datei löschen
-function deleteFile(fileId: string) {
-  const file = files.value.find(f => f.id === fileId)
-  if (!file) return
-
-  files.value = files.value.filter(f => f.id !== fileId)
-  snackbar.value.message = `Dokument "${file.name}" wurde gelöscht.`
-  snackbar.value.show = true
+// ----------------------------
+// Dokumente vom Backend laden
+// ----------------------------
+async function loadDocuments() {
+  try {
+    const res = await fetch(`/api/meinKonto/documents/${nwkId}`)
+    if (!res.ok) {
+      if (res.status === 204) {
+        files.value = []
+        return
+      }
+      throw new Error(`Fehler beim Laden: ${res.status}`)
+    }
+    const data = await res.json()
+    files.value = data.map((d: any) => ({
+      id: d.id,
+      name: d.dateipfad.split('/').pop() ?? d.name ?? 'Unbekannt',
+      url: d.dateipfad ?? ''
+    }))
+  } catch (err) {
+    console.error('Fehler beim Laden der Dokumente:', err)
+    snackbar.value.message = 'Fehler beim Laden der Dokumente'
+    snackbar.value.show = true
+  }
 }
 
-// Upload speichern
+// ----------------------------
+// Datei löschen
+// ----------------------------
+async function deleteFile(fileId: number | string) {
+  try {
+    const res = await fetch(`/api/meinKonto/documents/${fileId}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error(`Fehler: ${res.status}`)
+    files.value = files.value.filter(f => f.id !== fileId)
+    snackbar.value.message = 'Dokument gelöscht'
+    snackbar.value.show = true
+  } catch (err) {
+    console.error('Fehler beim Löschen:', err)
+    snackbar.value.message = 'Fehler beim Löschen des Dokuments'
+    snackbar.value.show = true
+  }
+}
+
+// ----------------------------
+// Upload speichern (vom Dialog)
+// ----------------------------
 function handleUploadSave(newFiles: StoredFile[]) {
   files.value = newFiles
-  snackbar.value.message = `Dateien wurden hochgeladen.`
+  snackbar.value.message = 'Dateien wurden hochgeladen.'
   snackbar.value.show = true
 }
+
+// ----------------------------
+// onMounted: Dokumente laden
+// ----------------------------
+onMounted(() => {
+  loadDocuments()
+})
 </script>

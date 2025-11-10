@@ -1,51 +1,51 @@
 <template>
   <v-dialog v-model="dialog" max-width="600">
     <v-card>
-      <!-- Titel -->
       <v-card-title class="text-h6 font-weight-bold">
         Bewerbung für: {{ job?.title || "Unbekannte Stelle" }}
       </v-card-title>
 
       <v-divider></v-divider>
 
-      <!-- Inhalt -->
       <v-card-text>
-        <!-- Checkbox -->
+        <!-- Einwilligung -->
         <v-checkbox
           v-model="consent"
           label="Ich willige ein, dass meine persönlichen Daten für diese Bewerbung weitergegeben werden."
-        ></v-checkbox>
+        />
 
-        <!-- Dokumente auswählen -->
-        <v-select
-          v-model="selectedFiles"
-          :items="uploadedFiles"
-          item-title="name"
-          item-value="id"
-          label="Dokumente auswählen, die mitgesendet werden sollen"
-          multiple
-          chips
-        ></v-select>
+        <!-- Dokumente immer sichtbar -->
+        <div class="mt-4">
+          <p class="font-weight-medium mb-2">Dokumente auswählen (optional)</p>
+          <v-select
+            v-model="selectedFiles"
+            :items="uploadedFiles"
+            item-title="name"
+            item-value="id"
+            multiple
+            chips
+            dense
+            :disabled="uploadedFiles.length === 0"
+            placeholder="Keine Dokumente vorhanden"
+          />
+        </div>
 
-        <!-- Notizfeld -->
+        <!-- Optional: HR-Notiz -->
         <v-textarea
           v-model="hrNote"
-          label="Notiz für HR"
-          placeholder="Optional: Zusätzliche Informationen oder Wünsche"
+          label="Notiz für HR (optional)"
+          placeholder="Zusätzliche Informationen oder Wünsche"
           rows="3"
           auto-grow
-        ></v-textarea>
+          class="mt-4"
+        />
       </v-card-text>
 
       <v-divider></v-divider>
 
-      <!-- Buttons -->
       <v-card-actions class="justify-end">
         <BaseButtonCancel @click="closeDialog" />
-        <BaseButtonVerify
-          :disabled="!consent"
-          @click="submitApplication"
-        />
+        <BaseButtonVerify :disabled="!consent" @click="submitApplication" />
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -56,22 +56,8 @@ import { ref, watch } from "vue";
 import BaseButtonCancel from "@/components/common/BaseButtonCancel.vue";
 import BaseButtonVerify from "@/components/common/BaseButtonVerify.vue";
 
-interface FileItem {
-  id: string;
-  name: string;
-}
-
-interface Job {
-  title: string;
-  date: string;
-  type: string;
-  contractType: string;
-  payGrade: string;
-  start: string;
-  area: string;
-  expectations: string;
-  requirements: string;
-}
+interface FileItem { id: number; name: string; path: string; typ: string; hochgeladenAm: string; }
+interface Job { id?: number; title: string; }
 
 const props = defineProps<{
   modelValue: boolean;
@@ -81,27 +67,24 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: boolean): void;
-  (e: "submit", data: {
-    job: Job;
-    consent: boolean;
-    selectedFiles: string[];
-    hrNote: string;
-  }): void;
+  (e: "submit", data: { job: Job; consent: boolean; selectedFiles: number[]; hrNote: string }): void;
 }>();
 
 const dialog = ref(props.modelValue);
 const consent = ref(false);
-const selectedFiles = ref<string[]>([]);
+const selectedFiles = ref<number[]>([]);
 const hrNote = ref("");
 
-// v-model synchronisieren
-watch(() => props.modelValue, (val) => (dialog.value = val));
-watch(dialog, (val) => emit("update:modelValue", val));
+// Watch für v-model Synchronisation
+watch(() => props.modelValue, val => (dialog.value = val));
+watch(dialog, val => emit("update:modelValue", val));
 
+// Dialog schließen
 function closeDialog() {
   dialog.value = false;
 }
 
+// Submit minimalistisch
 function submitApplication() {
   if (!props.job) return;
 
@@ -112,7 +95,7 @@ function submitApplication() {
     hrNote: hrNote.value,
   });
 
-  // reset + schließen
+  // Reset
   consent.value = false;
   selectedFiles.value = [];
   hrNote.value = "";
@@ -121,7 +104,10 @@ function submitApplication() {
 </script>
 
 <style scoped>
-.v-card-title {
-  font-weight: 600;
+.mt-4 {
+  margin-top: 16px;
+}
+.font-weight-medium {
+  font-weight: 500;
 }
 </style>
