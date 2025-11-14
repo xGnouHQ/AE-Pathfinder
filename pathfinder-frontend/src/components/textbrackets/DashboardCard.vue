@@ -16,7 +16,7 @@
         <v-divider class="my-6" />
 
         <!-- Application Status Section -->
-        <ApplicationStatusText :notifications="notifications" />
+        <ApplicationStatusText :nwkId="nwkId" />
       </v-card-text>
     </v-card>
   </v-container>
@@ -31,7 +31,10 @@ import ApplicationStatusText from '@/components/textbrackets/ApplicationStatusTe
 // Router
 const router = useRouter()
 
-// Example profile
+// 🧩 Nachwuchskraft-ID (später dynamisch, aktuell fest 1)
+const nwkId = 1
+
+// 🔹 Beispielprofil (nur für Matching)
 const nwkExperience = ref({
   experiences: ['Web Development Internship', 'Backend at City Office'],
   knowsProgramming: true,
@@ -39,29 +42,21 @@ const nwkExperience = ref({
   interests: ['Cloud', 'Automation', 'IT Security']
 })
 
-// Example jobs
+// 🔹 Beispieljobs (nur für Matching-Anzeige)
 const jobs = ref([
   { id: 1, title: 'DevOps Junior', department: 'IT Department', description: 'Manage cloud systems' },
   { id: 2, title: 'Frontend Developer', department: 'Web Development', description: 'Develop UI/UX' },
   { id: 3, title: 'Data Analyst', department: 'Controlling', description: 'Analyze data' }
 ])
 
-// Application notifications
-const notifications = ref([
-  { id: 1, message: 'Application for DevOps Junior has been reviewed.', date: '27.10.2025' },
-  { id: 2, message: 'Frontend Developer application accepted!', date: '25.10.2025' }
-])
-
-// Matching calculation
+// 🔹 Matching-Berechnung
 function calculateMatch(job: any, profile: any): number {
   const text = `${job.title} ${job.description}`.toLowerCase()
   const keywords = [
     ...profile.experiences,
     ...profile.interests,
     ...(profile.knowsProgramming ? profile.programmingLanguages : [])
-  ]
-    .filter(Boolean)
-    .map((s: string) => s.toLowerCase())
+  ].filter(Boolean).map((s: string) => s.toLowerCase())
 
   if (!keywords.length) return 0
 
@@ -69,7 +64,7 @@ function calculateMatch(job: any, profile: any): number {
   return Math.round((matches / keywords.length) * 100)
 }
 
-// Jobs filtered with match >= 70%
+// 🔹 Nur relevante Jobs anzeigen (>=70%)
 const matchingJobs = computed(() =>
   jobs.value
     .map(job => ({ ...job, match: calculateMatch(job, nwkExperience.value) }))

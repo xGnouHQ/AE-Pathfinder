@@ -1,18 +1,25 @@
 <template>
-  <v-dialog v-model="internalModel" max-width="600px">
+  <!-- Wichtig: Dialog sichtbar, wenn internalModel true -->
+  <v-dialog v-model="internalModel" max-width="600px" persistent>
     <v-card>
-      <v-card-title>Bevorzugte Abteilungen & Interessen bearbeiten</v-card-title>
+      <v-card-title class="text-h6">
+        Bevorzugte Abteilungen & Interessen bearbeiten
+      </v-card-title>
+
       <v-card-text>
         <v-form ref="form">
-          <!-- Bevorzugte Abteilungen -->
+          <!-- Abteilungen -->
           <div class="mb-4">
             <h3>Bevorzugte Abteilungen <span class="text-red">*</span></h3>
-            <v-text-field
-              v-for="(dept, index) in formData.departments"
-              :key="index"
-              v-model="formData.departments[index]"
+            <v-select
+              v-for="(item, index) in formData.erfahrung"
+              :key="'erfahrung-' + index"
+              v-model="formData.erfahrung[index]"
               :label="`Abteilung ${index + 1}`"
+              :items="erfahrungOptions"
               class="mb-2"
+              clearable
+              hide-details
             />
           </div>
 
@@ -25,17 +32,21 @@
             v-if="formData.knowsProgramming"
             v-model="formData.programmingLanguagesString"
             label="Programmiersprachen (Komma getrennt)"
+            hide-details
           />
 
           <!-- Interessen -->
           <div class="mt-4">
             <h3>Interessen <span class="text-red">*</span></h3>
-            <v-text-field
+            <v-select
               v-for="(interest, index) in formData.interests"
-              :key="index"
+              :key="'interest-' + index"
               v-model="formData.interests[index]"
               :label="`Interesse ${index + 1}`"
+              :items="interestOptions"
               class="mb-2"
+              clearable
+              hide-details
             />
           </div>
 
@@ -57,7 +68,7 @@
 import { ref, watch } from 'vue'
 
 interface NwkExperience {
-  departments: string[]  // früher "experiences"
+  erfahrung: string[]
   knowsProgramming: boolean
   programmingLanguages: string[]
   interests: string[]
@@ -65,72 +76,99 @@ interface NwkExperience {
 
 const props = defineProps<{
   modelValue: boolean
-  nwk: NwkExperience
+  nwkExperience: NwkExperience
+  nwkId: number
 }>()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
-  (e: 'save', updatedNwk: NwkExperience): void
+  (e: 'save', updated: NwkExperience): void
 }>()
 
 const internalModel = ref(props.modelValue)
 const error = ref('')
 
-watch(() => props.modelValue, (val) => (internalModel.value = val))
-watch(internalModel, (val) => emit('update:modelValue', val))
+// Synchronisation mit Props
+watch(() => props.modelValue, val => (internalModel.value = val))
+watch(internalModel, val => emit('update:modelValue', val))
 
-// 🟢 Initiale Felder (3 Abteilungen, 5 Interessen)
+// Optionen
+const erfahrungOptions = ['Km1', 'Km2', 'Km3', 'Km4']
+const interestOptions = ['Programmieren', 'Teamarbeit', 'Infrastruktur', 'Projekt']
+
+// Default-Werte
 const formData = ref({
-  departments: ['', '', ''],
+  erfahrung: [null, null, null],
   knowsProgramming: false,
   programmingLanguagesString: '',
-  interests: ['', '', '', '', ''],
+  interests: [null, null, null, null, null]
 })
 
-// props → formData synchronisieren
+// Props → formData synchronisieren
 watch(
-  () => props.nwk,
-  (newVal) => {
-    formData.value.departments = [...newVal.departments]
+  () => props.nwkExperience,
+  newVal => {
+    if (!newVal) return
+    formData.value.erfahrung = newVal.erfahrung?.length
+      ? [...newVal.erfahrung]
+      : [null, null, null]
     formData.value.knowsProgramming = newVal.knowsProgramming
     formData.value.programmingLanguagesString = newVal.programmingLanguages.join(', ')
-    formData.value.interests = [...newVal.interests]
+    formData.value.interests = newVal.interests?.length
+      ? [...newVal.interests]
+      : [null, null, null, null, null]
   },
   { immediate: true }
 )
 
-watch(
-  () => formData.value.knowsProgramming,
-  (val) => {
-    if (!val) formData.value.programmingLanguagesString = ''
-  }
-)
+watch(() => formData.value.knowsProgramming, val => {
+  if (!val) formData.value.programmingLanguagesString = ''
+})
 
 function close() {
   error.value = ''
   internalModel.value = false
 }
 
-function save() {
-  const hasDepartment = formData.value.departments.some((d) => d.trim().length > 0)
-  const hasInterest = formData.value.interests.some((i) => i.trim().length > 0)
+async function save() {
+  const hasErfahrung = formData.value.erfahrung.some(e => e && e.trim().length > 0)
+  const hasInterest = formData.value.interests.some(i => i && i.trim().length > 0)
 
-  if (!hasDepartment || !hasInterest) {
+  if (!hasErfahrung || !hasInterest) {
     error.value = 'Bitte mindestens eine bevorzugte Abteilung und ein Interesse angeben.'
     return
   }
 
   const updatedNwk: NwkExperience = {
-    departments: [...formData.value.departments],
+    erfahrung: formData.value.erfahrung.filter(Boolean),
     knowsProgramming: formData.value.knowsProgramming,
     programmingLanguages: formData.value.programmingLanguagesString
       .split(',')
-      .map((lang) => lang.trim())
-      .filter((lang) => lang.length > 0),
-    interests: [...formData.value.interests],
+      .map(lang => lang.trim())
+      .filter(lang => lang.length > 0),
+    interests: formData.value.interests.filter(Boolean)
   }
 
-  emit('save', updatedNwk)
-  close()
+  try {
+    const res = await fetch(`/api/meinKonto/experience/${props.nwkId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        interessen: updatedNwk.interests.join(', '),
+        erfahrung: updatedNwk.erfahrung.join(', ')
+      })
+    })
+
+    const text = await res.text() // 👈 Antworttext lesen
+    console.log('Serverantwort:', res.status, text) // 👈 Debug
+
+    if (!res.ok) throw new Error(`Fehler: ${res.status}`)
+    emit('save', updatedNwk)
+    close()
+    alert('Erfahrungen & Interessen gespeichert!')
+  } catch (err) {
+    console.error('Fehler beim Speichern:', err)
+    error.value = 'Fehler beim Speichern!'
+  }
 }
 </script>

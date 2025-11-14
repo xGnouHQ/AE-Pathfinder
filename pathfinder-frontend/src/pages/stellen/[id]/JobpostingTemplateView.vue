@@ -4,15 +4,22 @@
 
     <v-container class="box">
       <v-row>
+        <!-- JobCard anzeigen -->
         <v-col cols="12">
-          <!-- JobCard zeigt die Details der ausgewählten Stelle -->
-          <JobCard v-if="job" :job="job" />
+          <JobCard
+            v-if="stelle"
+            :stelle="stelle"
+            :nwk="nwk"
+            @merken="merkeStelle"
+          />
         </v-col>
 
+        <!-- Bewerbungsbutton -->
         <v-col cols="12" class="mt-3">
-
-          <!-- Bewerbungsbutton -->
-          <BaseButtonApplication v-if="job" @click="openDialog(job)" />
+          <BaseButtonApplication
+            v-if="stelle && stelle.status === 'OFFEN'"
+            @click="openDialog(stelle)"
+          />
         </v-col>
       </v-row>
     </v-container>
@@ -20,97 +27,129 @@
     <!-- Bewerbungsdialog -->
     <BaseDialogApplication
       v-model="dialogOpen"
-      :job="selectedJob"
-      :uploaded-files="uploadedFiles"
+      :job="selectedStelle"
+      :uploaded-files="nwkDocuments"
       @submit="handleSubmit"
     />
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue"
-import { useRoute } from "vue-router"
+import { ref, onMounted, watch } from "vue";
+import { useRoute } from "vue-router";
+import axios from "axios";
 
-import JobCard from "@/components/stellen/JobCard.vue"
-import BaseButtonApplication from "@/components/common/BaseButtonApplication.vue"
-import BaseDialogApplication from "@/components/bewerbungen/BaseDialogApplication.vue"
+import JobCard from "@/components/stellen/JobCard.vue";
+import BaseButtonApplication from "@/components/common/BaseButtonApplication.vue";
+import BaseDialogApplication from "@/components/bewerbungen/BaseDialogApplication.vue";
 
-interface Responsible {
-  name: string
-  email: string
-}
+const API_STELLE = "http://localhost:8080/api/stellen";
+const API_BEWERBUNG = "http://localhost:8080/api/bewerbungen";
+const API_MERKLISTE = "http://localhost:8080/api/meineListe";
+const API_NWK_DOCS = "http://localhost:8080/api/meinKonto/documents";
 
-interface Job {
-  id: number
-  title: string
-  date: string
-  type: string
-  contractType: string
-  payGrade: string
-  start: string
-  area: string
-  expectations: string
-  requirements: string
-  responsible: Responsible
-}
+const route = useRoute();
 
-// Dummy-Daten für alle Jobs
-const jobs = ref<Job[]>([
-  {
-    id: 1,
-    title: "DevOps Junior",
-    date: "01.11.2025",
-    type: "Vollzeit",
-    contractType: "unbefristet",
-    payGrade: "E10 TvöD",
-    start: "bald",
-    area: "it@M",
-    expectations:
-      "Du unterstützt unser DevOps-Team bei der Automatisierung und dem Betrieb von Cloud-Systemen.",
-    requirements: "Kenntnisse in CI/CD, Docker, Linux und Git sind wünschenswert.",
-    responsible: { name: "Max Mustermann", email: "max.mustermann@muenchen.de" },
+const stelle = ref<any>(null);
+const nwk = ref<any>({ id: 1 }); // Beispiel Nachwuchskraft
+const dialogOpen = ref(false);
+const selectedStelle = ref<any>(null);
+const nwkDocuments = ref<any[]>([]);
+
+// --- Stelle laden + Merkliste prüfen
+const ladeStelle = async (id: string | string[]) => {
+  try {
+    const res = await axios.get(`${API_STELLE}/${id}`);
+    const merklisteRes = await axios.get(`${API_MERKLISTE}/nachwuchskraft/${nwk.value.id}`);
+    const gemerktIds = merklisteRes.data.map((e: any) => e.stelle.id);
+
+    // Backend-Feld 'titel' → Frontend-Feld 'title'
+    stelle.value = {
+      ...res.data,
+      title: res.data.titel,
+      gemerkt: gemerktIds.includes(res.data.id)
+    };
+  } catch (err) {
+    console.error("Fehler beim Laden der Stelle:", err);
+  }
+};
+
+// --- Nachwuchskraft-Dokumente laden
+const ladeNachwuchskraft = async () => {
+  try {
+    const resDocs = await axios.get(`${API_NWK_DOCS}/${nwk.value.id}`);
+    nwkDocuments.value = resDocs.data.map((doc: any) => ({
+      id: doc.id,
+      name: doc.dateipfad.split("/").pop(),
+      path: doc.dateipfad,
+      typ: doc.typ,
+      hochgeladenAm: doc.hochgeladenAm,
+    }));
+  } catch (err) {
+    console.error("Fehler beim Laden der Dokumente:", err);
+  }
+};
+
+// --- Route beobachten
+watch(
+  () => route.params.id,
+  (id) => {
+    if (id) ladeStelle(id);
   },
-  {
-    id: 2,
-    title: "Frontend Developer",
-    date: "15.12.2025",
-    type: "Vollzeit",
-    contractType: "unbefristet",
-    payGrade: "E9 TvöD",
-    start: "bald",
-    area: "Web Development",
-    expectations: "Frontend-Entwicklung mit Vue.js und Vuetify.",
-    requirements: "Kenntnisse in HTML, CSS, JavaScript und Vue erforderlich.",
-    responsible: { name: "Erika Musterfrau", email: "erika.musterfrau@muenchen.de" },
-  },
-])
+  { immediate: true }
+);
 
-// Router-Parameter abrufen
-const route = useRoute()
-const jobId = Number(route.params.id)
-
-// Job basierend auf id filtern
-const job = computed(() => jobs.value.find((j) => j.id === jobId))
-
-// Dialog-Handling
-const dialogOpen = ref(false)
-const selectedJob = ref<Job | null>(null)
-const uploadedFiles = ref([
-  { id: "1", name: "Lebenslauf_MaxMustermann.pdf" },
-  { id: "2", name: "Motivationsschreiben.pdf" },
-  { id: "3", name: "Zeugnis_2024.pdf" },
-])
-
-function openDialog(job: Job) {
-  selectedJob.value = job
-  dialogOpen.value = true
+// --- Dialog öffnen
+function openDialog(stelleData: any) {
+  selectedStelle.value = stelleData;
+  dialogOpen.value = true;
 }
 
-function handleSubmit(data: any) {
-  console.log("Bewerbung übermittelt:", data)
-  alert(`✅ Bewerbung für "${data.job.title}" wurde erfolgreich gesendet!`)
+// --- Bewerbung absenden
+async function handleSubmit(data: { job: any; consent: boolean; selectedFiles?: number[]; hrNote?: string }) {
+  if (!data.job || !nwk.value) return;
+
+  try {
+    await axios.post(
+      API_BEWERBUNG,
+      {
+        stelleId: data.job.id,
+        nachwuchskraftId: nwk.value.id,
+        hrNote: data.hrNote || "",
+        fileIds: data.selectedFiles || []
+      },
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    alert(`✅ Bewerbung für "${data.job.title}" erfolgreich gesendet!`);
+    dialogOpen.value = false;
+  } catch (err: any) {
+    console.error("Fehler beim Absenden:", err);
+    alert(err.response?.data?.message || "Fehler beim Absenden der Bewerbung");
+  }
 }
+
+// --- Stelle merken
+async function merkeStelle(id: number) {
+  try {
+    await axios.post(`${API_MERKLISTE}/${id}/merken/nachwuchskraft/${nwk.value.id}`);
+    alert("Stelle erfolgreich gemerkt!");
+    if (stelle.value && stelle.value.id === id) {
+      stelle.value.gemerkt = true;
+    }
+  } catch (err: any) {
+    console.error(err);
+    alert(err.response?.data || "Fehler beim Merken der Stelle");
+  }
+}
+
+// --- Mounted
+onMounted(async () => {
+  await ladeNachwuchskraft();
+  if (route.params.id) await ladeStelle(route.params.id);
+});
 </script>
+
 
 <style scoped>
 .box {

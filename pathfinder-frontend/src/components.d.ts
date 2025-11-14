@@ -24,6 +24,8 @@ declare module 'vue' {
     BaseButtonMarkJob: typeof import('./components/common/BaseButtonMarkJob.vue')['default']
     BaseButtonVerify: typeof import('./components/common/BaseButtonVerify.vue')['default']
     BaseCancelButton: typeof import('./components/common/BaseCancelButton.vue')['default']
+    BaseCardApplication: typeof import('./components/bewerbungen/BaseCardApplication.vue')['default']
+    BaseCardApplicationMini: typeof import('./components/bewerbungen/BaseCardApplicationMini.vue')['default']
     BaseCardApplicationProcess: typeof import('./components/bewerbungen/BaseCardApplicationProcess.vue')['default']
     BaseCardJobMini: typeof import('./components/stellen/BaseCardJobMini.vue')['default']
     BaseCardMarkJob: typeof import('./components/stellen/BaseCardMarkJob.vue')['default']

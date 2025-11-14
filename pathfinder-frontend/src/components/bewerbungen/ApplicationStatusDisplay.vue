@@ -1,4 +1,3 @@
-<!-- src/components/ApplicationStatusDisplay.vue -->
 <template>
   <v-chip :color="chipColor" size="small" text-color="white">
     <v-icon start :icon="icon" size="18" />
@@ -10,35 +9,38 @@
 import { computed } from 'vue'
 
 const props = defineProps<{
-  status: 'eingegangen' | 'in_bearbeitung' | 'akzeptiert' | 'abgelehnt'
+  status: 'EINGEREICHT' | 'IN_PRUEFUNG' | 'ABGELEHNT' | 'ANGELADEN' | 'ANGENOMMEN'
 }>()
 
 const label = computed(() => {
   switch (props.status) {
-    case 'eingegangen': return 'Eingegangen'
-    case 'in_bearbeitung': return 'In Bearbeitung'
-    case 'akzeptiert': return 'Akzeptiert'
-    case 'abgelehnt': return 'Abgelehnt'
+    case 'EINGEREICHT': return 'Eingereicht'
+    case 'IN_PRUEFUNG': return 'In Prüfung'
+    case 'ABGELEHNT': return 'Abgelehnt'
+    case 'ANGELADEN': return 'Eingeladen'
+    case 'ANGENOMMEN': return 'Angenommen'
     default: return 'Unbekannt'
   }
 })
 
 const chipColor = computed(() => {
   switch (props.status) {
-    case 'eingegangen': return 'grey'
-    case 'in_bearbeitung': return 'warning'
-    case 'akzeptiert': return 'green'
-    case 'abgelehnt': return 'red'
+    case 'EINGEREICHT': return 'grey'
+    case 'IN_PRUEFUNG': return 'blue'
+    case 'ABGELEHNT': return 'red'
+    case 'ANGELADEN': return 'orange'
+    case 'ANGENOMMEN': return 'green'
     default: return 'grey'
   }
 })
 
 const icon = computed(() => {
   switch (props.status) {
-    case 'eingegangen': return 'mdi-email-outline'
-    case 'in_bearbeitung': return 'mdi-progress-clock'
-    case 'akzeptiert': return 'mdi-check-circle-outline'
-    case 'abgelehnt': return 'mdi-close-circle-outline'
+    case 'EINGEREICHT': return 'mdi-email-outline'
+    case 'IN_PRUEFUNG': return 'mdi-progress-clock'
+    case 'ABGELEHNT': return 'mdi-close-circle-outline'
+    case 'ANGELADEN': return 'mdi-account-check-outline'
+    case 'ANGENOMMEN': return 'mdi-check-circle-outline'
     default: return 'mdi-help-circle-outline'
   }
 })

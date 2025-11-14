@@ -1,47 +1,18 @@
 <template>
   <v-container>
-    <h1 class="mb-6">Eingegangene Bewerbungen</h1>
+    <h1 class="mb-6">Meine Bewerbungen</h1>
 
     <v-container class="box">
       <v-row>
-        <v-col v-for="job in jobs" :key="job.id" cols="12">
-          <v-card class="mb-4">
-            <v-card-title class="d-flex justify-space-between align-center">
-              <!-- Job-Titel: Weiterleitung zu ApplicationView via Pfad -->
-              <router-link
-                :to="`/bewerbungen/${job.id}/ApplicationView`"
-                class="no-underline"
-              >
-                <span class="text-h6">{{ job.title }}</span>
-              </router-link>
+        <v-col v-for="bewerbung in bewerbungen" :key="bewerbung.id" cols="12">
+          <BaseCardApplicationMini
+            :bewerbung="bewerbung"
+            @click="goToDetail(bewerbung.id)"
+          />
+        </v-col>
 
-              <!-- Bewerbungsstatus-Komponente -->
-              <ApplicationStatusDisplay :status="job.status" />
-            </v-card-title>
-
-            <v-divider />
-
-            <v-card-text>
-              <v-row>
-                <v-col>Datum: {{ job.date }}</v-col>
-                <v-col>Entgeltgruppe: {{ job.payGrade }}</v-col>
-                <v-col>Referat: {{ job.department }}</v-col>
-              </v-row>
-
-              <div class="job-description">{{ job.description }}</div>
-
-              <!-- Bewerbung zurückziehen -->
-              <v-btn
-                color="error"
-                variant="text"
-                class="mt-2"
-                @click="withdrawApplication(job.id)"
-                size="small"
-              >
-                Bewerbung zurückziehen
-              </v-btn>
-            </v-card-text>
-          </v-card>
+        <v-col v-if="bewerbungen.length === 0" cols="12">
+          <p>Keine Bewerbungen für diese Nachwuchskraft gefunden.</p>
         </v-col>
       </v-row>
     </v-container>
@@ -49,44 +20,75 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import ApplicationStatusDisplay from '@/components/bewerbungen/ApplicationStatusDisplay.vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import BaseCardApplicationMini from '@/components/bewerbungen/BaseCardApplicationMini.vue'
 
-interface Job {
+// Interfaces
+interface Servicebereichsleiter {
   id: number
-  title: string
-  date: string
-  payGrade: string
-  department: string
-  status: 'eingegangen' | 'in_bearbeitung' | 'akzeptiert' | 'abgelehnt'
+  bereich: string
+  kontaktperson: string
+  email: string
+  telefonnummer: string
 }
 
-// Dummy-Daten
-const jobs = ref<Job[]>([
-  {
-    id: 1,
-    title: 'DevOps Junior',
-    date: '01.09.2025',
-    payGrade: 'E10',
-    department: 'it@M',
-    status: 'in_bearbeitung'
-  },
-  {
-    id: 2,
-    title: 'Frontend Developer',
-    date: '15.08.2025',
-    payGrade: 'E9',
-    department: 'Web Development',
-    status: 'abgelehnt'
-  }
-])
+interface Tag {
+  id: number
+  name: string
+}
 
-function withdrawApplication(id: number) {
-  const confirmed = confirm('Möchtest du die Bewerbung wirklich zurückziehen?')
-  if (confirmed) {
-    jobs.value = jobs.value.filter(job => job.id !== id)
+interface Stelle {
+  id: number
+  titel: string
+  standort: string
+  beschreibung?: string
+  status: 'OFFEN' | 'GESCHLOSSEN'
+  bewerbungsfrist?: string
+  servicebereichsleiter?: Servicebereichsleiter
+  tags?: Tag[]
+}
+
+interface Nachwuchskraft {
+  id: number
+  vorname: string
+  nachname: string
+  email: string
+}
+
+interface Bewerbung {
+  id: number
+  status: 'EINGEREICHT' | 'IN_PRUEFUNG' | 'ABGELEHNT' | 'ANGELADEN' | 'ANGENOMMEN'
+  kommentar?: string
+  eingereichtAm: string
+  nachwuchskraft?: Nachwuchskraft
+  stelle?: Stelle
+}
+
+// Router
+const router = useRouter()
+const nwkId = 1
+const bewerbungen = ref<Bewerbung[]>([])
+const API_BEW = 'http://localhost:8080/api/bewerbungen'
+
+// Bewerbungen laden
+const ladeBewerbungen = async () => {
+  try {
+    const res = await axios.get<Bewerbung[]>(`${API_BEW}/nachwuchskraft/${nwkId}`)
+    bewerbungen.value = res.data
+  } catch (err) {
+    console.error('Fehler beim Laden der Bewerbungen:', err)
+    alert('Fehler beim Laden der Bewerbungen')
   }
 }
+
+// Weiterleitung zur Detailansicht
+const goToDetail = (id: number) => {
+  router.push(`/bewerbungen/${id}/ApplicationView`)
+}
+
+onMounted(ladeBewerbungen)
 </script>
 
 <style scoped>
@@ -94,12 +96,5 @@ function withdrawApplication(id: number) {
   margin: 2% 1% 1%;
   border: 2px solid #0000001a;
   padding: 16px;
-}
-.no-underline {
-  text-decoration: none;
-  color: inherit;
-}
-.job-description {
-  margin-top: 10px;
 }
 </style>
