@@ -27,7 +27,7 @@ public class MatchingController {
 
     @GetMapping("/{nwkId}/{stelleId}")
     public ResponseEntity<Double> getMatchingScore(@PathVariable Long nwkId, @PathVariable Long stelleId) {
-        Nachwuchskraft nwk = nwkService.getById(nwkId);
+        Nachwuchskraft nwk = nwkService.getOrThrow(nwkId);
         Stelle stelle = stelleService.getById(stelleId);
         if (nwk == null || stelle == null) {
             return ResponseEntity.notFound().build();

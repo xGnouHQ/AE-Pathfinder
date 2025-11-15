@@ -84,4 +84,24 @@ public class GlobalExceptionHandler {
                 "timestamp", LocalDateTime.now()
         ));
     }
+
+    @ExceptionHandler(TagNotFoundException.class)
+    public ResponseEntity<?> handleTagNotFound(TagNotFoundException ex) {
+        return ResponseEntity.status(404).body(Map.of(
+                "status", 404,
+                "error", "TAG_NOT_FOUND",
+                "message", ex.getMessage(),
+                "timestamp", LocalDateTime.now()
+        ));
+    }
+
+    @ExceptionHandler(AbteilungNotFoundException.class)
+    public ResponseEntity<?> handleAbtNotFound(AbteilungNotFoundException ex) {
+        return ResponseEntity.status(404).body(Map.of(
+                "status", 404,
+                "error", "ABTEILUNG_NOT_FOUND",
+                "message", ex.getMessage(),
+                "timestamp", LocalDateTime.now()
+        ));
+    }
 }

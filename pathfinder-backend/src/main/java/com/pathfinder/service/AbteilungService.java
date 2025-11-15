@@ -1,5 +1,6 @@
 package com.pathfinder.service;
 
+import com.pathfinder.exception.AbteilungNotFoundException;
 import com.pathfinder.model.Abteilung;
 import com.pathfinder.repository.AbteilungRepository;
 import org.springframework.stereotype.Service;
@@ -15,15 +16,14 @@ public class AbteilungService {
         this.repository = repository;
     }
 
-    public List<Abteilung> getAll() {
-        return repository.findAll();
-    }
-
     public Abteilung getById(Long id) {
-        return repository.findById(id).orElse(null);
+        return repository.findById(id)
+                .orElseThrow(() -> new AbteilungNotFoundException(id));
     }
 
-    public Abteilung save(Abteilung abteilung) {
-        return repository.save(abteilung);
+    public List<Abteilung> getByIds(List<Long> ids) {
+        return ids.stream()
+                .map(this::getById)
+                .toList();
     }
 }
