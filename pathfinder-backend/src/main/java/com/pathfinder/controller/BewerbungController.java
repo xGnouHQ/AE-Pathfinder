@@ -1,8 +1,10 @@
 package com.pathfinder.controller;
 
-import com.pathfinder.model.Bewerbung;
+import com.pathfinder.dto.BewerbungDTORead;
+import com.pathfinder.dto.BewerbungDTOWrite;
 import com.pathfinder.service.BewerbungService;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -17,24 +19,23 @@ public class BewerbungController {
     }
 
     @GetMapping
-    public List<Bewerbung> getAll() {
-        return service.getAll();
+    public List<BewerbungDTORead> getAll() {
+        return service.getAllDTO();
     }
 
     @GetMapping("/{id}")
-    public Bewerbung getOne(@PathVariable Long id) {
-        return service.getById(id);
+    public BewerbungDTORead getOne(@PathVariable Long id) {
+        return service.getDTOById(id);
     }
 
     @PostMapping
-    public Bewerbung create(@RequestBody Bewerbung bewerbung) {
-        return service.save(bewerbung);
+    public BewerbungDTORead create(@RequestBody BewerbungDTOWrite dto) {
+        return service.create(dto);
     }
 
     @PutMapping("/{id}")
-    public Bewerbung update(@PathVariable Long id, @RequestBody Bewerbung bewerbung) {
-        bewerbung.setId(id);
-        return service.save(bewerbung);
+    public BewerbungDTORead update(@PathVariable Long id, @RequestBody BewerbungDTOWrite dto) {
+        return service.update(id, dto);
     }
 
     @DeleteMapping("/{id}")
@@ -43,12 +44,12 @@ public class BewerbungController {
     }
 
     @GetMapping("/nachwuchskraft/{nwkId}")
-    public List<Bewerbung> getByNachwuchskraft(@PathVariable Long nwkId) {
-        return service.getByNachwuchskraft(nwkId);
+    public List<BewerbungDTORead> getByNachwuchskraft(@PathVariable Long nwkId) {
+        return service.getByNachwuchskraftDTO(nwkId);
     }
 
     @GetMapping("/stelle/{stelleId}")
-    public List<Bewerbung> getByStelle(@PathVariable Long stelleId) {
-        return service.getByStelle(stelleId);
+    public List<BewerbungDTORead> getByStelle(@PathVariable Long stelleId) {
+        return service.getByStelleDTO(stelleId);
     }
 }
