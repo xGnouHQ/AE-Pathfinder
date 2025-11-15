@@ -45,4 +45,43 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    @ExceptionHandler(NachwuchskraftNotFoundException.class)
+    public ResponseEntity<?> handleNwkNotFound(NachwuchskraftNotFoundException ex) {
+        return ResponseEntity.status(404).body(Map.of(
+                "status", 404,
+                "error", "NACHWUCHSKRAFT_NOT_FOUND",
+                "message", ex.getMessage(),
+                "timestamp", LocalDateTime.now()
+        ));
+    }
+
+    @ExceptionHandler(StelleNotFoundException.class)
+    public ResponseEntity<?> handleStelleNotFound(StelleNotFoundException ex) {
+        return ResponseEntity.status(404).body(Map.of(
+                "status", 404,
+                "error", "STELLE_NOT_FOUND",
+                "message", ex.getMessage(),
+                "timestamp", LocalDateTime.now()
+        ));
+    }
+
+    @ExceptionHandler(BewerbungNotFoundException.class)
+    public ResponseEntity<?> handleBewerbungNotFound(BewerbungNotFoundException ex) {
+        return ResponseEntity.status(404).body(Map.of(
+                "status", 404,
+                "error", "BEWERBUNG_NOT_FOUND",
+                "message", ex.getMessage(),
+                "timestamp", LocalDateTime.now()
+        ));
+    }
+
+    @ExceptionHandler(InvalidBewerbungDataException.class)
+    public ResponseEntity<?> handleInvalidData(InvalidBewerbungDataException ex) {
+        return ResponseEntity.status(400).body(Map.of(
+                "status", 400,
+                "error", "INVALID_BEWERBUNG_DATA",
+                "message", ex.getMessage(),
+                "timestamp", LocalDateTime.now()
+        ));
+    }
 }

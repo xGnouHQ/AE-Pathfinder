@@ -1,4 +1,7 @@
 package com.pathfinder.exception;
 
-public class InvalidBewerbungDataException {
+public class InvalidBewerbungDataException extends RuntimeException {
+    public InvalidBewerbungDataException(String message) {
+        super(message);
+    }
 }
