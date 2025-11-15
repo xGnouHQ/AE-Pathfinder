@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -32,4 +33,16 @@ public class GlobalExceptionHandler {
                         "timestamp", LocalDateTime.now()
                 ));
     }
+
+    @ExceptionHandler(DuplicateBewerbungException.class)
+    public ResponseEntity<?> handleDuplicateBewerbung(DuplicateBewerbungException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)  // 409
+                .body(Map.of(
+                        "status", 409,
+                        "error", "DUPLICATE_BEWERBUNG",
+                        "message", ex.getMessage(),
+                        "timestamp", LocalDateTime.now()
+                ));
+    }
+
 }

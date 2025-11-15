@@ -1,5 +1,6 @@
 package com.pathfinder.service;
 
+import com.pathfinder.exception.DuplicateBewerbungException;
 import com.pathfinder.model.Bewerbung;
 import com.pathfinder.model.Nachwuchskraft;
 import com.pathfinder.model.Stelle;
@@ -54,6 +55,14 @@ public class BewerbungService {
 
         b.setNachwuchskraft(nwk);
         b.setStelle(stelle);
+
+        if (repository.existsByNachwuchskraftIdAndStelleId(
+                b.getNachwuchskraft().getId(),
+                b.getStelle().getId())) {
+
+            throw new DuplicateBewerbungException();
+        }
+
 
         return repository.save(b);
     }
