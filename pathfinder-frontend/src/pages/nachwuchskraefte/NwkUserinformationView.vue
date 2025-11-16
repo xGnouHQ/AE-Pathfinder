@@ -69,6 +69,7 @@ import BaseDialogNwkUpdateExperienceAndInterests from '@/components/nachwuchskra
 // ----------------------------
 interface Nachwuchskraft {
   id: number
+  personalnummer: string
   vorname: string
   nachname: string
   email: string

@@ -14,7 +14,7 @@
     </v-card-title>
 
     <v-card-subtitle>
-      {{ job.standort || '–' }} | {{ job.servicebereichsleiter || '–' }}
+      {{ job.standort || '–' }} | {{ job.servicebereichsleiter.kontaktperson || '–' }}
     </v-card-subtitle>
 
     <v-snackbar v-model="snackbar.show" :timeout="2500" top right>

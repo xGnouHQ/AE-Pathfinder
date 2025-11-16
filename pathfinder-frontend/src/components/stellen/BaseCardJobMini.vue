@@ -1,17 +1,26 @@
 <template>
   <v-card class="pa-4 mb-4">
     <v-card-title class="d-flex justify-space-between align-center">
-      <span>{{ job.titel }}</span>
+      <div>
+        <h2>{{ job.titel }}</h2>
+        <p class="text-subtitle-1">{{ job.standort }} | {{ job.status }} | Bewerbungsfrist: {{ formatDate(job.bewerbungsfrist) }}</p>
+      </div>
+
       <!-- MatchScore einbinden -->
       <JobMatchScore :job="job" :profile="profile" />
     </v-card-title>
 
-    <v-card-subtitle>
-      {{ job.standort }} | {{ job.status }} | Bewerbungsfrist: {{ job.bewerbungsfrist }}
-    </v-card-subtitle>
+    <v-card-text>
+      <p>{{ job.beschreibung }}</p>
 
-    <v-card-text>{{ job.beschreibung }}</v-card-text>
+      <!-- Tags -->
+      <v-row dense class="mt-2">
+        <v-col v-for="tag in job.tags || []" :key="tag.id" cols="auto">
+          <v-chip small outlined>{{ tag.name }}</v-chip>
+        </v-col>
+      </v-row>
 
+    </v-card-text>
   </v-card>
 </template>
 
@@ -25,17 +34,30 @@ interface NwkExperience {
   interests: string[]
 }
 
+interface Tag { id: number; name: string }
+interface Servicebereichsleiter { id: number; kontaktperson?: string; name?: string }
+
 interface Stelle {
   id: number
   titel: string
   beschreibung: string
   standort: string
   status: 'OFFEN' | 'GESCHLOSSEN'
-  bewerbungsfrist: string
+  bewerbungsfrist?: string
+  tags?: Tag[]
+  gemerkt?: boolean
 }
 
 const props = defineProps<{
   job: Stelle
   profile: NwkExperience
 }>()
+
+function formatDate(dateStr?: string) {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleDateString('de-DE')
+}
 </script>
+
+<style scoped>
+</style>

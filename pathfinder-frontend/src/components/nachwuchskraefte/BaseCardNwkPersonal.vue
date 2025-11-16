@@ -1,33 +1,33 @@
 <template>
   <v-card>
-    <v-card-title class="d-flex justify-space-between align-center">
-      <span>Persönliche Daten</span>
-    </v-card-title>
-
+    <v-card-title>Persönliche Daten</v-card-title>
     <v-divider></v-divider>
 
     <v-card-text v-if="nwk">
       <v-row>
-        <v-col>Personalnummer: {{ nwk.id }}</v-col>
-      </v-row>
-      <v-row>
-        <v-col>Nachname: {{ nwk.surename }}</v-col>
-        <v-col>Vorname: {{ nwk.firstname }}</v-col>
-      </v-row>
-      <v-row>
-        <v-col>E-Mail: {{ nwk.mail }}</v-col>
-      </v-row>
-      <v-row>
-        <v-col>Jahrgang: {{ nwk.year }}</v-col>
-        <v-col>Studienrichtung: {{ nwk.major }}</v-col>
+        <v-col><strong>ID:</strong> {{ nwk.id }}</v-col>
+        <v-col><strong>Personalnummer:</strong> {{ nwk.personalnummer }}</v-col>
       </v-row>
 
-      <!-- Bevorzugte Abteilungen -->
+      <v-row>
+        <v-col><strong>Nachname:</strong> {{ nwk.nachname }}</v-col>
+        <v-col><strong>Vorname:</strong> {{ nwk.vorname }}</v-col>
+      </v-row>
+
+      <v-row>
+        <v-col><strong>E-Mail:</strong> {{ nwk.email }}</v-col>
+      </v-row>
+
+      <v-row>
+        <v-col><strong>Jahrgang:</strong> {{ nwk.eintrittsjahr }}</v-col>
+        <v-col><strong>Studienrichtung:</strong> {{ nwk.studienrichtung }}</v-col>
+      </v-row>
+
       <v-row>
         <v-col>
           <strong>Praktika:</strong>
-          <ul v-if="departmentList.length > 0" class="pl-4">
-            <li v-for="(item, index) in departmentList" :key="index">{{ item }}</li>
+          <ul v-if="departmentList.length">
+            <li v-for="(item, i) in departmentList" :key="i">{{ item }}</li>
           </ul>
           <span v-else>Keine Angaben</span>
         </v-col>
@@ -43,52 +43,47 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 
-interface Nachwuchs {
-  id: long
+// Interface direkt wie im Backend
+interface Nachwuchskraft {
+  id: number
   personalnummer: string
-  surename: string
-  firstname: string
-  mail: string
-  year: string
-  major: string
-  departments: string
+  vorname: string
+  nachname: string
+  email: string
+  eintrittsjahr: number
+  studienrichtung: string
+  departments?: string
 }
 
-// Props & Events
-defineProps<{ editable?: boolean }>()
-defineEmits<{ (e: 'edit'): void }>()
+const nwk = ref<Nachwuchskraft | null>(null)
+const nwkId = 1 // ID der Nachwuchskraft, die geladen werden soll
 
-// State
-const nwk = ref<Nachwuchs | null>(null)
-const nwkId = 1 // hier kannst du die ID setzen, die du laden willst
-
-// Departments als Liste
+// Departments in Array aufsplitten
 const departmentList = computed(() => {
   if (!nwk.value?.departments) return []
   return nwk.value.departments
     .split(/[;,\\n]/)
-    .map(item => item.trim())
-    .filter(item => item.length > 0)
-    .slice(0, 6)
+    .map(d => d.trim())
+    .filter(d => d.length > 0)
 })
 
-// Daten vom Backend holen
+// Daten vom Backend laden
 onMounted(async () => {
   try {
     const res = await fetch(`/api/meinKonto/personal/${nwkId}`)
     if (!res.ok) throw new Error(`Fehler beim Laden: ${res.status}`)
-
     const data = await res.json()
-    // Mapping der Backend-Daten auf das Format von Nachwuchs
+
+    console.log('Backend Response:', data) // Debug: prüfen, was zurückkommt
+
     nwk.value = {
-      id: data.id ?? '',
-      personalnummer: data.personalnummer ?? '',
-      surename: data.nachname ?? '',
-      firstname: data.vorname ?? '',
-      mail: data.email ?? '',
-      year: data.eintrittsjahr?.toString() ?? '',
-      major: data.studienrichtung ?? '',
-      departments: data.departments ?? '' // falls vorhanden, sonst leer
+       id: data.id,
+            personalnummer: data.personalnummer,
+            vorname: data.vorname,
+            nachname: data.nachname,
+            email: data.email,
+            eintrittsjahr: data.eintrittsjahr,
+            studienrichtung: data.studienrichtung
     }
   } catch (err) {
     console.error('Fehler beim Laden der Daten:', err)
@@ -97,14 +92,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.v-card-title {
-  font-weight: 600;
-}
-ul {
-  margin: 0;
-  padding-left: 1.2rem;
-}
-li {
-  list-style-type: disc;
-}
+ul { margin: 0; padding-left: 1.2rem; }
+li { list-style-type: disc; }
 </style>

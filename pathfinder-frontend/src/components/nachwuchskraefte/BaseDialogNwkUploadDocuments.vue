@@ -9,10 +9,10 @@
         <input type="file" multiple @change="onFilesSelected" />
 
         <!-- Vorschau ausgewählter Dateien -->
-        <ul>
+        <ul v-if="internalFiles.length > 0">
           <li v-for="file in internalFiles" :key="file.id">{{ file.name }}</li>
         </ul>
-        <p v-if="internalFiles.length === 0">Noch keine Dateien ausgewählt.</p>
+        <p v-else>Noch keine Dateien ausgewählt.</p>
       </v-card-text>
 
       <v-card-actions>
