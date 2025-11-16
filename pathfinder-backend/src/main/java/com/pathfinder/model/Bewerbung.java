@@ -1,30 +1,36 @@
 package com.pathfinder.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
+@NoArgsConstructor
 @Entity
 @Table(name = "bewerbung")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Bewerbung {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // ID wird automatisch generiert
     private Long id;
 
     // Beziehung zur Nachwuchskraft (n:1)
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nachwuchskraft_id", nullable = false)
     @JsonBackReference("bewerbung-nwk")
     private Nachwuchskraft nachwuchskraft;
 
     // Beziehung zur Stelle (n:1)
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stelle_id", nullable = false)
-    @JsonBackReference("bewerbung-stelle")
+    @JsonIgnoreProperties({"bewerbungen","servicebereichsleiter","tags","hibernateLazyInitializer","handler"})
     private Stelle stelle;
 
     @Enumerated(EnumType.STRING)
@@ -34,11 +40,36 @@ public class Bewerbung {
 
     private String kommentar;
 
+    // Beziehung zu Anhängen (1:n)
+    @OneToMany(mappedBy = "bewerbung", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NachwuchskraftAnhang> anhange = new ArrayList<>();
+
     public enum Status {
         EINGEREICHT,
         IN_PRUEFUNG,
         ABGELEHNT,
         ANGELADEN,
         ANGENOMMEN
+    }
+
+    // Konstruktor für einfache Erstellung
+    public Bewerbung(Nachwuchskraft nwk, Stelle stelle, String kommentar) {
+        this.nachwuchskraft = nwk;
+        this.stelle = stelle;
+        this.kommentar = kommentar;
+        this.status = Status.EINGEREICHT;
+        this.eingereichtAm = LocalDateTime.now();
+    }
+
+    // Methode zum Hinzufügen von Anhängen
+    public void addAnhang(NachwuchskraftAnhang anhang) {
+        anhange.add(anhang);
+        anhang.setBewerbung(this);
+    }
+
+    // Methode zum Entfernen von Anhängen
+    public void removeAnhang(NachwuchskraftAnhang anhang) {
+        anhange.remove(anhang);
+        anhang.setBewerbung(null);
     }
 }
