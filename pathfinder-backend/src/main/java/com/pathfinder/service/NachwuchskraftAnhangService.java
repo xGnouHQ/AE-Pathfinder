@@ -10,12 +10,16 @@ public class NachwuchskraftAnhangService {
 
     private final NachwuchskraftAnhangRepository repository;
 
-    public NachwuchskraftAnhangService(NachwuchskraftAnhangRepository repository) {
+    public NachwuchskraftAnhangService(NachwuchskraftAnhangRepository repository, NachwuchskraftService nwkService) {
         this.repository = repository;
     }
+    public List<NachwuchskraftAnhang> getByNachwuchskraft(Long nwkId) {
+        return repository.findByNachwuchskraftId(nwkId);
+    }
 
-    public List<NachwuchskraftAnhang> getByNachwuchskraft(Long id) {
-        return repository.findByNachwuchskraftId(id);
+    public NachwuchskraftAnhang getById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Anhang mit ID " + id + " nicht gefunden"));
     }
 
     public NachwuchskraftAnhang save(NachwuchskraftAnhang anhang) {
