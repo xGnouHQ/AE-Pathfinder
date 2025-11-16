@@ -14,16 +14,47 @@
       </v-row>
     </v-card-text>
 
-    <v-divider/>
-     <v-card-text>
-           <v-row>
-             <v-col>Status: <strong>{{ job.status }}</strong></v-col>
-           </v-row>
+    <v-divider />
+
+    <!-- ⭐ STATUS TRACK -->
+    <v-card-text>
+      <div class="d-flex align-center justify-space-between">
+
+        <div
+          v-for="(step, index) in statusSteps"
+          :key="index"
+          class="text-center"
+          style="flex: 1;"
+        >
+          <!-- Icon -->
+          <v-icon
+            :color="step.value === job.status ? 'primary' : 'grey'"
+            size="32"
+          >
+            {{ step.icon }}
+          </v-icon>
+
+          <!-- Label -->
+          <div
+            :style="{
+              fontWeight: step.value === job.status ? 'bold' : 'normal',
+              color: step.value === job.status ? '#1976D2' : '#555'
+            }"
+          >
+            {{ step.label }}
+          </div>
+
+        </div>
+        <!-- Button nur bei EINGELADEN -->
+            <v-card-actions v-if="job.status === 'ANGELADEN'">
+              <v-btn color="primary" @click="$emit('open-message')">Message</v-btn>
+            </v-card-actions>
+      </div>
+
     </v-card-text>
 
-    <v-card-actions v-if="job.status === 'akzeptiert'">
-      <v-btn color="primary" @click="$emit('open-message')">Message</v-btn>
-    </v-card-actions>
+
+
   </v-card>
 </template>
 
@@ -35,15 +66,18 @@ interface Job {
   date: string
   payGrade: string
   department: string
-  status: 'eingegangen' | 'in_bearbeitung' | 'akzeptiert' | 'abgelehnt'
+  status: 'EINGEREICHT' | 'IN_PRUEFUNG' | 'ABGELEHNT' | 'EINGELADEN' | 'ANGENOMMEN'
 }
 
-defineProps<{
-  job: Job
-}>()
+const props = defineProps<{ job: Job }>()
+defineEmits<{ (e: 'open-message'): void }>()
 
-defineEmits<{
-  (e: 'open-message'): void
-}>()
+// ⭐ ICON + LABEL Mapping
+const statusSteps = [
+  { value: 'EINGEREICHT', label: 'Eingereicht', icon: 'mdi-upload' },
+  { value: 'IN_PRUEFUNG', label: 'In Prüfung', icon: 'mdi-magnify' },
+  { value: 'ABGELEHNT', label: 'Abgelehnt', icon: 'mdi-close-circle' },
+  { value: 'ANGELADEN', label: 'Eingeladen', icon: 'mdi-calendar' },
+  { value: 'ANGENOMMEN', label: 'Angenommen', icon: 'mdi-check-circle' }
+]
 </script>
-

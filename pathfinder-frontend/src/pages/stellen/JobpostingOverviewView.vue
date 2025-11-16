@@ -1,12 +1,21 @@
 <template>
   <v-container>
     <h1 class="mb-6">Offene Stellen</h1>
+          <v-text-field
+            v-model="search"
+            label="Search"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            hide-details
+            single-line
+          ></v-text-field>
 
     <v-container class="box">
       <v-row>
         <v-col
           v-for="stelle in stellen"
           :key="stelle.id"
+          :search="search"
           cols="12"
         >
           <!-- Router-Link zur Detailseite -->
@@ -31,6 +40,8 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import BaseCardJobMini from '@/components/stellen/BaseCardJobMini.vue'
+
+const search = ref("")
 
 // Backend-URL
 const API_URL = 'http://localhost:8080/api/stellen'

@@ -3,6 +3,7 @@ package com.pathfinder.service;
 import com.pathfinder.model.Bewerbung;
 import com.pathfinder.model.Nachwuchskraft;
 import com.pathfinder.model.Stelle;
+import com.pathfinder.model.NachwuchskraftAnhang;
 import com.pathfinder.repository.BewerbungRepository;
 import com.pathfinder.repository.NachwuchskraftRepository;
 import com.pathfinder.repository.StelleRepository;
@@ -18,13 +19,16 @@ public class BewerbungService {
     private final BewerbungRepository repository;
     private final NachwuchskraftRepository nwkRepository;
     private final StelleRepository stelleRepository;
+    private final NachwuchskraftAnhangService anhangService;
 
     public BewerbungService(BewerbungRepository repository,
                             NachwuchskraftRepository nwkRepository,
-                            StelleRepository stelleRepository) {
+                            StelleRepository stelleRepository,
+                            NachwuchskraftAnhangService anhangService) {
         this.repository = repository;
         this.nwkRepository = nwkRepository;
         this.stelleRepository = stelleRepository;
+        this.anhangService = anhangService;
     }
 
     public List<Bewerbung> getAll() {
@@ -36,26 +40,38 @@ public class BewerbungService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Bewerbung nicht gefunden"));
     }
 
-    public Bewerbung save(Bewerbung b) {
-        if (b.getNachwuchskraft() == null || b.getNachwuchskraft().getId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nachwuchskraft-ID fehlt oder ist null");
-        }
-        if (b.getStelle() == null || b.getStelle().getId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Stelle-ID fehlt oder ist null");
-        }
-
-        // Objekte aus DB laden
-        Nachwuchskraft nwk = nwkRepository.findById(b.getNachwuchskraft().getId())
+    public Bewerbung createBewerbung(Long stelleId, Long nwkId, List<Long> fileIds, String hrNote) {
+        // Nachwuchskraft laden
+        Nachwuchskraft nwk = nwkRepository.findById(nwkId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Nachwuchskraft mit ID " + b.getNachwuchskraft().getId() + " nicht gefunden"));
-        Stelle stelle = stelleRepository.findById(b.getStelle().getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Stelle mit ID " + b.getStelle().getId() + " nicht gefunden"));
+                        "Nachwuchskraft mit ID " + nwkId + " nicht gefunden"));
 
+        // Stelle laden
+        Stelle stelle = stelleRepository.findById(stelleId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Stelle mit ID " + stelleId + " nicht gefunden"));
+
+        // Bewerbung erstellen
+        Bewerbung b = new Bewerbung();
         b.setNachwuchskraft(nwk);
         b.setStelle(stelle);
+        b.setKommentar(hrNote);
 
-        return repository.save(b);
+        // Zuerst Bewerbung speichern, damit die ID gesetzt wird
+        b = repository.save(b);
+
+        // Optional: Anhänge zuordnen
+        if (fileIds != null) {
+            for (Long fileId : fileIds) {
+                NachwuchskraftAnhang anhang = anhangService.getById(fileId);
+                if (anhang != null) {
+                    anhang.setBewerbung(b);
+                    anhangService.save(anhang);
+                }
+            }
+        }
+
+        return b;
     }
 
     public void delete(Long id) {

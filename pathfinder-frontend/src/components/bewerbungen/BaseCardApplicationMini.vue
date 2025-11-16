@@ -1,5 +1,5 @@
 <template>
-  <v-card class="mb-4">
+  <v-card class="mb-4" @click="goToDetail">
     <v-card-title class="d-flex justify-space-between align-center">
       <span class="text-h6">
         Bewerbung ID: {{ bewerbung.id }} – {{ bewerbung.stelle?.titel || 'Lädt...' }}
@@ -19,11 +19,12 @@
         </v-col>
       </v-row>
 
+      <!-- Zurückziehen Button -->
       <v-btn
         color="error"
         variant="text"
         class="mt-2"
-        @click="withdrawBewerbung"
+        @click.stop="emitWithdraw"
         size="small"
       >
         Bewerbung zurückziehen
@@ -56,11 +57,20 @@ interface Bewerbung {
 const props = defineProps<{ bewerbung: Bewerbung }>()
 const emit = defineEmits<{
   (e: 'withdraw', id: number): void
+  (e: 'detail', id: number): void
 }>()
 
 const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString()
 
-const withdrawBewerbung = () => {
+// Event zum Zurückziehen
+const emitWithdraw = () => {
+  const confirmDelete = confirm("Möchten Sie diese Bewerbung wirklich zurückziehen?")
+  if (!confirmDelete) return
   emit('withdraw', props.bewerbung.id)
+}
+
+// Event zur Detailansicht
+const goToDetail = () => {
+  emit('detail', props.bewerbung.id)
 }
 </script>

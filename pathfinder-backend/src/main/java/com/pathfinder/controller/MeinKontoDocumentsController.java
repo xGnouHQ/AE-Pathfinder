@@ -2,8 +2,11 @@ package com.pathfinder.controller;
 
 import com.pathfinder.model.NachwuchskraftAnhang;
 import com.pathfinder.service.NachwuchskraftAnhangService;
+import com.pathfinder.service.NachwuchskraftService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -12,12 +15,13 @@ import java.util.List;
 public class MeinKontoDocumentsController {
 
     private final NachwuchskraftAnhangService service;
+    private final NachwuchskraftService nwkService;
 
-    public MeinKontoDocumentsController(NachwuchskraftAnhangService service) {
+    public MeinKontoDocumentsController(NachwuchskraftAnhangService service, NachwuchskraftService nwkService) {
         this.service = service;
+        this.nwkService = nwkService;
     }
 
-    // GET /api/meinKonto/documents/{nwkId}
     @GetMapping("/{nwkId}")
     public ResponseEntity<List<NachwuchskraftAnhang>> getDocuments(@PathVariable Long nwkId) {
         List<NachwuchskraftAnhang> docs = service.getByNachwuchskraft(nwkId);
@@ -25,41 +29,33 @@ public class MeinKontoDocumentsController {
         return ResponseEntity.ok(docs);
     }
 
-    // POST /api/meinKonto/documents
-    @PostMapping
-    public ResponseEntity<NachwuchskraftAnhang> uploadDocument(@RequestBody NachwuchskraftAnhang anhang) {
-        if (!isValidFileType(anhang.getDateipfad())) {
-            return ResponseEntity.badRequest().body(null);
-        }
-        NachwuchskraftAnhang saved = service.save(anhang);
-        return ResponseEntity.ok(saved);
-    }
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<NachwuchskraftAnhang> uploadDocument(
+            @RequestParam("nwkId") Long nwkId,
+            @RequestParam("file") MultipartFile file) {
 
-    // PUT /api/meinKonto/documents/{nwkId}
-    @PutMapping("/{nwkId}")
-    public ResponseEntity<NachwuchskraftAnhang> updateDocument(
-            @PathVariable Long id,
-            @RequestBody NachwuchskraftAnhang updated) {
-        if (!isValidFileType(updated.getDateipfad())) {
-            return ResponseEntity.badRequest().build();
-        }
-        NachwuchskraftAnhang saved = service.update(id, updated);
-        return ResponseEntity.ok(saved);
-    }
-
-    // DELETE /api/meinKonto/documents/{nwkId}
-    @DeleteMapping("/{nwkId}")
-    public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
         try {
-            service.delete(id);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+            NachwuchskraftAnhang saved = service.saveFile(nwkId, file);
+            return ResponseEntity.ok(saved);
+        } catch (IOException e) {
+            return ResponseEntity.status(500).build();
         }
     }
 
-    private boolean isValidFileType(String path) {
-        if (path == null) return false;
-        return path.toLowerCase().endsWith(".pdf") || path.toLowerCase().endsWith(".docx");
+    @PutMapping("/{documentId}")
+    public ResponseEntity<NachwuchskraftAnhang> updateDocument(
+            @PathVariable Long documentId,
+            @RequestBody NachwuchskraftAnhang updated) {
+
+        NachwuchskraftAnhang existing = service.getById(documentId);
+        existing.setDateipfad(updated.getDateipfad());
+        existing.setTyp(updated.getTyp());
+        return ResponseEntity.ok(service.save(existing));
+    }
+
+    @DeleteMapping("/{documentId}")
+    public ResponseEntity<Void> deleteDocument(@PathVariable Long documentId) {
+        service.delete(documentId);
+        return ResponseEntity.noContent().build();
     }
 }

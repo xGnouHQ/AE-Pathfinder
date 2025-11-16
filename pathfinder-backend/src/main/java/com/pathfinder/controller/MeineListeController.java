@@ -18,6 +18,23 @@ public class MeineListeController {
         this.service = service;
     }
 
+    @PostMapping("/{stellenId}/merken/nachwuchskraft/{nachwuchskraftId}")
+    public ResponseEntity<?> merkeStelle(
+            @PathVariable Long stellenId,
+            @PathVariable Long nachwuchskraftId) {
+        try {
+            Stellenmerkliste eintrag = service.addMerkliste(nachwuchskraftId, stellenId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(eintrag);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Interner Serverfehler beim Merken der Stelle");
+        }
+    }
+
+
+
     // Nur NWK-spezifische Abfrage
     @GetMapping("/nachwuchskraft/{id}")
     public ResponseEntity<List<Stellenmerkliste>> getByNachwuchskraft(@PathVariable Long id) {

@@ -31,11 +31,14 @@ public class MeinKontoController {
     // ========================================================
     @GetMapping("/personal/{nwkId}")
     public ResponseEntity<?> getPersonalData(@PathVariable("nwkId") Long id) {
+
         Nachwuchskraft nwk = nwkService.getById(id);
+
         if (nwk == null) return ResponseEntity.notFound().build();
 
         var dto = new Object() {
             public final Long id = nwk.getId();
+            public final String personalnummer = nwk.getPersonalnummer();
             public final String vorname = nwk.getVorname();
             public final String nachname = nwk.getNachname();
             public final String email = nwk.getEmail();
@@ -52,6 +55,7 @@ public class MeinKontoController {
     // -> Interessen + Wunschabteilungen anzeigen
     // ========================================================
     @GetMapping("/experience/{nwkId}")
+
     public ResponseEntity<?> getExperience(@PathVariable("nwkId") Long id) {
         Nachwuchskraft nwk = nwkService.getById(id);
         if (nwk == null) return ResponseEntity.notFound().build();

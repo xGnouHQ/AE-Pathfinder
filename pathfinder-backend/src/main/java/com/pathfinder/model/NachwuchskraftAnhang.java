@@ -1,7 +1,6 @@
 package com.pathfinder.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -26,6 +25,14 @@ public class NachwuchskraftAnhang {
     private DokumentTyp typ;
 
     private LocalDateTime hochgeladenAm = LocalDateTime.now();
+
+    // -----------------------------
+    // Beziehung zur Bewerbung
+    // -----------------------------
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bewerbung_id")
+    @JsonBackReference
+    private Bewerbung bewerbung;
 
     public enum DokumentTyp {
         LEBENSLAUF,
