@@ -17,7 +17,6 @@ public class MeinKontoDocumentsController {
         this.service = service;
     }
 
-    // GET /api/meinKonto/documents/{nwkId}
     @GetMapping("/{nwkId}")
     public ResponseEntity<List<NachwuchskraftAnhang>> getDocuments(@PathVariable Long nwkId) {
         List<NachwuchskraftAnhang> docs = service.getByNachwuchskraft(nwkId);
@@ -35,31 +34,23 @@ public class MeinKontoDocumentsController {
         return ResponseEntity.ok(saved);
     }
 
-    // PUT /api/meinKonto/documents/{nwkId}
-    @PutMapping("/{nwkId}")
+    private boolean isValidFileType(String dateipfad) {
+    }
+
+    @PutMapping("/{documentId}")
     public ResponseEntity<NachwuchskraftAnhang> updateDocument(
-            @PathVariable Long id,
+            @PathVariable Long documentId,
             @RequestBody NachwuchskraftAnhang updated) {
-        if (!isValidFileType(updated.getDateipfad())) {
-            return ResponseEntity.badRequest().build();
-        }
-        NachwuchskraftAnhang saved = service.update(id, updated);
-        return ResponseEntity.ok(saved);
+
+        NachwuchskraftAnhang existing = service.getById(documentId);
+        existing.setDateipfad(updated.getDateipfad());
+        existing.setTyp(updated.getTyp());
+        return ResponseEntity.ok(service.save(existing));
     }
 
-    // DELETE /api/meinKonto/documents/{nwkId}
-    @DeleteMapping("/{nwkId}")
-    public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
-        try {
-            service.delete(id);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    private boolean isValidFileType(String path) {
-        if (path == null) return false;
-        return path.toLowerCase().endsWith(".pdf") || path.toLowerCase().endsWith(".docx");
+    @DeleteMapping("/{documentId}")
+    public ResponseEntity<Void> deleteDocument(@PathVariable Long documentId) {
+        service.delete(documentId);
+        return ResponseEntity.noContent().build();
     }
 }
