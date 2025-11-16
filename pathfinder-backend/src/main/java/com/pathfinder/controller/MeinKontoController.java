@@ -18,13 +18,14 @@ public class MeinKontoController {
 
     // GET /api/meinKonto/personal/{nwkId}
     @GetMapping("/personal/{nwkId}")
-    public ResponseEntity<?> getPersonalData(@PathVariable Long id) {
+    public ResponseEntity<?> getPersonalData(@PathVariable("nwkId") Long id) {
         Nachwuchskraft nwk = service.getById(id);
         if (nwk == null) return ResponseEntity.notFound().build();
 
         // Nur relevante persönliche Daten zurückgeben
         var dto = new Object() {
             public final Long id = nwk.getId();
+            public final String personalnummer = nwk.getPersonalnummer();
             public final String vorname = nwk.getVorname();
             public final String nachname = nwk.getNachname();
             public final String email = nwk.getEmail();
@@ -37,16 +38,16 @@ public class MeinKontoController {
 
     // GET /api/meinKonto/experience/{nwkId}
     @GetMapping("/experience/{nwkId}")
-    public ResponseEntity<Nachwuchskraft> getExperience(@PathVariable Long id) {
+    public ResponseEntity<Nachwuchskraft> getExperience(@PathVariable("nwkId") Long id) {
         Nachwuchskraft nwk = service.getById(id);
         if (nwk == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(nwk);
     }
 
     // PUT /api/meinKonto/experience/{nwkId}
-    @PutMapping("/experience/{nwkId}")
+    @PutMapping(value = "/experience/{nwkId}", consumes = "application/json") // sicherstellen, dass JSON erwartet wird
     public ResponseEntity<Nachwuchskraft> updateExperience(
-            @PathVariable Long id,
+            @PathVariable("nwkId") Long id,
             @RequestBody Nachwuchskraft updated) {
 
         Nachwuchskraft existing = service.getById(id);
