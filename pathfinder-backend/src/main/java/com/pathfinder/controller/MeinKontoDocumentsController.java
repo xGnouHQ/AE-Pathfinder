@@ -2,8 +2,11 @@ package com.pathfinder.controller;
 
 import com.pathfinder.model.NachwuchskraftAnhang;
 import com.pathfinder.service.NachwuchskraftAnhangService;
+import com.pathfinder.service.NachwuchskraftService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -12,9 +15,11 @@ import java.util.List;
 public class MeinKontoDocumentsController {
 
     private final NachwuchskraftAnhangService service;
+    private final NachwuchskraftService nwkService;
 
-    public MeinKontoDocumentsController(NachwuchskraftAnhangService service) {
+    public MeinKontoDocumentsController(NachwuchskraftAnhangService service, NachwuchskraftService nwkService) {
         this.service = service;
+        this.nwkService = nwkService;
     }
 
     @GetMapping("/{nwkId}")
@@ -24,17 +29,17 @@ public class MeinKontoDocumentsController {
         return ResponseEntity.ok(docs);
     }
 
-    // POST /api/meinKonto/documents
-    @PostMapping
-    public ResponseEntity<NachwuchskraftAnhang> uploadDocument(@RequestBody NachwuchskraftAnhang anhang) {
-        if (!isValidFileType(anhang.getDateipfad())) {
-            return ResponseEntity.badRequest().body(null);
-        }
-        NachwuchskraftAnhang saved = service.save(anhang);
-        return ResponseEntity.ok(saved);
-    }
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<NachwuchskraftAnhang> uploadDocument(
+            @RequestParam("nwkId") Long nwkId,
+            @RequestParam("file") MultipartFile file) {
 
-    private boolean isValidFileType(String dateipfad) {
+        try {
+            NachwuchskraftAnhang saved = service.saveFile(nwkId, file);
+            return ResponseEntity.ok(saved);
+        } catch (IOException e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 
     @PutMapping("/{documentId}")

@@ -34,24 +34,36 @@ public class BewerbungController {
         return bewerbungService.getById(id);
     }
 
-    // --- Bewerbung erstellen (Multipart)
     @PostMapping(consumes = "application/json")
     public Bewerbung createBewerbung(@RequestBody java.util.Map<String, Object> payload) {
         try {
-            Long stelleId = Long.valueOf(payload.get("stelleId").toString());
-            Long nwkId = Long.valueOf(payload.get("nachwuchskraftId").toString());
+            // Pflichtfelder prüfen
+            Object stelleObj = payload.get("stelleId");
+            Object nwkObj = payload.get("nachwuchskraftId");
 
-            // Optional
+            if (stelleObj == null || nwkObj == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "stelleId oder nachwuchskraftId fehlt");
+            }
+
+            Long stelleId = Long.valueOf(stelleObj.toString());
+            Long nwkId = Long.valueOf(nwkObj.toString());
+
+            // Optional: Datei-IDs auslesen, falls vorhanden
             @SuppressWarnings("unchecked")
-            java.util.List<Long> fileIds = payload.containsKey("fileIds")
-                    ? ((java.util.List<Object>) payload.get("fileIds")).stream()
-                    .map(o -> Long.valueOf(o.toString()))
-                    .toList()
-                    : null;
+            java.util.List<Long> fileIds = null;
+            Object filesObj = payload.get("fileIds");
+            if (filesObj instanceof java.util.List<?>) {
+                fileIds = ((java.util.List<Object>) filesObj).stream()
+                        .map(o -> Long.valueOf(o.toString()))
+                        .toList();
+            }
 
-            String hrNote = payload.containsKey("hrNote") ? payload.get("hrNote").toString() : null;
+            // Optional: HR-Notiz
+            String hrNote = payload.get("hrNote") != null ? payload.get("hrNote").toString() : null;
 
             return bewerbungService.createBewerbung(stelleId, nwkId, fileIds, hrNote);
+        } catch (ResponseStatusException e) {
+            throw e; // BAD_REQUEST weiterleiten
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
