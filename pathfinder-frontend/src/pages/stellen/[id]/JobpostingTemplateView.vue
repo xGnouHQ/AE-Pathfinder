@@ -35,6 +35,7 @@
       v-model="dialogOpen"
       :job="selectedStelle"
       :uploaded-files="nwkDocuments"
+      :nwk-id="nwk.id"
       @submit="handleSubmit"
     />
   </v-container>

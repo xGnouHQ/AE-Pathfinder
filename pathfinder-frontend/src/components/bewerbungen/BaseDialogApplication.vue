@@ -14,21 +14,18 @@
           label="Ich willige ein, dass meine persönlichen Daten für diese Bewerbung weitergegeben werden."
         />
 
-        <!-- Dokumente immer sichtbar -->
-        <div class="mt-4">
-          <p class="font-weight-medium mb-2">Dokumente auswählen (optional)</p>
-          <v-select
-            v-model="selectedFiles"
-            :items="uploadedFiles"
-            item-title="name"
-            item-value="id"
-            multiple
-            chips
-            dense
-            :disabled="uploadedFiles.length === 0"
-            placeholder="Keine Dokumente vorhanden"
-          />
-        </div>
+        <!-- Dokumente auswählen: nur Dateiname oder Typ anzeigen -->
+        <v-select
+          v-model="selectedFiles"
+          :items="uploadedFiles.map(f => ({ id: f.id, name: f.dateipfad.split('/').pop() || f.typ }))"
+          item-title="name"
+          item-value="id"
+          multiple
+          chips
+          dense
+          :disabled="uploadedFiles.length === 0"
+          placeholder="Keine Dokumente vorhanden"
+        />
 
         <!-- Optional: HR-Notiz -->
         <v-textarea
@@ -56,18 +53,19 @@ import { ref, watch } from "vue";
 import BaseButtonCancel from "@/components/common/BaseButtonCancel.vue";
 import BaseButtonVerify from "@/components/common/BaseButtonVerify.vue";
 
-interface FileItem { id: number; name: string; path: string; typ: string; hochgeladenAm: string; }
+interface FileItem { id: number; dateipfad: string; typ: string; hochgeladenAm: string; }
 interface Job { id?: number; title: string; }
 
 const props = defineProps<{
   modelValue: boolean;
   job: Job | null;
   uploadedFiles: FileItem[];
+  nwkId: number;
 }>();
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: boolean): void;
-  (e: "submit", data: { job: Job; consent: boolean; selectedFiles: number[]; hrNote: string }): void;
+  (e: "submitted"): void;
 }>();
 
 const dialog = ref(props.modelValue);
@@ -79,35 +77,49 @@ const hrNote = ref("");
 watch(() => props.modelValue, val => (dialog.value = val));
 watch(dialog, val => emit("update:modelValue", val));
 
-// Dialog schließen
-function closeDialog() {
-  dialog.value = false;
-}
+function closeDialog() { dialog.value = false; }
 
-// Submit minimalistisch
-function submitApplication() {
+async function submitApplication() {
   if (!props.job) return;
 
-  emit("submit", {
-    job: props.job,
-    consent: consent.value,
-    selectedFiles: selectedFiles.value,
-    hrNote: hrNote.value,
-  });
+  try {
+    const fileNames = selectedFiles.value.length > 0
+      ? selectedFiles.value
+          .map(id => props.uploadedFiles.find(f => f.id === id)?.dateipfad.split('/').pop() || f.typ)
+          .filter(name => name != null)
+      : null;
 
-  // Reset
-  consent.value = false;
-  selectedFiles.value = [];
-  hrNote.value = "";
-  dialog.value = false;
+    const payload = {
+      stelleId: props.job.id,
+      nachwuchskraftId: props.nwkId,
+      fileNames: fileNames,      // nur Dateinamen übermitteln
+      hrNote: hrNote.value || null
+    };
+
+    const res = await fetch("/api/bewerbungen", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error("Fehler beim Erstellen der Bewerbung");
+
+    alert("Bewerbung erfolgreich erstellt!");
+
+    consent.value = false;
+    selectedFiles.value = [];
+    hrNote.value = "";
+    dialog.value = false;
+
+    emit("submitted");
+  } catch (err) {
+    console.error(err);
+    alert("Fehler beim Bewerben!");
+  }
 }
 </script>
 
 <style scoped>
-.mt-4 {
-  margin-top: 16px;
-}
-.font-weight-medium {
-  font-weight: 500;
-}
+.mt-4 { margin-top: 16px; }
+.font-weight-medium { font-weight: 500; }
 </style>
