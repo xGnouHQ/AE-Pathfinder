@@ -7,8 +7,8 @@ Dokumentation "Pathfinder - WebApplikation" in Rahmen einer Universitätsveranst
 | Branch | Rolle / Beschreibung | CI Status (Build & Test) | Deploy Status (Server) |
 | :--- | :--- | :---: | :---: |
 | **test-poc-1** | 🚀 Aktuelles Testsystem | - | [![Deploy Test PoC](https://github.com/ae-pathfinder/AE-Pathfinder/actions/workflows/deploy-test-poc.yml/badge.svg?branch=test-poc-1)](https://github.com/ae-pathfinder/AE-Pathfinder/actions/workflows/deploy-test-poc.yml) | 
-| **feature/login** | Mockup Frontend+Backend Combined | [![CI Check (Build & Test)](https://github.com/ae-pathfinder/AE-Pathfinder/actions/workflows/ci-check.yml/badge.svg?branch=combined-frontend-backend-mock)](https://github.com/ae-pathfinder/AE-Pathfinder/actions/workflows/ci-check.yml) | — |
-| **frontend2.0** | Frontend+backend Verknppüpfung 2.0 | [![CI Check (Build & Test)](https://github.com/ae-pathfinder/AE-Pathfinder/actions/workflows/ci-check.yml/badge.svg?branch=Frontend-backend-verknuepfung-2-0)](https://github.com/ae-pathfinder/AE-Pathfinder/actions/workflows/ci-check.yml) | — |
+| **combined-frontend-backend-mock** | Mockup Frontend+Backend Combined | [![CI Check (Build & Test)](https://github.com/ae-pathfinder/AE-Pathfinder/actions/workflows/ci-check.yml/badge.svg?branch=combined-frontend-backend-mock)](https://github.com/ae-pathfinder/AE-Pathfinder/actions/workflows/ci-check.yml) | — |
+| **Frontend-backend-verknuepfung-2-0** | Frontend+backend Verknppüpfung 2.0 | [![CI Check (Build & Test)](https://github.com/ae-pathfinder/AE-Pathfinder/actions/workflows/ci-check.yml/badge.svg?branch=Frontend-backend-verknuepfung-2-0)](https://github.com/ae-pathfinder/AE-Pathfinder/actions/workflows/ci-check.yml) | — |
 
 ## 📖 Projektübersicht
 Dieses Projekt wurde im Rahmen eines Universitätsmodul "Anwendungsentwicklung" entwickelt.  
