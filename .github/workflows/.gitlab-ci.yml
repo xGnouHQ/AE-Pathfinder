@@ -4,25 +4,15 @@ stages:
   - verify
 
 # ====================================================
-# GLOBAL RULES
-# Diese Regeln gelten für alle Jobs (DRY - Don't Repeat Yourself)
-# ====================================================
-.pipeline_rules: &pipeline_rules
-  rules:
-    # Wenn Merge Request auf test-poc zielt
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "test-poc"'
-    # Wenn direkt auf test-poc gepusht/gemerged wurde
-    - if: '$CI_COMMIT_BRANCH == "test-poc"'
-
-# ====================================================
-# STAGE 1: BUILD & TEST (In der CI Umgebung)
-# Wir prüfen erst, ob der Code überhaupt sauber baut.
+# STAGE 1: BUILD & TEST
 # ====================================================
 
 backend:build:
   stage: build
   image: maven:3.8.5-openjdk-17
-  <<: *pipeline_rules
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "test-poc"'
+    - if: '$CI_COMMIT_BRANCH == "test-poc"'
   script:
     - echo "=== CI: Prüfe Backend Build ==="
     - cd pathfinder-backend
@@ -30,20 +20,27 @@ backend:build:
 
 frontend:build:
   stage: build
-  image: node:18-alpine # Oder dein bevorzugtes Node Image
-  <<: *pipeline_rules
+  image: node:18-alpine
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "test-poc"'
+    - if: '$CI_COMMIT_BRANCH == "test-poc"'
   script:
     - echo "=== CI: Prüfe Frontend Build ==="
     - cd pathfinder-frontend
     - npm ci
     - npm run build
 
+# ====================================================
+# STAGE 2: DEPLOY (Auf dem Server)
+# ====================================================
 
 deploy:remote-rebuild:
   stage: deploy
   image: alpine:3.20
   needs: ["backend:build", "frontend:build"]
-  <<: *pipeline_rules
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "test-poc"'
+    - if: '$CI_COMMIT_BRANCH == "test-poc"'
   before_script:
     - apk add --no-cache openssh-client
     - mkdir -p ~/.ssh
@@ -55,20 +52,38 @@ deploy:remote-rebuild:
     - >
       ssh -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" bash -lc '
         set -euo pipefail
-        
-        # ... (Git und Build Schritte bleiben gleich) ...
+
+        echo "=== 1. Git Sync (test-poc) ==="
+        cd ~/AE-Pathfinder
+        git fetch --all --prune
+        git checkout test-poc || git checkout -b test-poc origin/test-poc
+        git reset --hard origin/test-poc
+
+        echo "=== 2. Backend neu bauen (Server) ==="
+        cd pathfinder-backend
+        mvn -B -DskipTests clean package
+
+        echo "=== 3. Frontend neu bauen (Server) ==="
+        cd ../pathfinder-frontend
+        if [ -f package-lock.json ]; then npm ci; else npm install; fi
+        npm run build
 
         echo "=== 4. Services neustarten (mit SUDO) ==="
-        # Hier ist das SUDO wichtig:
         sudo systemctl restart pathfinder-backend
         sudo systemctl restart pathfinder-frontend
       '
+
+# ====================================================
+# STAGE 3: VERIFY (Ports & Status prüfen)
+# ====================================================
 
 verify:services:
   stage: verify
   image: alpine:3.20
   needs: ["deploy:remote-rebuild"]
-  <<: *pipeline_rules
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "test-poc"'
+    - if: '$CI_COMMIT_BRANCH == "test-poc"'
   before_script:
     - apk add --no-cache openssh-client
     - mkdir -p ~/.ssh
@@ -82,7 +97,6 @@ verify:services:
         set -e
 
         echo "--- Check Backend (Systemd) ---"
-        # Auch zum Status abfragen nutzen wir sudo, falls die Rechte eingeschränkt sind
         if sudo systemctl is-active --quiet pathfinder-backend; then
             echo "✅ Backend Service läuft."
         else
@@ -91,7 +105,13 @@ verify:services:
             exit 1
         fi
 
-        # ... (Port Checks bleiben gleich) ...
+        echo "--- Check Backend (Port 8080) ---"
+        if timeout 30 bash -c "until echo > /dev/tcp/localhost/8080; do sleep 1; done" 2>/dev/null; then
+            echo "✅ Port 8080 ist offen."
+        else
+            echo "❌ Port 8080 antwortet nicht!"
+            exit 1
+        fi
 
         echo "--- Check Frontend (Systemd) ---"
         if sudo systemctl is-active --quiet pathfinder-frontend; then
@@ -101,4 +121,17 @@ verify:services:
             sudo systemctl status pathfinder-frontend --no-pager
             exit 1
         fi
+
+        echo "--- Check Frontend (Port 3000) ---"
+        if timeout 30 bash -c "until echo > /dev/tcp/localhost/3000; do sleep 1; done" 2>/dev/null; then
+            echo "✅ Port 3000 ist offen."
+        else
+            echo "❌ Port 3000 antwortet nicht!"
+            exit 1
+        fi
+        
+        echo "=== ALL SYSTEMS GO ==="
       '
+  environment:
+    name: test-poc
+    url: $TEST_BASE_URL
