@@ -1,0 +1,104 @@
+stages:
+  - build
+  - deploy
+  - verify
+
+# ====================================================
+# GLOBAL RULES
+# Diese Regeln gelten für alle Jobs (DRY - Don't Repeat Yourself)
+# ====================================================
+.pipeline_rules: &pipeline_rules
+  rules:
+    # Wenn Merge Request auf test-poc zielt
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "test-poc"'
+    # Wenn direkt auf test-poc gepusht/gemerged wurde
+    - if: '$CI_COMMIT_BRANCH == "test-poc"'
+
+# ====================================================
+# STAGE 1: BUILD & TEST (In der CI Umgebung)
+# Wir prüfen erst, ob der Code überhaupt sauber baut.
+# ====================================================
+
+backend:build:
+  stage: build
+  image: maven:3.8.5-openjdk-17
+  <<: *pipeline_rules
+  script:
+    - echo "=== CI: Prüfe Backend Build ==="
+    - cd pathfinder-backend
+    - mvn -B -DskipTests clean package
+
+frontend:build:
+  stage: build
+  image: node:18-alpine # Oder dein bevorzugtes Node Image
+  <<: *pipeline_rules
+  script:
+    - echo "=== CI: Prüfe Frontend Build ==="
+    - cd pathfinder-frontend
+    - npm ci
+    - npm run build
+
+
+deploy:remote-rebuild:
+  stage: deploy
+  image: alpine:3.20
+  needs: ["backend:build", "frontend:build"]
+  <<: *pipeline_rules
+  before_script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
+  script:
+    - echo "Deploy: Remote rebuild on $SSH_HOST..."
+    - >
+      ssh -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" bash -lc '
+        set -euo pipefail
+        
+        # ... (Git und Build Schritte bleiben gleich) ...
+
+        echo "=== 4. Services neustarten (mit SUDO) ==="
+        # Hier ist das SUDO wichtig:
+        sudo systemctl restart pathfinder-backend
+        sudo systemctl restart pathfinder-frontend
+      '
+
+verify:services:
+  stage: verify
+  image: alpine:3.20
+  needs: ["deploy:remote-rebuild"]
+  <<: *pipeline_rules
+  before_script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile=/dev/null\n" > ~/.ssh/config
+  script:
+    - echo "Prüfe Ports und Services auf $SSH_HOST..."
+    - >
+      ssh -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" bash -lc '
+        set -e
+
+        echo "--- Check Backend (Systemd) ---"
+        # Auch zum Status abfragen nutzen wir sudo, falls die Rechte eingeschränkt sind
+        if sudo systemctl is-active --quiet pathfinder-backend; then
+            echo "✅ Backend Service läuft."
+        else
+            echo "❌ Backend Service läuft NICHT!"
+            sudo systemctl status pathfinder-backend --no-pager
+            exit 1
+        fi
+
+        # ... (Port Checks bleiben gleich) ...
+
+        echo "--- Check Frontend (Systemd) ---"
+        if sudo systemctl is-active --quiet pathfinder-frontend; then
+            echo "✅ Frontend Service läuft."
+        else
+            echo "❌ Frontend Service läuft NICHT!"
+            sudo systemctl status pathfinder-frontend --no-pager
+            exit 1
+        fi
+      '
