@@ -1,31 +1,29 @@
 <template>
   <v-container>
     <h1 class="mb-6">Offene Stellen</h1>
-          <v-text-field
-            v-model="search"
-            label="Search"
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            hide-details
-            single-line
-          ></v-text-field>
+
+    <v-text-field
+      v-model="search"
+      label="Search"
+      prepend-inner-icon="mdi-magnify"
+      variant="outlined"
+      hide-details
+      single-line
+    />
 
     <v-container class="box">
       <v-row>
         <v-col
-          v-for="stelle in stellen"
+          v-for="stelle in filteredStellen"
           :key="stelle.id"
-          :search="search"
           cols="12"
         >
-          <!-- Router-Link zur Detailseite -->
           <router-link
             :to="`/stellen/${stelle.id}/JobpostingTemplateView`"
             class="no-underline"
           >
             <BaseCardJobMini
               :job="stelle"
-              :profile="nwkExperience"
               @merke="() => merkeStelle(stelle.id)"
             />
           </router-link>
@@ -35,81 +33,95 @@
   </v-container>
 </template>
 
-
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import BaseCardJobMini from '@/components/stellen/BaseCardJobMini.vue'
 
+// ------------------ Search ------------------
 const search = ref("")
 
-// Backend-URL
+// Backend
 const API_URL = 'http://localhost:8080/api/stellen'
 
-// Profil der Nachwuchskraft (Beispieldaten)
-const nwkExperience = ref({
-  id: 1,
-  experiences: ['Praktikum Webentwicklung', 'Backend bei Stadtverwaltung'],
-  knowsProgramming: true,
-  programmingLanguages: ['JavaScript', 'Python'],
-  interests: ['Webentwicklung', 'Cloud', 'Datenbanken', 'IT-Sicherheit']
-})
+// Nachwuchskraft (ID muss existieren!)
+const PROFILE_ID = 1
 
-// --- TypeScript Interfaces ---
-interface Tag {
-  id: number
-  name: string
-}
-
-interface Servicebereichsleiter {
-  id: number
-  name: string
-}
+// ------------------ Interfaces ------------------
+interface Tag { id: number; name: string }
 
 interface Stelle {
-  id: number           // ✅ long → number (TS-kompatibel)
+  id: number
   titel: string
   standort: string
   beschreibung: string
   tags: Tag[]
-  status: 'OFFEN' | 'GESCHLOSSEN'
+  status: string
   bewerbungsfrist: string
-  servicebereichsleiter: Servicebereichsleiter
-  bewerbungen: any[]
+  matchingScore?: number
 }
 
-// --- Reactive Variablen ---
+// ------------------ Data ------------------
 const stellen = ref<Stelle[]>([])
 
-// --- Methoden ---
+// ------------------ Load all jobs ------------------
 const ladeStellen = async () => {
   try {
     const response = await axios.get(API_URL)
     stellen.value = response.data
+
+    // Matching-Score pro Stelle nachladen
+    for (const stelle of stellen.value) {
+      await ladeMatchingScore(stelle)
+    }
   } catch (error) {
-    console.error('Fehler beim Laden der Stellen:', error)
+    console.error("Fehler beim Laden der Stellen:", error)
   }
 }
 
-// Wird beim Laden der Seite ausgeführt
-onMounted(ladeStellen)
+// ------------------ Load score ------------------
+const ladeMatchingScore = async (stelle: Stelle) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:8080/api/matching/${PROFILE_ID}/${stelle.id}`
+    )
 
-// Stelle merken (Beispiel-Funktion)
+    // Backend liefert Double (0–100)
+    stelle.matchingScore = response.data
+
+  } catch (error) {
+    console.error(`Fehler beim Matching-Score für Stelle ${stelle.id}:`, error)
+    stelle.matchingScore = 0
+  }
+}
+
+// ------------------ Merkfunktion ------------------
 const merkeStelle = async (stellenId: number) => {
   try {
     const response = await axios.post(
       `${API_URL}/${stellenId}/merken`,
       null,
-      { params: { nachwuchskraftId: nwkExperience.value.id } }
+      { params: { nachwuchskraftId: PROFILE_ID } }
     )
     alert(response.data)
   } catch (error: any) {
-    console.error('Fehler beim Merken der Stelle:', error)
-    alert(error.response?.data || 'Fehler beim Merken der Stelle')
+    alert(error.response?.data || "Fehler beim Merken der Stelle")
   }
 }
-</script>
 
+// ------------------ Computed (Filter + Sortierung) ------------------
+const filteredStellen = computed(() => {
+  return stellen.value
+    .filter(s =>
+      s.titel.toLowerCase().includes(search.value.toLowerCase()) ||
+      s.beschreibung.toLowerCase().includes(search.value.toLowerCase())
+    )
+    .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0))
+})
+
+// ------------------ On Mounted ------------------
+onMounted(ladeStellen)
+</script>
 
 <style scoped>
 .box {

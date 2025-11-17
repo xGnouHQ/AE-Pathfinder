@@ -3,11 +3,29 @@
     <v-card-title class="d-flex justify-space-between align-center">
       <div>
         <h2>{{ job.titel }}</h2>
-        <p class="text-subtitle-1">{{ job.standort }} | {{ job.status }} | Bewerbungsfrist: {{ formatDate(job.bewerbungsfrist) }}</p>
+        <p class="text-subtitle-1">
+          {{ job.standort }} | {{ job.status }} | Bewerbungsfrist: {{ formatDate(job.bewerbungsfrist) }}
+        </p>
       </div>
 
-      <!-- MatchScore einbinden -->
-      <JobMatchScore :job="job" :profile="profile" />
+      <!-- MatchScore korrekt anzeigen -->
+      <v-chip
+        v-if="job.matchingScore !== undefined && job.matchingScore !== null && job.matchingScore > 0"
+        color="green"
+        variant="flat"
+        class="font-weight-medium"
+      >
+        Matchscore {{ job.matchingScore.toFixed(2) }} %
+      </v-chip>
+
+      <v-chip
+        v-else
+        color="grey"
+        variant="outlined"
+        class="font-weight-medium"
+      >
+        Keine Übereinstimmung
+      </v-chip>
     </v-card-title>
 
     <v-card-text>
@@ -19,23 +37,12 @@
           <v-chip small outlined>{{ tag.name }}</v-chip>
         </v-col>
       </v-row>
-
     </v-card-text>
   </v-card>
 </template>
 
 <script setup lang="ts">
-import JobMatchScore from './JobMatchScore.vue'
-
-interface NwkExperience {
-  experiences: string[]
-  knowsProgramming: boolean
-  programmingLanguages: string[]
-  interests: string[]
-}
-
 interface Tag { id: number; name: string }
-interface Servicebereichsleiter { id: number; kontaktperson?: string; name?: string }
 
 interface Stelle {
   id: number
@@ -45,12 +52,11 @@ interface Stelle {
   status: 'OFFEN' | 'GESCHLOSSEN'
   bewerbungsfrist?: string
   tags?: Tag[]
-  gemerkt?: boolean
+  matchingScore?: number  // <-- Double vom Backend
 }
 
 const props = defineProps<{
   job: Stelle
-  profile: NwkExperience
 }>()
 
 function formatDate(dateStr?: string) {
@@ -59,5 +65,4 @@ function formatDate(dateStr?: string) {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
