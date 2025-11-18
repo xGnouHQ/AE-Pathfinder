@@ -8,4 +8,6 @@ public interface BewerbungRepository extends JpaRepository<Bewerbung, Long> {
 
     List<Bewerbung> findByNachwuchskraftId(Long nachwuchskraftId);
     List<Bewerbung> findByStelleId(Long stelleId);
+
+    boolean existsByNachwuchskraftIdAndStelleId(Long nwkId, Long stelleId);
 }

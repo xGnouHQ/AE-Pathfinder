@@ -1,14 +1,17 @@
 package com.pathfinder.controller;
 
+import com.pathfinder.dto.meinKonto.ExperienceResponse;
+import com.pathfinder.dto.meinKonto.ExperienceUpdateRequest;
+import com.pathfinder.dto.meinKonto.PersonalDataResponse;
+import com.pathfinder.exception.NachwuchskraftNotFoundException;
 import com.pathfinder.model.Abteilung;
 import com.pathfinder.model.Nachwuchskraft;
 import com.pathfinder.model.Tag;
 import com.pathfinder.service.AbteilungService;
 import com.pathfinder.service.NachwuchskraftService;
+import com.pathfinder.service.TagService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.stream.Collectors;
-import java.util.ArrayList;
 
 import java.util.List;
 
@@ -19,85 +22,72 @@ public class MeinKontoController {
 
     private final NachwuchskraftService nwkService;
     private final AbteilungService abteilungService;
+    private final TagService tagService;
 
-    public MeinKontoController(NachwuchskraftService nwkService, AbteilungService abteilungService) {
+    public MeinKontoController(
+            NachwuchskraftService nwkService,
+            AbteilungService abteilungService,
+            TagService tagService) {
         this.nwkService = nwkService;
         this.abteilungService = abteilungService;
+        this.tagService = tagService;
     }
 
-    // ========================================================
-    // GET /api/meinKonto/personal/{nwkId}
-    // -> nur Anzeige persönlicher Daten + Praktika
-    // ========================================================
+    // ============ PERSONAL DATA =======================
     @GetMapping("/personal/{nwkId}")
-    public ResponseEntity<?> getPersonalData(@PathVariable("nwkId") Long id) {
+    public ResponseEntity<PersonalDataResponse> getPersonalData(@PathVariable Long nwkId) {
 
-        Nachwuchskraft nwk = nwkService.getById(id);
+        Nachwuchskraft nwk = nwkService.getOrThrow(nwkId);
+        if (nwk == null) throw new NachwuchskraftNotFoundException(nwkId);
 
-        if (nwk == null) return ResponseEntity.notFound().build();
-
-        var dto = new Object() {
-            public final Long id = nwk.getId();
-            public final String personalnummer = nwk.getPersonalnummer();
-            public final String vorname = nwk.getVorname();
-            public final String nachname = nwk.getNachname();
-            public final String email = nwk.getEmail();
-            public final String studienrichtung = nwk.getStudienrichtung();
-            public final String jahrgang = nwk.getJahrgang();
-            public final List<Abteilung> praktika = nwk.getPraktika();
-        };
+        PersonalDataResponse dto = new PersonalDataResponse(
+                nwk.getId(),
+                nwk.getVorname(),
+                nwk.getNachname(),
+                nwk.getEmail(),
+                nwk.getStudienrichtung(),
+                nwk.getJahrgang(),
+                nwk.getPraktika()
+        );
 
         return ResponseEntity.ok(dto);
     }
 
-    // ========================================================
-    // GET /api/meinKonto/experience/{nwkId}
-    // -> Interessen + Wunschabteilungen anzeigen
-    // ========================================================
+    // ============ EXPERIENCE DATA =======================
     @GetMapping("/experience/{nwkId}")
+    public ResponseEntity<ExperienceResponse> getExperience(@PathVariable Long nwkId) {
 
-    public ResponseEntity<?> getExperience(@PathVariable("nwkId") Long id) {
-        Nachwuchskraft nwk = nwkService.getById(id);
-        if (nwk == null) return ResponseEntity.notFound().build();
+        Nachwuchskraft nwk = nwkService.getOrThrow(nwkId);
+        if (nwk == null) throw new NachwuchskraftNotFoundException(nwkId);
 
-        var dto = new Object() {
-            public final Long id = nwk.getId();
-            public final List<Tag> interessen = nwk.getInteressen();
-            public final List<Abteilung> wunschabteilungen = nwk.getWunschabteilungen();
-        };
+        ExperienceResponse dto = new ExperienceResponse(
+                nwk.getId(),
+                nwk.getInteressen(),
+                nwk.getWunschabteilungen()
+        );
 
         return ResponseEntity.ok(dto);
     }
 
 
-    // ========================================================
-    // PUT /api/meinKonto/experience/{nwkId}
-    // -> Interessen oder Wunschabteilungen ändern
-    // ========================================================
+    // ============ UPDATE EXPERIENCE =======================
     @PutMapping("/experience/{nwkId}")
-    public ResponseEntity<?> updateExperience(
-            @PathVariable("nwkId") Long id,
-            @RequestBody Nachwuchskraft updated) {
+    public ResponseEntity<ExperienceResponse> updateExperience(
+            @PathVariable Long nwkId,
+            @RequestBody ExperienceUpdateRequest req
+    ) {
+        Nachwuchskraft updated = nwkService.updateExperience(
+                nwkId,
+                req.interessenIds(),
+                req.wunschabteilungenIds()
+        );
 
-        Nachwuchskraft existing = nwkService.getById(id);
-        if (existing == null) return ResponseEntity.notFound().build();
-
-        // Interessen aktualisieren
-        if (updated.getInteressen() != null) {
-            existing.setInteressen(updated.getInteressen());
-        }
-
-        // Wunschabteilungen aktualisieren
-        if (updated.getWunschabteilungen() != null) {
-            List<Abteilung> neueAbteilungen = updated.getWunschabteilungen().stream()
-                    .map(a -> abteilungService.getById(a.getId()))
-                    .filter(a -> a != null)
-                    .collect(Collectors.toCollection(ArrayList::new));
-            existing.setWunschabteilungen(neueAbteilungen);
-        }
-
-        Nachwuchskraft saved = nwkService.save(existing);
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.ok(
+                new ExperienceResponse(
+                        updated.getId(),
+                        updated.getInteressen(),
+                        updated.getWunschabteilungen()
+                )
+        );
     }
-
 }

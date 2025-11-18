@@ -21,6 +21,8 @@ public class Stelle {
 
     private String titel;
     private String standort;
+    private String referat;
+    private String entgeltgruppe;
 
     @Column(length = 2000)
     private String beschreibung;

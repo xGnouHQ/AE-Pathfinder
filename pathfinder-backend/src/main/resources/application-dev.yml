@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:h2:~/pathfinder-dev;MODE=PostgreSQL;DATABASE_TO_UPPER=false
+    driver-class-name: org.h2.Driver
+    username: pfuser
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  sql:
+    init:
+      mode: always
+      platform: h2
+
+logging:
+  level:
+    org.hibernate.SQL: debug

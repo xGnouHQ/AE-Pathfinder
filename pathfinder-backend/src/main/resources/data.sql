@@ -1,30 +1,36 @@
 -- ===========================
 -- SERVICEBEREICHSLEITER
 -- ===========================
-INSERT INTO SERVICEBEREICHSLEITER (ID, BEREICH, EMAIL, ERSTELLT_AM, KONTAKTPERSON, TELEFONNUMMER)
+INSERT INTO SERVICEBEREICHSLEITER (BEREICH, EMAIL, ERSTELLT_AM, KONTAKTPERSON, TELEFONNUMMER)
 VALUES
-(1, 'IT-Infrastruktur', 'anna.schmidt@muenchen.de', '2024-01-10', 'Anna Schmidt', '089-123456'),
-(2, 'Personalmanagement', 'thomas.mueller@muenchen.de', '2024-02-14', 'Thomas Müller', '089-654321'),
-(3, 'Finanzen', 'laura.klein@muenchen.de', '2024-03-01', 'Laura Klein', '089-777888');
+('IT-Infrastruktur', 'anna.schmidt@muenchen.de', '2024-01-10', 'Anna Schmidt', '089-123456'),
+('Personalmanagement', 'thomas.mueller@muenchen.de', '2024-02-14', 'Thomas Müller', '089-654321'),
+('Finanzen', 'laura.klein@muenchen.de', '2024-03-01', 'Laura Klein', '089-777888');
 
 -- ===========================
--- Nachwuchskräfte
+-- NACHWUCHSKRAFT
 -- ===========================
 INSERT INTO NACHWUCHSKRAFT
-(ID, JAHRGANG, EMAIL, ERSTELLT_AM, NACHNAME, PERSONALNUMMER, STUDIENRICHTUNG, VORNAME)
+(JAHRGANG, EMAIL, ERSTELLT_AM, NACHNAME, PERSONALNUMMER, STUDIENRICHTUNG, VORNAME)
 VALUES
-(1, '2022/2025', 'max.mustermann@bwi.de', '2024-01-05 09:00:00', 'Mustermann', 'P1001', 'Wirtschaftsinformatik', 'Max'),
-(2, '2023/2026', 'sophie.meier@bwi.de', '2024-02-12 10:00:00', 'Meier', 'P1002', 'Informatik', 'Sophie'),
-(3, '2021/2024', 'leon.schneider@bwi.de', '2024-03-18 11:00:00', 'Schneider', 'P1003', 'BWL', 'Leon'),
-(4, '2024/2027', 'lena.huber@bwi.de', '2024-04-22 12:00:00', 'Huber', 'P1004', 'Verwaltungsinformatik', 'Lena');
+('2022/2025', 'max.mustermann@bwi.de', '2024-01-05 09:00:00', 'Mustermann', 'P1001', 'Wirtschaftsinformatik', 'Max'),
+('2023/2026', 'sophie.meier@bwi.de', '2024-02-12 10:00:00', 'Meier', 'P1002', 'Informatik', 'Sophie'),
+('2021/2024', 'leon.schneider@bwi.de', '2024-03-18 11:00:00', 'Schneider', 'P1003', 'BWL', 'Leon'),
+('2024/2027', 'lena.huber@bwi.de', '2024-04-22 12:00:00', 'Huber', 'P1004', 'Verwaltungsinformatik', 'Lena');
 
-INSERT INTO ABTEILUNG (ID, NAME) VALUES
-(1, 'IT@M - IT-Dienstleistungen'),
-(2, 'IT-Architektur'),
-(3, 'Finanzen'),
-(4, 'Kreisverwaltungsreferat - Bürgerdienste'),
-(5, 'Kommunalreferat - Stadtplanung');
+-- ===========================
+-- ABTEILUNG
+-- ===========================
+INSERT INTO ABTEILUNG (NAME) VALUES
+('IT@M - IT-Dienstleistungen'),
+('IT-Architektur'),
+('Finanzen'),
+('Kreisverwaltungsreferat - Bürgerdienste'),
+('Kommunalreferat - Stadtplanung');
 
+-- ===========================
+-- WUNSCHABTEILUNG
+-- ===========================
 INSERT INTO WUNSCHABTEILUNG (NACHWUCHSKRAFT_ID, ABTEILUNG_ID) VALUES
 (1, 1),
 (1, 2),
@@ -38,54 +44,45 @@ INSERT INTO WUNSCHABTEILUNG (NACHWUCHSKRAFT_ID, ABTEILUNG_ID) VALUES
 -- ===========================
 -- STELLE
 -- ===========================
-INSERT INTO STELLE (ID, BESCHREIBUNG, BEWERBUNGSFRIST, STANDORT, STATUS, TITEL, SERVICEBEREICHSLEITER_ID)
+INSERT INTO STELLE (BESCHREIBUNG, BEWERBUNGSFRIST, STANDORT, STATUS, TITEL, SERVICEBEREICHSLEITER_ID)
 VALUES
-(1, 'Entwicklung und Betreuung interner Tools', '2024-12-31', 'München', 'OFFEN', 'Softwareentwickler (m/w/d)', 1),
-(2, 'Mitarbeit im Personalcontrolling', '2024-11-30', 'München', 'GESCHLOSSEN', 'HR Analyst (m/w/d)', 2),
-(3, 'Bearbeitung von Haushaltsanträgen', '2024-10-31', 'München', 'GESCHLOSSEN', 'Sachbearbeiter Finanzen', 3),
-(4, 'Unterstützung IT-Support', '2024-12-15', 'München', 'OFFEN', 'IT-Support Assistent (m/w/d)', 1);
+('Entwicklung und Betreuung interner Tools', '2024-12-31', 'München', 'OFFEN', 'Softwareentwickler (m/w/d)', 1),
+('Mitarbeit im Personalcontrolling', '2024-11-30', 'München', 'GESCHLOSSEN', 'HR Analyst (m/w/d)', 2),
+('Bearbeitung von Haushaltsanträgen', '2024-10-31', 'München', 'GESCHLOSSEN', 'Sachbearbeiter Finanzen', 3),
+('Unterstützung IT-Support', '2024-12-15', 'München', 'OFFEN', 'IT-Support Assistent (m/w/d)', 1);
 
 -- ===========================
--- Tags (Interessen / Skills)
+-- TAG
 -- ===========================
-INSERT INTO TAG (ID, NAME)
-VALUES
-(1, 'Java'),
-(2, 'Spring Boot'),
-(3, 'Projektmanagement'),
-(4, 'Teamarbeit'),
-(5, 'Kommunikation'),
-(6, 'Datenanalyse'),
-(7, 'Bürgerdienste'),
-(8, 'Stadtplanung');
+INSERT INTO TAG (NAME) VALUES
+('Java'),
+('Spring Boot'),
+('Projektmanagement'),
+('Teamarbeit'),
+('Kommunikation'),
+('Datenanalyse'),
+('Bürgerdienste'),
+('Stadtplanung');
 
 -- ===========================
 -- STELLE_TAG
 -- ===========================
-INSERT INTO STELLE_TAG (STELLE_ID, TAG_ID)
-VALUES
--- Softwareentwickler (m/w/d)
+INSERT INTO STELLE_TAG (STELLE_ID, TAG_ID) VALUES
 (1, 1),
 (1, 2),
 (1, 7),
-
--- HR Analyst (m/w/d)
 (2, 3),
 (2, 4),
-
--- Sachbearbeiter Finanzen
 (3, 5),
-
--- IT-Support Assistent (m/w/d)
 (4, 6),
 (4, 7);
 
 -- ===========================
 -- BEWERBUNG
 -- ===========================
-INSERT INTO BEWERBUNG (eingereicht_am, kommentar, status, nachwuchskraft_id, stelle_id)
+INSERT INTO BEWERBUNG (EINGEREICHT_AM, KOMMENTAR, STATUS, NACHWUCHSKRAFT_ID, STELLE_ID)
 VALUES
-('2024-05-20', 'Ich freue mich auf diese spannende Position!', 'ANGELADEN', 1, 1),
+('2024-05-20', 'Ich freue mich auf diese spannende Position!', 'EINGEREICHT', 1, 1),
 ('2024-06-15', 'Meine Kenntnisse passen sehr gut zur Stelle.', 'EINGEREICHT', 2, 2),
 ('2024-07-10', 'Habe bereits Erfahrung im Bereich Controlling.', 'EINGEREICHT', 3, 2),
 ('2024-08-02', 'Motiviert und bereit für neue Aufgaben.', 'EINGEREICHT', 4, 4);
@@ -93,12 +90,12 @@ VALUES
 -- ===========================
 -- NACHWUCHSKRAFT_ANHANG
 -- ===========================
-INSERT INTO NACHWUCHSKRAFT_ANHANG (ID, DATEIPFAD, HOCHGELADEN_AM, TYP, NACHWUCHSKRAFT_ID)
+INSERT INTO NACHWUCHSKRAFT_ANHANG (DATEIPFAD, HOCHGELADEN_AM, TYP, NACHWUCHSKRAFT_ID)
 VALUES
-(1, '/uploads/lebenslauf_max.pdf', '2024-05-10', 'Lebenslauf', 1),
-(2, '/uploads/zeugnis_sophie.pdf', '2024-06-02', 'Zeugnis', 2),
-(3, '/uploads/motivation_leon.pdf', '2024-06-20', 'Motivationsschreiben', 3),
-(4, '/uploads/lebenslauf_lena.pdf', '2024-07-05', 'Lebenslauf', 4);
+('/uploads/lebenslauf_max.pdf', '2024-05-10', 'Lebenslauf', 1),
+('/uploads/zeugnis_sophie.pdf', '2024-06-02', 'Zeugnis', 2),
+('/uploads/motivation_leon.pdf', '2024-06-20', 'Motivationsschreiben', 3),
+('/uploads/lebenslauf_lena.pdf', '2024-07-05', 'Lebenslauf', 4);
 
 -- ===========================
 -- STELLENMERKLISTE
@@ -111,36 +108,17 @@ VALUES
 ('2024-07-01', TRUE, 4, 4);
 
 -- ===========================
--- Join-Tabelle: Nachwuchskraft_Interesse
+-- NACHWUCHSKRAFT_INTERESSE
 -- ===========================
--- Max Mustermann interessiert sich für Java, Spring Boot, Teamarbeit
-INSERT INTO NACHWUCHSKRAFT_INTERESSE (NACHWUCHSKRAFT_ID, TAG_ID)
-VALUES
-(1, 1),
-(1, 2),
-(1, 4);
+INSERT INTO NACHWUCHSKRAFT_INTERESSE (NACHWUCHSKRAFT_ID, TAG_ID) VALUES
+(1, 1), (1, 2), (1, 4),
+(2, 3), (2, 5), (2, 8),
+(3, 6), (3, 5),
+(4, 7), (4, 4), (4, 3);
 
--- Sophie Meier: Stadtplanung, Kommunikation, Projektmanagement
-INSERT INTO NACHWUCHSKRAFT_INTERESSE (NACHWUCHSKRAFT_ID, TAG_ID)
-VALUES
-(2, 3),
-(2, 5),
-(2, 8);
-
--- Leon Schneider: Finanzen, Datenanalyse, Kommunikation
-INSERT INTO NACHWUCHSKRAFT_INTERESSE (NACHWUCHSKRAFT_ID, TAG_ID)
-VALUES
-(3, 6),
-(3, 5);
-
--- Lena Huber: Bürgerdienste, Teamarbeit, Projektmanagement
-INSERT INTO NACHWUCHSKRAFT_INTERESSE (NACHWUCHSKRAFT_ID, TAG_ID)
-VALUES
-(4, 7),
-(4, 4),
-(4, 3);
-
--- Join-Tabelle Nachwuchskraft_Praktikum
+-- ===========================
+-- NACHWUCHSKRAFT_PRAKTIKUM
+-- ===========================
 INSERT INTO NACHWUCHSKRAFT_PRAKTIKUM (NACHWUCHSKRAFT_ID, ABTEILUNG_ID)
 VALUES
 (1, 1),

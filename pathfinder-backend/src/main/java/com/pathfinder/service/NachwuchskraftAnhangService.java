@@ -1,88 +1,118 @@
 package com.pathfinder.service;
 
-import com.pathfinder.model.Bewerbung;
+import com.pathfinder.exception.FileTooLargeException;
+import com.pathfinder.exception.InvalidFileTypeException;
 import com.pathfinder.model.Nachwuchskraft;
 import com.pathfinder.model.NachwuchskraftAnhang;
 import com.pathfinder.repository.NachwuchskraftAnhangRepository;
+import com.pathfinder.repository.NachwuchskraftRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.nio.file.*;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class NachwuchskraftAnhangService {
 
     private final NachwuchskraftAnhangRepository repository;
-    private final NachwuchskraftService nwkService;
+    private final NachwuchskraftRepository nwkRepository;
 
     public NachwuchskraftAnhangService(NachwuchskraftAnhangRepository repository,
-                                       NachwuchskraftService nwkService) {
+                                       NachwuchskraftRepository nwkRepository) {
         this.repository = repository;
-        this.nwkService = nwkService;
+        this.nwkRepository = nwkRepository;
     }
 
-    // Alle Anhänge einer Nachwuchskraft abrufen
-    public List<NachwuchskraftAnhang> getByNachwuchskraft(Long nwkId) {
-        return repository.findByNachwuchskraftId(nwkId);
+    public List<NachwuchskraftAnhang> getByNachwuchskraft(Long id) {
+        return repository.findByNachwuchskraftId(id);
     }
 
-    // Einen Anhang anhand seiner ID abrufen
-    public NachwuchskraftAnhang getById(Long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anhang mit ID " + id + " nicht gefunden"));
-    }
+    // Datei speichern + Datensatz anlegen
+    public NachwuchskraftAnhang storeFile(MultipartFile file, Long nwkId,
+                                          NachwuchskraftAnhang.DokumentTyp typ)
+            throws IOException {
 
-    // Anhang speichern (bereits existierendes Objekt)
-    public NachwuchskraftAnhang save(NachwuchskraftAnhang anhang) {
-        return repository.save(anhang);
-    }
+        Nachwuchskraft nwk = nwkRepository.findById(nwkId).orElseThrow();
 
-    public NachwuchskraftAnhang saveFile(Long nwkId, MultipartFile file) throws IOException {
-        Nachwuchskraft nwk = nwkService.getById(nwkId);
+        validateFileType(file);
+        validateFileSize(file);
 
-        if (nwk == null) throw new IllegalArgumentException("Nachwuchskraft nicht gefunden");
+        Path uploadDir = Paths.get("uploads/documents/" + nwkId);
+        Files.createDirectories(uploadDir);
 
-        String uploadDir = "uploads";
-        File dir = new File(uploadDir);
-        if (!dir.exists()) dir.mkdirs();
+        String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        Path filePath = uploadDir.resolve(filename);
 
-        String filePath = uploadDir + "/" + file.getOriginalFilename();
-        File dest = new File(filePath);
-        file.transferTo(dest);
+        Files.write(filePath, file.getBytes(), StandardOpenOption.CREATE_NEW);
 
         NachwuchskraftAnhang anhang = new NachwuchskraftAnhang();
         anhang.setNachwuchskraft(nwk);
-        anhang.setDateipfad(filePath);
-
-        // Enum korrekt setzen
-        anhang.setTyp(NachwuchskraftAnhang.DokumentTyp.SONSTIGES);
+        anhang.setTyp(typ);
+        anhang.setDateipfad(filePath.toString());
+        anhang.setHochgeladenAm(LocalDateTime.now());
 
         return repository.save(anhang);
     }
 
+    // Datei ersetzen + Datensatz aktualisieren
+    public NachwuchskraftAnhang updateFile(Long id, MultipartFile file,
+                                           NachwuchskraftAnhang.DokumentTyp typ)
+            throws IOException {
 
-    // Anhänge einer Bewerbung zuordnen
-    public void assignFilesToBewerbung(Bewerbung bewerbung, List<Long> fileIds) {
-        if (fileIds == null || fileIds.isEmpty()) return;
+        NachwuchskraftAnhang existing = repository.findById(id).orElseThrow();
 
-        List<NachwuchskraftAnhang> attachments = new ArrayList<>();
-        for (Long id : fileIds) {
-            NachwuchskraftAnhang anhang = getById(id);
-            anhang.setBewerbung(bewerbung);
-            attachments.add(anhang);
+        Path oldPath = Paths.get(existing.getDateipfad());
+        if (Files.exists(oldPath)) {
+            Files.delete(oldPath);
         }
 
-        bewerbung.getAnhange().addAll(attachments);
-        attachments.forEach(repository::save);
+        validateFileType(file);
+        validateFileSize(file);
+
+        Path uploadDir = Paths.get("uploads/documents/" + existing.getNachwuchskraft().getId());
+        Files.createDirectories(uploadDir);
+
+        String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        Path filePath = uploadDir.resolve(filename);
+
+        Files.write(filePath, file.getBytes(), StandardOpenOption.CREATE_NEW);
+
+        existing.setTyp(typ);
+        existing.setDateipfad(filePath.toString());
+        existing.setHochgeladenAm(LocalDateTime.now());
+
+        return repository.save(existing);
     }
 
-    // Anhang löschen
     public void delete(Long id) {
+        NachwuchskraftAnhang existing = repository.findById(id).orElseThrow();
+        Path filePath = Paths.get(existing.getDateipfad());
+
+        if (Files.exists(filePath)) {
+            try {
+                Files.delete(filePath);
+            } catch (IOException ignored) {}
+        }
+
         repository.deleteById(id);
+    }
+
+    private void validateFileType(MultipartFile file) {
+        String name = file.getOriginalFilename().toLowerCase();
+
+        if (!(name.endsWith(".pdf") || name.endsWith(".docx") || name.endsWith(".doc"))) {
+            throw new InvalidFileTypeException("Ungültiges Dateiformat. Erlaubt sind nur PDF oder DOCX.");
+        }
+    }
+
+    private void validateFileSize(MultipartFile file) {
+        long maxBytes = 10 * 1024 * 1024;
+
+        if (file.getSize() > maxBytes) {
+            throw new FileTooLargeException("Die Datei ist zu groß. Maximal erlaubt sind 10 MB.");
+        }
     }
 }
