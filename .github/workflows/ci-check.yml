@@ -4,12 +4,11 @@ on:
   push:
     branches-ignore:
       - "test-poc-1"
-    # NEU: Ignoriere Änderungen an diesen Dateien
-    paths-ignore:
-      - '**.md'           # Ignoriert README.md, CHANGELOG.md usw. in ALLEN Ordnern
-      - 'docs/**'         # Ignoriert alles im docs Ordner (falls du einen hast)
-      - '.gitignore'      # Ignoriert gitignore Änderungen
-      - 'LICENSE'         # Ignoriert Lizenzdatei
+    paths:
+      - 'pathfinder-backend/**'    # Backend Code
+      - 'pathfinder-frontend/**'   # Frontend Code
+      # WICHTIG: Damit die Pipeline sich selbst testet!
+      - '.github/workflows/**'
       
   pull_request:
     branches-ignore:
