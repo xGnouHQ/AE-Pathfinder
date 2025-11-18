@@ -3,10 +3,21 @@ name: CI Check (Build & Test)
 on:
   push:
     branches-ignore:
-      - "test-poc-1"  # <--- HIER GEÄNDERT
+      - "test-poc-1"
+    # NEU: Ignoriere Änderungen an diesen Dateien
+    paths-ignore:
+      - '**.md'           # Ignoriert README.md, CHANGELOG.md usw. in ALLEN Ordnern
+      - 'docs/**'         # Ignoriert alles im docs Ordner (falls du einen hast)
+      - '.gitignore'      # Ignoriert gitignore Änderungen
+      - 'LICENSE'         # Ignoriert Lizenzdatei
+      
   pull_request:
     branches-ignore:
-      - "test-poc-1"  # <--- HIER GEÄNDERT
+      - "test-poc-1"
+    # Auch beim PR ignorieren wir Doku-Änderungen
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
 
 jobs:
   backend-check:
