@@ -6,6 +6,7 @@ import com.pathfinder.dto.DocumentUploadResponseDTO;
 import com.pathfinder.dto.DocumentMapper;
 import com.pathfinder.model.NachwuchskraftAnhang;
 import com.pathfinder.service.NachwuchskraftAnhangService;
+import com.pathfinder.service.NachwuchskraftService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,12 +20,13 @@ import java.util.List;
 public class MeinKontoDocumentsController {
 
     private final NachwuchskraftAnhangService service;
+    private final NachwuchskraftService nwkService;
 
-    public MeinKontoDocumentsController(NachwuchskraftAnhangService service) {
+    public MeinKontoDocumentsController(NachwuchskraftAnhangService service, NachwuchskraftService nwkService) {
         this.service = service;
+        this.nwkService = nwkService;
     }
 
-    // GET /api/meinKonto/documents/{nwkId}
     @GetMapping("/{nwkId}")
     public ResponseEntity<DocumentListResponseDTO> getDocuments(@PathVariable Long nwkId) {
         List<NachwuchskraftAnhang> docs = service.getByNachwuchskraft(nwkId);

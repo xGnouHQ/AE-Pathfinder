@@ -7,7 +7,8 @@
         <v-col v-for="bewerbung in bewerbungen" :key="bewerbung.id" cols="12">
           <BaseCardApplicationMini
             :bewerbung="bewerbung"
-            @click="goToDetail(bewerbung.id)"
+            @detail="goToDetail"
+            @withdraw="handleWithdraw"
           />
         </v-col>
 
@@ -25,36 +26,11 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 import BaseCardApplicationMini from '@/components/bewerbungen/BaseCardApplicationMini.vue'
 
-// Interfaces
-interface Servicebereichsleiter {
-  id: number
-  bereich: string
-  kontaktperson: string
-  email: string
-  telefonnummer: string
-}
-
-interface Tag {
-  id: number
-  name: string
-}
-
 interface Stelle {
   id: number
   titel: string
   standort: string
-  beschreibung?: string
-  status: 'OFFEN' | 'GESCHLOSSEN'
   bewerbungsfrist?: string
-  servicebereichsleiter?: Servicebereichsleiter
-  tags?: Tag[]
-}
-
-interface Nachwuchskraft {
-  id: number
-  vorname: string
-  nachname: string
-  email: string
 }
 
 interface Bewerbung {
@@ -62,11 +38,11 @@ interface Bewerbung {
   status: 'EINGEREICHT' | 'IN_PRUEFUNG' | 'ABGELEHNT' | 'ANGELADEN' | 'ANGENOMMEN'
   kommentar?: string
   eingereichtAm: string
-  nachwuchskraft?: Nachwuchskraft
+  nachwuchskraftId: number
+  stelleId: number
   stelle?: Stelle
 }
 
-// Router
 const router = useRouter()
 const nwkId = 1
 const bewerbungen = ref<Bewerbung[]>([])
@@ -86,6 +62,18 @@ const ladeBewerbungen = async () => {
 // Weiterleitung zur Detailansicht
 const goToDetail = (id: number) => {
   router.push(`/bewerbungen/${id}/ApplicationView`)
+}
+
+// Bewerbung zurückziehen
+const handleWithdraw = async (id: number) => {
+  try {
+    await axios.delete(`${API_BEW}/${id}`)
+    alert("Bewerbung erfolgreich zurückgezogen")
+    bewerbungen.value = bewerbungen.value.filter(b => b.id !== id)
+  } catch (err) {
+    console.error('Fehler beim Zurückziehen der Bewerbung:', err)
+    alert("Fehler beim Zurückziehen der Bewerbung")
+  }
 }
 
 onMounted(ladeBewerbungen)

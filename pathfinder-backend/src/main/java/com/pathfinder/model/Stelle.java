@@ -2,7 +2,7 @@ package com.pathfinder.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
@@ -12,6 +12,7 @@ import java.util.List;
 @Data
 @Entity
 @Table(name = "stelle")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Stelle {
 
     @Id
@@ -44,12 +45,12 @@ public class Stelle {
         GESCHLOSSEN
     }
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "servicebereichsleiter_id", nullable = false)
-    @JsonBackReference("sbl-stellen")
+    @JsonIgnoreProperties({"stellen"})
     private Servicebereichsleiter servicebereichsleiter;
 
-    @OneToMany(mappedBy = "stelle", cascade = CascadeType.ALL)
-    @JsonManagedReference("bewerbung-stelle")
+    @OneToMany(mappedBy = "stelle", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Bewerbung> bewerbungen = new ArrayList<>();
 }

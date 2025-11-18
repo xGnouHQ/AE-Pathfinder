@@ -6,6 +6,7 @@ import com.pathfinder.exception.*;
 import com.pathfinder.model.Bewerbung;
 import com.pathfinder.model.Nachwuchskraft;
 import com.pathfinder.model.Stelle;
+import com.pathfinder.model.NachwuchskraftAnhang;
 import com.pathfinder.repository.BewerbungRepository;
 import com.pathfinder.repository.NachwuchskraftRepository;
 import com.pathfinder.repository.StelleRepository;
@@ -19,13 +20,16 @@ public class BewerbungService {
     private final BewerbungRepository repository;
     private final NachwuchskraftRepository nwkRepository;
     private final StelleRepository stelleRepository;
+    private final NachwuchskraftAnhangService anhangService;
 
     public BewerbungService(BewerbungRepository repository,
                             NachwuchskraftRepository nwkRepository,
-                            StelleRepository stelleRepository) {
+                            StelleRepository stelleRepository,
+                            NachwuchskraftAnhangService anhangService) {
         this.repository = repository;
         this.nwkRepository = nwkRepository;
         this.stelleRepository = stelleRepository;
+        this.anhangService = anhangService;
     }
 
 

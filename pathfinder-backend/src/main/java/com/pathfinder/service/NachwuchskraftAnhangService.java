@@ -26,8 +26,10 @@ public class NachwuchskraftAnhangService {
         this.nwkRepository = nwkRepository;
     }
 
-    public List<NachwuchskraftAnhang> getByNachwuchskraft(Long id) {
-        return repository.findByNachwuchskraftId(id);
+    // Einen Anhang anhand seiner ID abrufen
+    public NachwuchskraftAnhang getById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anhang mit ID " + id + " nicht gefunden"));
     }
 
     // Datei speichern + Datensatz anlegen
@@ -87,6 +89,7 @@ public class NachwuchskraftAnhangService {
         return repository.save(existing);
     }
 
+    // Anhang löschen
     public void delete(Long id) {
         NachwuchskraftAnhang existing = repository.findById(id).orElseThrow();
         Path filePath = Paths.get(existing.getDateipfad());

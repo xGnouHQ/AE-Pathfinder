@@ -1,5 +1,6 @@
 package com.pathfinder.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -22,7 +23,7 @@ public class Servicebereichsleiter {
 
     private LocalDateTime erstelltAm = LocalDateTime.now();
 
-    // Beziehung zu Stellen (1:n)
-    @OneToMany(mappedBy = "servicebereichsleiter", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "servicebereichsleiter")
+    @JsonIgnore
     private List<Stelle> stellen = new ArrayList<>();
 }

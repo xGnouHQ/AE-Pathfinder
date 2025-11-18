@@ -33,6 +33,7 @@ interface Stelle {
   id: number
   titel: string
   standort: string
+  status?: string      // Status hinzugefügt
   art?: string
   vertragsart?: string
   entgeltgruppe?: string
@@ -62,12 +63,14 @@ const nwkId = 1
 // Gemerkte Stellen
 const bookmarkedJobs = ref<Stelle[]>([])
 
-// Gemerkte Stellen vom Backend laden
+// Gemerkte Stellen vom Backend laden (nur offene Stellen)
 const ladeGemerkteStellen = async () => {
   try {
     const response = await axios.get<GemerkteStelle[]>(`http://localhost:8080/api/meineListe/nachwuchskraft/${nwkId}`)
-    // Nur die Stelle selbst extrahieren
-    bookmarkedJobs.value = response.data.map(e => ({ ...e.stelle }))
+    // Nur die Stelle selbst extrahieren UND nur offene Stellen
+    bookmarkedJobs.value = response.data
+      .map(e => ({ ...e.stelle }))
+      .filter(stelle => stelle.status !== 'Geschlossen')
   } catch (error) {
     console.error('Fehler beim Laden der gemerkten Stellen:', error)
     bookmarkedJobs.value = []
