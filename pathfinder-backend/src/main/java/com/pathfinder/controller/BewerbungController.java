@@ -4,7 +4,6 @@ import com.pathfinder.dto.BewerbungDTORead;
 import com.pathfinder.dto.BewerbungDTOWrite;
 import com.pathfinder.service.BewerbungService;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
