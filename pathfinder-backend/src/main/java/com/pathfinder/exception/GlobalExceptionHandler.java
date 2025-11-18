@@ -104,4 +104,17 @@ public class GlobalExceptionHandler {
                 "timestamp", LocalDateTime.now()
         ));
     }
+
+
+    @ExceptionHandler(FileTooLargeException.class)
+    public ResponseEntity<String> handleFileTooLarge(FileTooLargeException ex) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidFileTypeException.class)
+    public ResponseEntity<String> handleInvalidFileType(InvalidFileTypeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
 }

@@ -1,5 +1,7 @@
 package com.pathfinder.service;
 
+import com.pathfinder.exception.FileTooLargeException;
+import com.pathfinder.exception.InvalidFileTypeException;
 import com.pathfinder.model.Nachwuchskraft;
 import com.pathfinder.model.NachwuchskraftAnhang;
 import com.pathfinder.repository.NachwuchskraftAnhangRepository;
@@ -35,6 +37,9 @@ public class NachwuchskraftAnhangService {
 
         Nachwuchskraft nwk = nwkRepository.findById(nwkId).orElseThrow();
 
+        validateFileType(file);
+        validateFileSize(file);
+
         Path uploadDir = Paths.get("uploads/documents/" + nwkId);
         Files.createDirectories(uploadDir);
 
@@ -64,6 +69,9 @@ public class NachwuchskraftAnhangService {
             Files.delete(oldPath);
         }
 
+        validateFileType(file);
+        validateFileSize(file);
+
         Path uploadDir = Paths.get("uploads/documents/" + existing.getNachwuchskraft().getId());
         Files.createDirectories(uploadDir);
 
@@ -90,5 +98,21 @@ public class NachwuchskraftAnhangService {
         }
 
         repository.deleteById(id);
+    }
+
+    private void validateFileType(MultipartFile file) {
+        String name = file.getOriginalFilename().toLowerCase();
+
+        if (!(name.endsWith(".pdf") || name.endsWith(".docx") || name.endsWith(".doc"))) {
+            throw new InvalidFileTypeException("Ungültiges Dateiformat. Erlaubt sind nur PDF oder DOCX.");
+        }
+    }
+
+    private void validateFileSize(MultipartFile file) {
+        long maxBytes = 10 * 1024 * 1024;
+
+        if (file.getSize() > maxBytes) {
+            throw new FileTooLargeException("Die Datei ist zu groß. Maximal erlaubt sind 10 MB.");
+        }
     }
 }
