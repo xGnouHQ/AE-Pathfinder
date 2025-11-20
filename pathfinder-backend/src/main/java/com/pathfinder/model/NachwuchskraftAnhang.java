@@ -26,14 +26,6 @@ public class NachwuchskraftAnhang {
 
     private LocalDateTime hochgeladenAm = LocalDateTime.now();
 
-    // -----------------------------
-    // Beziehung zur Bewerbung
-    // -----------------------------
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bewerbung_id")
-    @JsonBackReference
-    private Bewerbung bewerbung;
-
     public enum DokumentTyp {
         LEBENSLAUF,
         MOTIVATIONSSCHREIBEN,
