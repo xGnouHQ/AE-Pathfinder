@@ -44,9 +44,6 @@ const search = ref("")
 // Backend
 const API_URL = 'http://localhost:8080/api/stellen'
 
-// Nachwuchskraft (ID muss existieren!)
-const PROFILE_ID = 1
-
 // ------------------ Interfaces ------------------
 interface Tag { id: number; name: string }
 
@@ -63,9 +60,12 @@ interface Stelle {
 
 // ------------------ Data ------------------
 const stellen = ref<Stelle[]>([])
+const profileId = ref<number | null>(null)  // wird dynamisch gesetzt
 
 // ------------------ Load all jobs ------------------
 const ladeStellen = async () => {
+  if (!profileId.value) return
+
   try {
     const response = await axios.get(API_URL)
     stellen.value = response.data
@@ -81,9 +81,10 @@ const ladeStellen = async () => {
 
 // ------------------ Load score ------------------
 const ladeMatchingScore = async (stelle: Stelle) => {
+  if (!profileId.value) return
   try {
     const response = await axios.get(
-      `http://localhost:8080/api/matching/${PROFILE_ID}/${stelle.id}`
+      `http://localhost:8080/api/matching/${profileId.value}/${stelle.id}`
     )
     stelle.matchingScore = response.data
   } catch (error) {
@@ -94,11 +95,12 @@ const ladeMatchingScore = async (stelle: Stelle) => {
 
 // ------------------ Merkfunktion ------------------
 const merkeStelle = async (stellenId: number) => {
+  if (!profileId.value) return alert("Kein eingeloggter Nutzer gefunden")
   try {
     const response = await axios.post(
       `${API_URL}/${stellenId}/merken`,
       null,
-      { params: { nachwuchskraftId: PROFILE_ID } }
+      { params: { nachwuchskraftId: profileId.value } }
     )
     alert(response.data)
   } catch (error: any) {
@@ -110,24 +112,4 @@ const merkeStelle = async (stellenId: number) => {
 const filteredStellen = computed(() => {
   return stellen.value
     .filter(s =>
-      s.titel.toLowerCase().includes(search.value.toLowerCase()) ||
-      s.beschreibung.toLowerCase().includes(search.value.toLowerCase())
-    )
-    .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0))
-})
-
-// ------------------ On Mounted ------------------
-onMounted(ladeStellen)
-</script>
-
-<style scoped>
-.box {
-  margin: 2% 1% 1%;
-  border: 2px solid #0000001a;
-}
-
-.no-underline {
-  text-decoration: none;
-  color: inherit;
-}
-</style>
+      s.titel.toLowerCase().in

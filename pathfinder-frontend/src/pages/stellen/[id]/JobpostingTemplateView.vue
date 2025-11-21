@@ -57,7 +57,8 @@ const API_MERKLISTE = 'http://localhost:8080/api/meineListe'
 const API_SBL = 'http://localhost:8080/api/servicebereichsleiter'
 const API_NWK_DOCS = 'http://localhost:8080/api/meinKonto/documents'
 
-const nwk = ref({ id: 1 })
+interface Nachwuchskraft { id: number }
+const nwk = ref<Nachwuchskraft | null>(null)
 const stelle = ref<any>(null)
 const dialogOpen = ref(false)
 const selectedStelle = ref<any>(null)
@@ -65,6 +66,8 @@ const nwkDocuments = ref<any[]>([])
 
 // ------------------ Stelle laden ------------------
 const ladeStelle = async (id: string | string[]) => {
+  if (!nwk.value) return
+
   try {
     const res = await axios.get(`${API_STELLE}/${id}`)
     let s = res.data
@@ -101,19 +104,37 @@ function goBack() {
 }
 
 async function merkeStelle(id: number) {
-  if (stelle.value?.status !== 'OFFEN') return
+  if (!nwk.value || stelle.value?.status !== 'OFFEN') return
   try {
     await axios.post(`${API_MERKLISTE}/${id}/merken/nachwuchskraft/${nwk.value.id}`)
     stelle.value.gemerkt = true
-  } catch (err) { console.error(err) }
+  } catch (err) {
+    console.error(err)
+  }
 }
 
-// Nachwuchskraft-Dokumente laden
-onMounted(async () => {
+// ------------------ Nachwuchskraft-Dokumente laden ------------------
+const ladeDocuments = async () => {
+  if (!nwk.value) return
   try {
     const res = await axios.get(`${API_NWK_DOCS}/${nwk.value.id}`)
     nwkDocuments.value = res.data
-  } catch (err) { console.error(err) }
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+// ------------------ onMounted ------------------
+onMounted(() => {
+  const userJson = localStorage.getItem("user")
+  if (userJson) {
+    const userData = JSON.parse(userJson)
+    nwk.value = { id: userData.id }
+    ladeDocuments()
+    if (route.params.id) ladeStelle(route.params.id)
+  } else {
+    console.error("Kein eingeloggter Nutzer gefunden")
+  }
 })
 </script>
 

@@ -5,7 +5,7 @@
       <h1 class="text-h3 font-weight-bold mb-4">Login</h1>
 
       <form @submit.prevent="handleLogin">
-        <input v-model="username" placeholder="Benutzername" class="login-input" />
+        <input v-model="email" placeholder="E-Mail" class="login-input" />
         <input v-model="password" type="password" placeholder="Passwort" class="login-input" />
         <button type="submit" class="login-button">Einloggen</button>
         <p v-if="error" class="error">{{ error }}</p>
@@ -16,24 +16,45 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue'
+import axios from 'axios'
 import App from '@/App.vue'
+import { createApp } from 'vue'
 import { registerPlugins } from '@/plugins'
 
 const email = ref('')
 const password = ref('')
 const error = ref('')
 
-function handleLogin() {
-  if (username.value === 'admin' && password.value === '1234') {
-    // Login-Status speichern
+async function handleLogin() {
+  error.value = ''
+  try {
+    const response = await axios.post('http://localhost:8080/api/auth/login', {
+      email: email.value,
+      password: password.value
+    })
+
+    // Erfolgreich eingeloggt
+    const user = response.data
     localStorage.setItem('loggedIn', 'true')
+    localStorage.setItem('user', JSON.stringify(user))
 
     // Haupt-App starten
     const app = createApp(App)
     registerPlugins(app)
     app.mount('#app')
-  } else {
-    error.value = 'Falscher Benutzername oder Passwort'
+  } catch (err: any) {
+    if (err.response) {
+      // Fehler vom Backend
+      if (err.response.status === 404) {
+        error.value = 'E-Mail nicht gefunden'
+      } else if (err.response.status === 401) {
+        error.value = 'Falsches Passwort'
+      } else {
+        error.value = 'Fehler beim Einloggen'
+      }
+    } else {
+      error.value = 'Server nicht erreichbar'
+    }
   }
 }
 </script>
