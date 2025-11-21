@@ -22,9 +22,7 @@
                 {{ job.matchingScore.toFixed(2) }} % Match
               </v-chip>
             </div>
-            <p class="text-body-2 mb-1">
-              <strong>Department:</strong> {{ job.department || '-' }}
-            </p>
+
             <v-btn color="primary" size="small" @click="$emit('view-job', job)">
               View Details
             </v-btn>
@@ -48,7 +46,6 @@ interface Job {
   id: number
   titel: string
   beschreibung: string
-  department?: string
   matchingScore?: number
 }
 
@@ -56,6 +53,6 @@ const props = defineProps<{ jobs: Job[] }>()
 
 // Filter: nur Jobs mit MatchingScore > 50%
 const matchingJobs = computed(() =>
-  props.jobs.filter(job => (job.matchingScore ?? 0) > 50)
+  props.jobs.filter(job => (job.matchingScore ?? 0) > 30)
 )
 </script>

@@ -31,7 +31,7 @@ import axios from 'axios'
 import BaseCardApplicationProcess from '@/components/bewerbungen/BaseCardApplicationProcess.vue'
 import BaseDialogMessage from '@/components/bewerbungen/BaseDialogMessage.vue'
 
-// Interfaces passend zum Backend
+// Interfaces
 interface Servicebereichsleiter {
   id: number
   bereich: string
@@ -77,11 +77,12 @@ const route = useRoute()
 const router = useRouter()
 const jobId = Number(route.params.id)
 
-// Bewerbung laden
+// Daten
 const bewerbung = ref<Bewerbung | null>(null)
 const dialogOpen = ref(false)
 const API_BEW = 'http://localhost:8080/api/bewerbungen'
 
+// Bewerbung laden
 onMounted(async () => {
   try {
     const res = await axios.get<Bewerbung>(`${API_BEW}/${jobId}`)

@@ -19,7 +19,7 @@
       </v-row>
 
       <v-row>
-        <v-col><strong>Jahrgang:</strong> {{ nwk.eintrittsjahr }}</v-col>
+        <v-col><strong>Jahrgang:</strong> {{ nwk.jahrgang }}</v-col>
         <v-col><strong>Studienrichtung:</strong> {{ nwk.studienrichtung }}</v-col>
       </v-row>
 
@@ -43,14 +43,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 
-// Interface direkt wie im Backend
+// Interface passend zum Backend
 interface Nachwuchskraft {
   id: number
   personalnummer: string
   vorname: string
   nachname: string
   email: string
-  eintrittsjahr: number
+  jahrgang: string
   studienrichtung: string
   departments?: string
 }
@@ -77,13 +77,14 @@ onMounted(async () => {
     console.log('Backend Response:', data) // Debug: prüfen, was zurückkommt
 
     nwk.value = {
-       id: data.id,
-            personalnummer: data.personalnummer,
-            vorname: data.vorname,
-            nachname: data.nachname,
-            email: data.email,
-            eintrittsjahr: data.eintrittsjahr,
-            studienrichtung: data.studienrichtung
+      id: data.id,
+      personalnummer: data.personalnummer,
+      vorname: data.vorname,
+      nachname: data.nachname,
+      email: data.email,
+      jahrgang: data.jahrgang ?? data.eintrittsjahr,
+      studienrichtung: data.studienrichtung,
+      departments: data.departments // optional vom Backend
     }
   } catch (err) {
     console.error('Fehler beim Laden der Daten:', err)

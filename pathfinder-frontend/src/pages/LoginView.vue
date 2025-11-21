@@ -19,7 +19,7 @@ import { ref } from 'vue'
 import App from '@/App.vue'
 import { registerPlugins } from '@/plugins'
 
-const username = ref('')
+const email = ref('')
 const password = ref('')
 const error = ref('')
 

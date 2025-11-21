@@ -7,6 +7,9 @@ import com.pathfinder.service.AbteilungService;
 import com.pathfinder.service.NachwuchskraftService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
 
@@ -77,27 +80,43 @@ public class MeinKontoController {
     @PutMapping("/experience/{nwkId}")
     public ResponseEntity<?> updateExperience(
             @PathVariable("nwkId") Long id,
-            @RequestBody Nachwuchskraft updated) {
+            @RequestBody Map<String, Object> updatedMap) {
 
         Nachwuchskraft existing = nwkService.getById(id);
         if (existing == null) return ResponseEntity.notFound().build();
 
-        // Interessen aktualisieren
-        if (updated.getInteressen() != null) {
-            existing.setInteressen(updated.getInteressen());
-        }
-
         // Wunschabteilungen aktualisieren
-        if (updated.getWunschabteilungen() != null) {
-            List<Abteilung> neueAbteilungen = updated.getWunschabteilungen().stream()
-                    .map(a -> abteilungService.getById(a.getId()))
-                    .filter(a -> a != null)
-                    .collect(Collectors.toCollection(ArrayList::new));
+        if (updatedMap.containsKey("wunschabteilungen")) {
+            List<Map<String, Object>> abteilungen = (List<Map<String, Object>>) updatedMap.get("wunschabteilungen");
+            List<Abteilung> neueAbteilungen = abteilungen.stream()
+                    .map(a -> {
+                        Long aid = ((Number) a.get("id")).longValue();
+                        return abteilungService.getById(aid);
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
             existing.setWunschabteilungen(neueAbteilungen);
         }
+
+        // Interessen aktualisieren
+        if (updatedMap.containsKey("interessen")) {
+            List<Map<String, Object>> tags = (List<Map<String, Object>>) updatedMap.get("interessen");
+            List<com.pathfinder.model.Tag> neueTags = tags.stream()
+                    .map(t -> {
+                        com.pathfinder.model.Tag tag = new com.pathfinder.model.Tag();
+                        tag.setId(((Number) t.get("id")).longValue());
+                        tag.setName((String) t.get("name")); // optional
+                        return tag;
+                    })
+                    .collect(Collectors.toList());
+            existing.setInteressen(neueTags);
+        }
+
 
         Nachwuchskraft saved = nwkService.save(existing);
         return ResponseEntity.ok(saved);
     }
+
+
 
 }

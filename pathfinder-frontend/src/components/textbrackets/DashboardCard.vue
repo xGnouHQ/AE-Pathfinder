@@ -66,9 +66,9 @@ const ladeJobs = async () => {
   }
 }
 
-// --- Filter: nur Jobs mit MatchingScore > 50% ---
+// --- Filter: nur Jobs mit MatchingScore > 30% ---
 const matchingJobs = computed(() =>
-  jobs.value.filter(job => (job.matchingScore ?? 0) > 50)
+  jobs.value.filter(job => (job.matchingScore ?? 0) > 30)
 )
 
 // --- Navigation zu Jobdetails ---

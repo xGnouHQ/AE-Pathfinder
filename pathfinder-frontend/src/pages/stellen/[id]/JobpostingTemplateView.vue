@@ -63,6 +63,7 @@ const dialogOpen = ref(false)
 const selectedStelle = ref<any>(null)
 const nwkDocuments = ref<any[]>([])
 
+// ------------------ Stelle laden ------------------
 const ladeStelle = async (id: string | string[]) => {
   try {
     const res = await axios.get(`${API_STELLE}/${id}`)

@@ -85,10 +85,7 @@ const ladeMatchingScore = async (stelle: Stelle) => {
     const response = await axios.get(
       `http://localhost:8080/api/matching/${PROFILE_ID}/${stelle.id}`
     )
-
-    // Backend liefert Double (0–100)
     stelle.matchingScore = response.data
-
   } catch (error) {
     console.error(`Fehler beim Matching-Score für Stelle ${stelle.id}:`, error)
     stelle.matchingScore = 0

@@ -33,7 +33,7 @@ interface Stelle {
   id: number
   titel: string
   standort: string
-  status?: string      // Status hinzugefügt
+  status?: string
   art?: string
   vertragsart?: string
   entgeltgruppe?: string
