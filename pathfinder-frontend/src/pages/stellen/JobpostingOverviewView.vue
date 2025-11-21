@@ -112,4 +112,33 @@ const merkeStelle = async (stellenId: number) => {
 const filteredStellen = computed(() => {
   return stellen.value
     .filter(s =>
-      s.titel.toLowerCase().in
+      s.titel.toLowerCase().includes(search.value.toLowerCase()) ||
+      s.beschreibung.toLowerCase().includes(search.value.toLowerCase())
+    )
+    .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0))
+})
+
+// ------------------ On Mounted ------------------
+onMounted(() => {
+  const userJson = localStorage.getItem("user")
+  if (userJson) {
+    const userData = JSON.parse(userJson)
+    profileId.value = userData.id
+    ladeStellen()
+  } else {
+    console.error("Kein eingeloggter Nutzer gefunden")
+  }
+})
+</script>
+
+<style scoped>
+.box {
+  margin: 2% 1% 1%;
+  border: 2px solid #0000001a;
+}
+
+.no-underline {
+  text-decoration: none;
+  color: inherit;
+}
+</style>
