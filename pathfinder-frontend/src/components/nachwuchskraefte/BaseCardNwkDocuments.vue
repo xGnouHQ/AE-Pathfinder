@@ -54,11 +54,8 @@ interface StoredFile {
 }
 
 // Props
-const props = defineProps<{
-  nwkId: number
-}>();
-
-const nwkId = props.nwkId ?? 1
+const props = defineProps<{ nwkId?: number }>()
+const nwkId = ref<number>(props.nwkId ?? 0) // Default 0, wird ggf. überschrieben
 
 const files = ref<StoredFile[]>([])
 const snackbar = ref({ show: false, message: '' })
@@ -68,8 +65,9 @@ const dialogOpen = ref(false)
 // Dokumente vom Backend laden
 // ----------------------------
 async function loadDocuments() {
+  if (!nwkId.value) return
   try {
-    const res = await fetch(`/api/meinKonto/documents/${nwkId}`)
+    const res = await fetch(`/api/meinKonto/documents/${nwkId.value}`)
     if (!res.ok) {
       if (res.status === 204) {
         files.value = []
@@ -117,9 +115,19 @@ function handleUploadSave(newFiles: StoredFile[]) {
 }
 
 // ----------------------------
-// onMounted: Dokumente laden
+// onMounted: nwkId aus localStorage, dann Dokumente laden
 // ----------------------------
 onMounted(() => {
+  if (!nwkId.value) {
+    const userJson = localStorage.getItem('user')
+    if (userJson) {
+      const userData = JSON.parse(userJson)
+      nwkId.value = userData.id
+    } else {
+      console.error('Kein eingeloggter Nutzer gefunden')
+      return
+    }
+  }
   loadDocuments()
 })
 </script>

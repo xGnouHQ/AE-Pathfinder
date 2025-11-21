@@ -30,7 +30,7 @@ import MatchingJobText from '@/components/textbrackets/MatchingJobText.vue'
 import ApplicationStatusText from '@/components/textbrackets/ApplicationStatusText.vue'
 
 const router = useRouter()
-const nwkId = 1 // Nachwuchskraft-ID (dynamisch später)
+const nwkId = ref<number | null>(null) // dynamisch aus Login
 
 interface Job {
   id: number
@@ -44,6 +44,7 @@ const jobs = ref<Job[]>([])
 
 // --- Jobs laden und Matching-Score vom Backend abrufen ---
 const ladeJobs = async () => {
+  if (!nwkId.value) return
   try {
     const response = await axios.get('http://localhost:8080/api/stellen')
     jobs.value = response.data
@@ -53,7 +54,7 @@ const ladeJobs = async () => {
       jobs.value.map(async (job) => {
         try {
           const scoreResp = await axios.get(
-            `http://localhost:8080/api/matching/${nwkId}/${job.id}`
+            `http://localhost:8080/api/matching/${nwkId.value}/${job.id}`
           )
           job.matchingScore = Number(scoreResp.data ?? 0)
         } catch {
@@ -76,5 +77,15 @@ function goToJob(job: Job) {
   router.push(`/stellen/${job.id}/JobpostingTemplateView`)
 }
 
-onMounted(ladeJobs)
+// onMounted: nwkId aus localStorage, dann Jobs laden
+onMounted(() => {
+  const userJson = localStorage.getItem('user')
+  if (userJson) {
+    const userData = JSON.parse(userJson)
+    nwkId.value = userData.id
+    ladeJobs()
+  } else {
+    console.error('Kein eingeloggter Nutzer gefunden')
+  }
+})
 </script>

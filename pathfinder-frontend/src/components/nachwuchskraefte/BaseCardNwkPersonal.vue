@@ -56,7 +56,6 @@ interface Nachwuchskraft {
 }
 
 const nwk = ref<Nachwuchskraft | null>(null)
-const nwkId = 1 // ID der Nachwuchskraft, die geladen werden soll
 
 // Departments in Array aufsplitten
 const departmentList = computed(() => {
@@ -69,12 +68,22 @@ const departmentList = computed(() => {
 
 // Daten vom Backend laden
 onMounted(async () => {
+  const userJson = localStorage.getItem('user')
+  if (!userJson) {
+    console.error('Kein eingeloggter Nutzer gefunden')
+    return
+  }
+
+  const userData = JSON.parse(userJson)
+  const nwkId = userData.id
+
   try {
     const res = await fetch(`/api/meinKonto/personal/${nwkId}`)
     if (!res.ok) throw new Error(`Fehler beim Laden: ${res.status}`)
     const data = await res.json()
 
-    console.log('Backend Response:', data) // Debug: prüfen, was zurückkommt
+    // Backend Response prüfen
+    console.log('Backend Response:', data)
 
     nwk.value = {
        id: data.id,
