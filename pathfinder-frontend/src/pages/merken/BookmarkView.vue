@@ -57,17 +57,17 @@ const userProfile = ref({
   interests: ['Automatisierung', 'Cloud', 'Sicherheit']
 })
 
-// Nachwuchskraft-ID (hier festgesetzt, kann dynamisch aus Login kommen)
-const nwkId = 1
+// Dynamische Nachwuchskraft-ID aus Login
+const nwkId = ref<number | null>(null)
 
 // Gemerkte Stellen
 const bookmarkedJobs = ref<Stelle[]>([])
 
 // Gemerkte Stellen vom Backend laden (nur offene Stellen)
 const ladeGemerkteStellen = async () => {
+  if (!nwkId.value) return
   try {
-    const response = await axios.get<GemerkteStelle[]>(`http://localhost:8080/api/meineListe/nachwuchskraft/${nwkId}`)
-    // Nur die Stelle selbst extrahieren UND nur offene Stellen
+    const response = await axios.get<GemerkteStelle[]>(`http://localhost:8080/api/meineListe/nachwuchskraft/${nwkId.value}`)
     bookmarkedJobs.value = response.data
       .map(e => ({ ...e.stelle }))
       .filter(stelle => stelle.status !== 'Geschlossen')
@@ -79,9 +79,10 @@ const ladeGemerkteStellen = async () => {
 
 // Eintrag aus der Merkliste löschen
 const removeJob = async (stellenId: number) => {
+  if (!nwkId.value) return
   if (!confirm('Möchtest du diese Stelle wirklich aus der Merkliste entfernen?')) return
   try {
-    await axios.delete(`http://localhost:8080/api/meineListe/${stellenId}/nachwuchskraft/${nwkId}`)
+    await axios.delete(`http://localhost:8080/api/meineListe/${stellenId}/nachwuchskraft/${nwkId.value}`)
     bookmarkedJobs.value = bookmarkedJobs.value.filter(job => job.id !== stellenId)
   } catch (error) {
     console.error('Fehler beim Entfernen der Stelle:', error)
@@ -89,7 +90,17 @@ const removeJob = async (stellenId: number) => {
   }
 }
 
-onMounted(ladeGemerkteStellen)
+// onMounted: Nachwuchskraft aus localStorage laden
+onMounted(() => {
+  const userJson = localStorage.getItem('user')
+  if (userJson) {
+    const userData = JSON.parse(userJson)
+    nwkId.value = userData.id
+    ladeGemerkteStellen()
+  } else {
+    console.error('Kein eingeloggter Nutzer gefunden')
+  }
+})
 </script>
 
 <style scoped>

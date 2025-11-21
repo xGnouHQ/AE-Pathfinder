@@ -44,14 +44,15 @@ interface Bewerbung {
 }
 
 const router = useRouter()
-const nwkId = 1
+const nwkId = ref<number | null>(null)  // Dynamisch aus Login
 const bewerbungen = ref<Bewerbung[]>([])
 const API_BEW = 'http://localhost:8080/api/bewerbungen'
 
 // Bewerbungen laden
 const ladeBewerbungen = async () => {
+  if (!nwkId.value) return
   try {
-    const res = await axios.get<Bewerbung[]>(`${API_BEW}/nachwuchskraft/${nwkId}`)
+    const res = await axios.get<Bewerbung[]>(`${API_BEW}/nachwuchskraft/${nwkId.value}`)
     bewerbungen.value = res.data
   } catch (err) {
     console.error('Fehler beim Laden der Bewerbungen:', err)
@@ -66,6 +67,7 @@ const goToDetail = (id: number) => {
 
 // Bewerbung zurückziehen
 const handleWithdraw = async (id: number) => {
+  if (!nwkId.value) return
   try {
     await axios.delete(`${API_BEW}/${id}`)
     alert("Bewerbung erfolgreich zurückgezogen")
@@ -76,7 +78,17 @@ const handleWithdraw = async (id: number) => {
   }
 }
 
-onMounted(ladeBewerbungen)
+// onMounted: Nachwuchskraft-ID aus localStorage laden
+onMounted(() => {
+  const userJson = localStorage.getItem('user')
+  if (userJson) {
+    const userData = JSON.parse(userJson)
+    nwkId.value = userData.id
+    ladeBewerbungen()
+  } else {
+    console.error('Kein eingeloggter Nutzer gefunden')
+  }
+})
 </script>
 
 <style scoped>

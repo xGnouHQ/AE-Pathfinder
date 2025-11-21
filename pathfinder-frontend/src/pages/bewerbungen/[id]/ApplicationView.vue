@@ -40,10 +40,7 @@ interface Servicebereichsleiter {
   telefonnummer: string
 }
 
-interface Tag {
-  id: number
-  name: string
-}
+interface Tag { id: number; name: string }
 
 interface Stelle {
   id: number
@@ -56,12 +53,7 @@ interface Stelle {
   tags?: Tag[]
 }
 
-interface Nachwuchskraft {
-  id: number
-  vorname: string
-  nachname: string
-  email: string
-}
+interface Nachwuchskraft { id: number; vorname: string; nachname: string; email: string }
 
 interface Bewerbung {
   id: number
@@ -81,10 +73,26 @@ const jobId = Number(route.params.id)
 const bewerbung = ref<Bewerbung | null>(null)
 const dialogOpen = ref(false)
 const API_BEW = 'http://localhost:8080/api/bewerbungen'
+const nwkId = ref<number | null>(null) // aktuell eingeloggte Nachwuchskraft
 
 onMounted(async () => {
+  const userJson = localStorage.getItem('user')
+  if (userJson) {
+    const userData = JSON.parse(userJson)
+    nwkId.value = userData.id
+  } else {
+    console.error('Kein eingeloggter Nutzer gefunden')
+    return
+  }
+
   try {
     const res = await axios.get<Bewerbung>(`${API_BEW}/${jobId}`)
+    // Optional: prüfen, ob die Bewerbung zur eingeloggten Nachwuchskraft gehört
+    if (res.data.nachwuchskraft?.id !== nwkId.value) {
+      alert('Du darfst diese Bewerbung nicht ansehen')
+      router.push('/bewerbungen/ApplicationListView')
+      return
+    }
     bewerbung.value = res.data
   } catch (err) {
     console.error('Fehler beim Laden der Bewerbung:', err)
