@@ -16,10 +16,10 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import axios from 'axios'
 import App from '@/App.vue'
 import { createApp } from 'vue'
 import { registerPlugins } from '@/plugins'
+import axios from 'axios'
 
 const email = ref('')
 const password = ref('')
@@ -33,7 +33,6 @@ async function handleLogin() {
       password: password.value
     })
 
-    // Erfolgreich eingeloggt
     const user = response.data
     localStorage.setItem('loggedIn', 'true')
     localStorage.setItem('user', JSON.stringify(user))
@@ -44,14 +43,9 @@ async function handleLogin() {
     app.mount('#app')
   } catch (err: any) {
     if (err.response) {
-      // Fehler vom Backend
-      if (err.response.status === 404) {
-        error.value = 'E-Mail nicht gefunden'
-      } else if (err.response.status === 401) {
-        error.value = 'Falsches Passwort'
-      } else {
-        error.value = 'Fehler beim Einloggen'
-      }
+      if (err.response.status === 404) error.value = 'E-Mail nicht gefunden'
+      else if (err.response.status === 401) error.value = 'Falsches Passwort'
+      else error.value = 'Fehler beim Einloggen'
     } else {
       error.value = 'Server nicht erreichbar'
     }
