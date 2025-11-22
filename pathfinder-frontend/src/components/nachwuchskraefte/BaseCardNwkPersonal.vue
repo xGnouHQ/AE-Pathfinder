@@ -26,8 +26,8 @@
       <v-row>
         <v-col>
           <strong>Praktika:</strong>
-          <ul v-if="departmentList.length">
-            <li v-for="(item, i) in departmentList" :key="i">{{ item }}</li>
+          <ul v-if="nwk.praktika && nwk.praktika.length">
+            <li v-for="(dept, i) in nwk.praktika" :key="i">{{ dept.name }}</li>
           </ul>
           <span v-else>Keine Angaben</span>
         </v-col>
@@ -41,9 +41,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 
-// Interface passend zum Backend
+// DTO Interface passend zum Backend
+interface AbteilungDTO {
+  id: number
+  name: string
+}
+
 interface Nachwuchskraft {
   id: number
   personalnummer: string
@@ -52,21 +57,11 @@ interface Nachwuchskraft {
   email: string
   jahrgang: string
   studienrichtung: string
-  departments?: string
+  praktika?: AbteilungDTO[]
 }
 
 const nwk = ref<Nachwuchskraft | null>(null)
 
-// Departments in Array aufsplitten
-const departmentList = computed(() => {
-  if (!nwk.value?.departments) return []
-  return nwk.value.departments
-    .split(/[;,\\n]/)
-    .map(d => d.trim())
-    .filter(d => d.length > 0)
-})
-
-// Daten vom Backend laden
 onMounted(async () => {
   const loggedIn = sessionStorage.getItem('loggedIn') === 'true'
   if (!loggedIn) {
@@ -88,6 +83,7 @@ onMounted(async () => {
     if (!res.ok) throw new Error(`Fehler beim Laden: ${res.status}`)
     const data = await res.json()
 
+    // DTO direkt übernehmen
     nwk.value = {
       id: data.id,
       personalnummer: data.personalnummer,
@@ -96,7 +92,7 @@ onMounted(async () => {
       email: data.email,
       jahrgang: data.jahrgang ?? data.eintrittsjahr,
       studienrichtung: data.studienrichtung,
-      departments: data.departments
+      praktika: data.praktika ?? []
     }
   } catch (err) {
     console.error('Fehler beim Laden der Daten:', err)

@@ -1,24 +1,38 @@
 <template>
-  <v-dialog v-model="internalModel" max-width="600px" persistent>
+  <v-dialog v-model="internalModel" max-width="500px" persistent>
     <v-card>
-      <v-card-title>Dateien hochladen</v-card-title>
+      <v-card-title>Datei hochladen</v-card-title>
       <v-divider></v-divider>
 
       <v-card-text>
-        <!-- Datei-Input -->
-        <input type="file" multiple @change="onFilesSelected" />
+        <!-- Datei auswählen -->
+        <v-file-input
+          v-model="selectedFile"
+          label="Datei auswählen"
+          accept=".pdf,.doc,.docx,.txt"
+          outlined
+          dense
+          required
+        />
 
-        <!-- Vorschau ausgewählter Dateien -->
-        <ul v-if="internalFiles.length > 0">
-          <li v-for="file in internalFiles" :key="file.id">{{ file.name }}</li>
-        </ul>
-        <p v-else>Noch keine Dateien ausgewählt.</p>
+        <!-- Dokumenttyp Dropdown -->
+        <v-select
+          v-model="selectedTyp"
+          :items="docTypes"
+          label="Dokumenttyp auswählen"
+          outlined
+          dense
+          required
+          class="mt-4"
+        />
+
+        <p v-if="error" class="text-red mt-2">{{ error }}</p>
       </v-card-text>
 
       <v-card-actions>
         <v-spacer />
         <v-btn text @click="closeDialog">Abbrechen</v-btn>
-        <v-btn color="primary" @click="saveFiles">Speichern</v-btn>
+        <v-btn color="primary" @click="uploadFile">Hochladen</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -28,78 +42,93 @@
 import { ref, watch, defineProps, defineEmits } from 'vue'
 
 interface StoredFile {
-  id: string | number
+  id: number | string
   name: string
-  fileObject?: File
   url?: string
+  typ?: 'LEBENSLAUF' | 'MOTIVATIONSSCHREIBEN' | 'ZEUGNIS' | 'SONSTIGES'
 }
 
 // Props
 const props = defineProps<{
   modelValue: boolean
-  savedFiles: StoredFile[]
   nwkId: number
+  savedFiles: StoredFile[]
 }>()
 
-// Emits
 const emit = defineEmits(['update:modelValue', 'save'])
 
-// Lokaler State für v-model
+// Dialog v-model intern
 const internalModel = ref(props.modelValue)
-watch(() => props.modelValue, (val) => (internalModel.value = val))
-watch(internalModel, (val) => emit('update:modelValue', val))
+watch(() => props.modelValue, val => (internalModel.value = val))
+watch(internalModel, val => emit('update:modelValue', val))
 
-// Temporäre Dateien im Dialog
-const internalFiles = ref<StoredFile[]>([])
+// Datei + Typ
+const selectedFile = ref<File | null>(null)
+const selectedTyp = ref<StoredFile['typ'] | null>(null)
+const error = ref('')
 
-// Dateien auswählen
-function onFilesSelected(event: Event) {
-  const target = event.target as HTMLInputElement
-  if (!target.files) return
+// Dokumenttypen
+const docTypes: StoredFile['typ'][] = [
+  'LEBENSLAUF',
+  'MOTIVATIONSSCHREIBEN',
+  'ZEUGNIS',
+  'SONSTIGES'
+]
 
-  for (const file of Array.from(target.files)) {
-    internalFiles.value.push({
-      id: crypto.randomUUID(),
-      name: file.name,
-      fileObject: file
-    })
+// Datei hochladen
+async function uploadFile() {
+  if (!selectedFile.value || !selectedTyp.value) {
+    error.value = 'Bitte Datei und Dokumenttyp auswählen!'
+    return
   }
-}
 
-// Dateien speichern
-async function saveFiles() {
-  const nwkId = props.nwkId
-  const allFiles: StoredFile[] = [...props.savedFiles]
+  const formData = new FormData()
+  formData.append('file', selectedFile.value)
+  formData.append('nwkId', props.nwkId.toString())
+  formData.append('typ', selectedTyp.value)
 
-  for (const file of internalFiles.value) {
-    if (!file.fileObject) continue
-    const formData = new FormData()
-    formData.append('file', file.fileObject)
-    formData.append('nwkId', nwkId.toString())
-
-    const res = await fetch(`/api/meinKonto/documents`, {
+  try {
+    const res = await fetch('/api/meinKonto/documents', {
       method: 'POST',
       body: formData
     })
-    if (!res.ok) {
-      console.error(`Upload fehlgeschlagen: ${res.status}`)
-      continue
-    }
-    const saved = await res.json()
-    allFiles.push({
-      id: saved.id,
-      name: saved.dateipfad.split('/').pop() ?? saved.name,
-      url: saved.dateipfad
-    })
-  }
 
-  emit('save', allFiles)
-  closeDialog()
+    if (!res.ok) throw new Error(`Upload fehlgeschlagen: ${res.status}`)
+    const saved = await res.json()
+
+    // Zur Liste hinzufügen
+    const updatedFiles = [...props.savedFiles]
+    updatedFiles.push({
+      id: saved.id,
+      name: saved.fileName.split('/').pop(),
+      url: saved.fileName,
+      typ: saved.typ
+    })
+
+    emit('save', updatedFiles)
+    closeDialog()
+  } catch (err) {
+    console.error(err)
+    error.value = 'Fehler beim Upload!'
+  }
 }
 
-// Dialog schließen
 function closeDialog() {
-  internalFiles.value = []
+  selectedFile.value = null
+  selectedTyp.value = null
+  error.value = ''
   internalModel.value = false
 }
 </script>
+
+<style scoped>
+.text-red {
+  color: red;
+}
+.mt-2 {
+  margin-top: 0.5rem;
+}
+.mt-4 {
+  margin-top: 1rem;
+}
+</style>

@@ -149,17 +149,18 @@ async function save() {
   }
 
   // IDs anhand der Namen ermitteln
-  const departmentIds = selectedDepartmentsNames.value
+  const wunschabteilungenIds = selectedDepartmentsNames.value
     .map(name => allDepartments.find(d => d.name === name)?.id)
     .filter(Boolean) as number[]
 
-  const tagIds = selectedTagsNames.value
+  const interessenIds = selectedTagsNames.value
     .map(name => allTags.find(t => t.name === name)?.id)
     .filter(Boolean) as number[]
 
-  const updatedNwk: NwkExperience = {
-    wunschabteilungen: allDepartments.filter(d => departmentIds.includes(d.id)),
-    interessen: allTags.filter(t => tagIds.includes(t.id)),
+  // JSON-Body für Backend
+  const payload = {
+    wunschabteilungenIds,
+    interessenIds,
     knowsProgramming: formData.value.knowsProgramming,
     programmingLanguages: formData.value.programmingLanguagesString
       .split(',')
@@ -171,11 +172,11 @@ async function save() {
     const res = await fetch(`/api/meinKonto/experience/${props.nwkId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updatedNwk)
+      body: JSON.stringify(payload)
     })
 
     if (!res.ok) throw new Error(`Fehler: ${res.status}`)
-    emit('save', updatedNwk)
+    emit('save', payload)
     close()
     alert('Erfahrungen & Interessen gespeichert!')
   } catch (err) {

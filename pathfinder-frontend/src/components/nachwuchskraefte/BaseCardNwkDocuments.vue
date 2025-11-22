@@ -4,15 +4,18 @@
       <span>Dokumente</span>
       <v-btn small text @click="dialogOpen = true">Hochladen</v-btn>
     </v-card-title>
+
     <v-divider></v-divider>
+
     <v-card-text>
       <v-list>
         <v-list-item v-for="file in files" :key="file.id">
           <v-list-item-content>
             <v-list-item-title>
-              <a v-if="file.url" :href="file.url" target="_blank">{{ file.name }}</a>
-              <span v-else>{{ file.name }}</span>
+              <a :href="file.dateipfad" target="_blank">{{ file.name }}</a>
             </v-list-item-title>
+            <v-list-item-subtitle>Typ: {{ file.typ }}</v-list-item-subtitle>
+            <v-list-item-subtitle>Hochgeladen: {{ formatDate(file.hochgeladenAm) }}</v-list-item-subtitle>
           </v-list-item-content>
           <v-list-item-action>
             <v-btn icon @click="deleteFile(file.id)">
@@ -24,7 +27,6 @@
       <p v-if="files.length === 0">Keine Dokumente vorhanden.</p>
     </v-card-text>
 
-    <!-- Snackbar -->
     <v-snackbar v-model="snackbar.show" :timeout="3000" top right>
       {{ snackbar.message }}
       <template #actions>
@@ -32,11 +34,10 @@
       </template>
     </v-snackbar>
 
-    <!-- Upload Dialog -->
     <BaseDialogNwkUploadDocuments
       v-model="dialogOpen"
-      :savedFiles="files"
       :nwkId="nwkId"
+      :savedFiles="files"
       @save="handleUploadSave"
     />
   </v-card>
@@ -47,25 +48,27 @@ import { ref, onMounted, defineProps } from 'vue'
 import BaseDialogNwkUploadDocuments from './BaseDialogNwkUploadDocuments.vue'
 
 interface StoredFile {
-  id: number | string
+  id: number
   name: string
-  url?: string
-  fileObject?: File
+  dateipfad: string
+  typ: string
+  hochgeladenAm: string
 }
 
 // Props
 const props = defineProps<{ nwkId?: number }>()
-const nwkId = ref<number>(props.nwkId ?? 0) // Default 0, wird ggf. überschrieben
+const nwkId = ref<number>(props.nwkId ?? 0)
 
 const files = ref<StoredFile[]>([])
 const snackbar = ref({ show: false, message: '' })
 const dialogOpen = ref(false)
 
 // ----------------------------
-// Dokumente vom Backend laden
+// Dokumente laden
 // ----------------------------
 async function loadDocuments() {
   if (!nwkId.value) return
+
   try {
     const res = await fetch(`/api/meinKonto/documents/${nwkId.value}`)
     if (!res.ok) {
@@ -75,11 +78,16 @@ async function loadDocuments() {
       }
       throw new Error(`Fehler beim Laden: ${res.status}`)
     }
+
     const data = await res.json()
-    files.value = data.map((d: any) => ({
+
+    // Hier korrekt auf `documents` zugreifen
+    files.value = data.documents.map((d: any) => ({
       id: d.id,
-      name: d.dateipfad.split('/').pop() ?? d.name ?? 'Unbekannt',
-      url: d.dateipfad ?? ''
+      name: d.dateipfad.split('/').pop() ?? 'Unbekannt',
+      dateipfad: d.dateipfad,
+      typ: d.typ,
+      hochgeladenAm: d.hochgeladenAm
     }))
   } catch (err) {
     console.error('Fehler beim Laden der Dokumente:', err)
@@ -91,7 +99,7 @@ async function loadDocuments() {
 // ----------------------------
 // Datei löschen
 // ----------------------------
-async function deleteFile(fileId: number | string) {
+async function deleteFile(fileId: number) {
   try {
     const res = await fetch(`/api/meinKonto/documents/${fileId}`, { method: 'DELETE' })
     if (!res.ok) throw new Error(`Fehler: ${res.status}`)
@@ -106,7 +114,7 @@ async function deleteFile(fileId: number | string) {
 }
 
 // ----------------------------
-// Upload speichern (vom Dialog)
+// Upload speichern
 // ----------------------------
 function handleUploadSave(newFiles: StoredFile[]) {
   files.value = newFiles
@@ -115,23 +123,24 @@ function handleUploadSave(newFiles: StoredFile[]) {
 }
 
 // ----------------------------
-// onMounted: nwkId aus sessionStorage, dann Dokumente laden
+// Datum formatieren
+// ----------------------------
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('de-DE')
+}
+
+// ----------------------------
+// onMounted: nwkId aus sessionStorage, dann laden
 // ----------------------------
 onMounted(() => {
   if (!nwkId.value) {
     const loggedIn = sessionStorage.getItem('loggedIn') === 'true'
-    if (!loggedIn) {
-      console.error('Nutzer nicht eingeloggt')
-      return
-    }
+    if (!loggedIn) return
 
     const userJson = sessionStorage.getItem('user')
     if (userJson) {
       const userData = JSON.parse(userJson)
       nwkId.value = userData.id
-    } else {
-      console.error('Kein eingeloggter Nutzer gefunden')
-      return
     }
   }
   loadDocuments()
