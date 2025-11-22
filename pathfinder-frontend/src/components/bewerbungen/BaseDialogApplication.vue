@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" max-width="600">
+  <v-dialog v-model="dialog" max-width="600px" persistent>
     <v-card>
       <v-card-title class="text-h6 font-weight-bold">
         Bewerbung für: {{ job?.title || "Unbekannte Stelle" }}
@@ -14,16 +14,36 @@
           label="Ich willige ein, dass meine persönlichen Daten für diese Bewerbung weitergegeben werden."
         />
 
-        <!-- Dokumente auswählen: nur Dateiname oder Typ anzeigen -->
+        <!-- Datei hochladen -->
+        <v-file-input
+          v-model="selectedFile"
+          label="Datei auswählen"
+          accept=".pdf,.doc,.docx"
+          show-size
+          outlined
+          dense
+        />
+
+        <!-- Dokumenttyp Dropdown -->
         <v-select
-          v-model="selectedFiles"
+          v-if="selectedFile"
+          v-model="selectedDocType"
+          :items="docTypes"
+          label="Dokumenttyp auswählen"
+          dense
+          outlined
+        />
+
+        <!-- Hochgeladene Dateien für Bewerbung auswählen -->
+        <v-select
+          v-model="selectedFilesForApplication"
           :items="uploadedFiles.map(f => ({ id: f.id, name: f.dateipfad.split('/').pop() || f.typ }))"
           item-title="name"
           item-value="id"
           multiple
           chips
           dense
-          :disabled="uploadedFiles.length === 0"
+          class="mt-4"
           placeholder="Keine Dokumente vorhanden"
         />
 
@@ -41,8 +61,10 @@
       <v-divider></v-divider>
 
       <v-card-actions class="justify-end">
-        <BaseButtonCancel @click="closeDialog" />
-        <BaseButtonVerify :disabled="!consent" @click="submitApplication" />
+        <v-btn text @click="closeDialog">Abbrechen</v-btn>
+        <v-btn color="primary" :disabled="!consent" @click="submitApplication">
+          Bewerben
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -50,12 +72,20 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import BaseButtonCancel from "@/components/common/BaseButtonCancel.vue";
-import BaseButtonVerify from "@/components/common/BaseButtonVerify.vue";
 
-interface FileItem { id: number; dateipfad: string; typ: string; hochgeladenAm: string; }
-interface Job { id?: number; title: string; }
+interface FileItem {
+  id: number;
+  dateipfad: string;
+  typ: string;
+  hochgeladenAm: string;
+}
 
+interface Job {
+  id?: number;
+  title: string;
+}
+
+// Props
 const props = defineProps<{
   modelValue: boolean;
   job: Job | null;
@@ -68,31 +98,68 @@ const emit = defineEmits<{
   (e: "submitted"): void;
 }>();
 
+// Dialog und Form-State
 const dialog = ref(props.modelValue);
 const consent = ref(false);
-const selectedFiles = ref<number[]>([]);
+const selectedFile = ref<File | null>(null);
+const selectedDocType = ref<string | null>(null);
+const selectedFilesForApplication = ref<number[]>([]);
 const hrNote = ref("");
 
-// Watch für v-model Synchronisation
-watch(() => props.modelValue, val => (dialog.value = val));
+// Dokumenttypen
+const docTypes = ["LEBENSLAUF", "MOTIVATIONSSCHREIBEN", "ZEUGNIS", "SONSTIGES"];
+
+// v-model Synchronisation
+watch(() => props.modelValue, val => dialog.value = val);
 watch(dialog, val => emit("update:modelValue", val));
 
-function closeDialog() { dialog.value = false; }
+function closeDialog() {
+  consent.value = false;
+  selectedFile.value = null;
+  selectedDocType.value = null;
+  selectedFilesForApplication.value = [];
+  hrNote.value = "";
+  dialog.value = false;
+}
 
+// Upload Datei und senden Bewerbung
 async function submitApplication() {
-  if (!props.job) return;
-
   try {
-    const fileNames = selectedFiles.value.length > 0
-      ? selectedFiles.value
-          .map(id => props.uploadedFiles.find(f => f.id === id)?.dateipfad.split('/').pop() || f.typ)
-          .filter(name => name != null)
-      : null;
+    let uploadedFileId: number | null = null;
 
+    // Datei hochladen, wenn eine ausgewählt
+    if (selectedFile.value) {
+      if (!selectedDocType.value) {
+        alert("Bitte einen Dokumenttyp auswählen!");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", selectedFile.value);
+      formData.append("nwkId", props.nwkId.toString());
+      formData.append("typ", selectedDocType.value);
+
+      const uploadRes = await fetch("/api/meinKonto/documents", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error("Datei-Upload fehlgeschlagen");
+      }
+
+      const savedFile = await uploadRes.json();
+      uploadedFileId = savedFile.id;
+
+      // Direkt in Auswahl für Bewerbung hinzufügen
+      selectedFilesForApplication.value.push(uploadedFileId);
+    }
+
+    // Payload für Bewerbung
     const payload = {
-      stelleId: props.job.id,
+      stelleId: props.job?.id,
       nachwuchskraftId: props.nwkId,
-      fileNames: fileNames,      // nur Dateinamen übermitteln
+      fileIds: selectedFilesForApplication.value, // IDs der Dateien
       hrNote: hrNote.value || null
     };
 
@@ -106,11 +173,7 @@ async function submitApplication() {
 
     alert("Bewerbung erfolgreich erstellt!");
 
-    consent.value = false;
-    selectedFiles.value = [];
-    hrNote.value = "";
-    dialog.value = false;
-
+    closeDialog();
     emit("submitted");
   } catch (err) {
     console.error(err);
@@ -121,5 +184,4 @@ async function submitApplication() {
 
 <style scoped>
 .mt-4 { margin-top: 16px; }
-.font-weight-medium { font-weight: 500; }
 </style>

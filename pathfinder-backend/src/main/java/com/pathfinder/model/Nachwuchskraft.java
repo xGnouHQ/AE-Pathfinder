@@ -33,14 +33,13 @@ public class Nachwuchskraft {
     @Column(name = "STUDIENRICHTUNG")
     private String studienrichtung;
 
-    // neu: Jahrgang als String, z.B. "2023/2026"
     @Column(name = "JAHRGANG", nullable = false, length = 20)
     private String jahrgang;
 
     @Column(name = "ERSTELLT_AM")
     private LocalDateTime erstelltAm = LocalDateTime.now();
 
-    // vom Nachwuchskraft selbst bearbeitbar
+    // Interessen (Tags)
     @ManyToMany
     @JoinTable(
             name = "nachwuchskraft_interesse",
@@ -49,9 +48,7 @@ public class Nachwuchskraft {
     )
     private List<Tag> interessen = new ArrayList<>();
 
-    // umbenannt: Erfahrungen -> Praktika
-    // nicht mehr über /meinKonto von NWK bearbeitbar
-    // absolvierte Praktika (n:m)
+    // Absolvierte Praktika
     @ManyToMany
     @JoinTable(
             name = "nachwuchskraft_praktikum",
@@ -60,18 +57,17 @@ public class Nachwuchskraft {
     )
     private List<Abteilung> praktika = new ArrayList<>();
 
-
-    // Beziehung zu Anhaenge (1:n)
+    // Anhänge 1:n
     @OneToMany(mappedBy = "nachwuchskraft", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference(value = "anhang-nwk")
     private List<NachwuchskraftAnhang> anhaenge = new ArrayList<>();
 
-    // Beziehung zu Bewerbung (1:n)
+    // Bewerbungen 1:n
     @OneToMany(mappedBy = "nachwuchskraft", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("bewerbung-nwk")
     private List<Bewerbung> bewerbungen = new ArrayList<>();
 
-    // Wunschabteilungen (n:m)
+    // Wunschabteilungen
     @ManyToMany
     @JoinTable(
             name = "wunschabteilung",

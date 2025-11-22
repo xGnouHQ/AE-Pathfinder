@@ -19,15 +19,15 @@
       </v-row>
 
       <v-row>
-        <v-col><strong>Jahrgang:</strong> {{ nwk.eintrittsjahr }}</v-col>
+        <v-col><strong>Jahrgang:</strong> {{ nwk.jahrgang }}</v-col>
         <v-col><strong>Studienrichtung:</strong> {{ nwk.studienrichtung }}</v-col>
       </v-row>
 
       <v-row>
         <v-col>
           <strong>Praktika:</strong>
-          <ul v-if="departmentList.length">
-            <li v-for="(item, i) in departmentList" :key="i">{{ item }}</li>
+          <ul v-if="nwk.praktika && nwk.praktika.length">
+            <li v-for="(dept, i) in nwk.praktika" :key="i">{{ dept.name }}</li>
           </ul>
           <span v-else>Keine Angaben</span>
         </v-col>
@@ -41,49 +41,58 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 
-// Interface direkt wie im Backend
+// DTO Interface passend zum Backend
+interface AbteilungDTO {
+  id: number
+  name: string
+}
+
 interface Nachwuchskraft {
   id: number
   personalnummer: string
   vorname: string
   nachname: string
   email: string
-  eintrittsjahr: number
+  jahrgang: string
   studienrichtung: string
-  departments?: string
+  praktika?: AbteilungDTO[]
 }
 
 const nwk = ref<Nachwuchskraft | null>(null)
-const nwkId = 1 // ID der Nachwuchskraft, die geladen werden soll
 
-// Departments in Array aufsplitten
-const departmentList = computed(() => {
-  if (!nwk.value?.departments) return []
-  return nwk.value.departments
-    .split(/[;,\\n]/)
-    .map(d => d.trim())
-    .filter(d => d.length > 0)
-})
-
-// Daten vom Backend laden
 onMounted(async () => {
+  const loggedIn = sessionStorage.getItem('loggedIn') === 'true'
+  if (!loggedIn) {
+    console.error('Nutzer nicht eingeloggt')
+    return
+  }
+
+  const userJson = sessionStorage.getItem('user')
+  if (!userJson) {
+    console.error('Kein eingeloggter Nutzer gefunden')
+    return
+  }
+
+  const userData = JSON.parse(userJson)
+  const nwkId = userData.id
+
   try {
     const res = await fetch(`/api/meinKonto/personal/${nwkId}`)
     if (!res.ok) throw new Error(`Fehler beim Laden: ${res.status}`)
     const data = await res.json()
 
-    console.log('Backend Response:', data) // Debug: prüfen, was zurückkommt
-
+    // DTO direkt übernehmen
     nwk.value = {
-       id: data.id,
-            personalnummer: data.personalnummer,
-            vorname: data.vorname,
-            nachname: data.nachname,
-            email: data.email,
-            eintrittsjahr: data.eintrittsjahr,
-            studienrichtung: data.studienrichtung
+      id: data.id,
+      personalnummer: data.personalnummer,
+      vorname: data.vorname,
+      nachname: data.nachname,
+      email: data.email,
+      jahrgang: data.jahrgang ?? data.eintrittsjahr,
+      studienrichtung: data.studienrichtung,
+      praktika: data.praktika ?? []
     }
   } catch (err) {
     console.error('Fehler beim Laden der Daten:', err)

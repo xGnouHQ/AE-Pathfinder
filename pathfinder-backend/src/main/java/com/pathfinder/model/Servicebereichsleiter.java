@@ -16,8 +16,11 @@ public class Servicebereichsleiter {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String bereich;           // z. B. "IT-Service", "Personal"
-    private String kontaktperson;     // Name des Leiters
+    @OneToOne
+    @JoinColumn(name = "abteilung_id", nullable = false)
+    private Abteilung abteilung;
+
+    private String kontaktperson;
     private String email;
     private String telefonnummer;
 

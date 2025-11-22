@@ -1,31 +1,29 @@
 <template>
-  <v-container>
+  <v-container v-if="loggedIn">
     <h1 class="mb-6">Offene Stellen</h1>
-          <v-text-field
-            v-model="search"
-            label="Search"
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            hide-details
-            single-line
-          ></v-text-field>
+
+    <v-text-field
+      v-model="search"
+      label="Search"
+      prepend-inner-icon="mdi-magnify"
+      variant="outlined"
+      hide-details
+      single-line
+    />
 
     <v-container class="box">
       <v-row>
         <v-col
-          v-for="stelle in stellen"
+          v-for="stelle in filteredStellen"
           :key="stelle.id"
-          :search="search"
           cols="12"
         >
-          <!-- Router-Link zur Detailseite -->
           <router-link
             :to="`/stellen/${stelle.id}/JobpostingTemplateView`"
             class="no-underline"
           >
             <BaseCardJobMini
               :job="stelle"
-              :profile="nwkExperience"
               @merke="() => merkeStelle(stelle.id)"
             />
           </router-link>
@@ -33,90 +31,104 @@
       </v-row>
     </v-container>
   </v-container>
+
+  <!-- Login Weiterleitung, falls nicht eingeloggt -->
+  <div v-else>
+    <p>Bitte einloggen...</p>
+  </div>
 </template>
 
-
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 import BaseCardJobMini from '@/components/stellen/BaseCardJobMini.vue'
 
+const router = useRouter()
 const search = ref("")
-
-// Backend-URL
+const stellen = ref<any[]>([])
+const profileId = ref<number | null>(null)
+const loggedIn = ref(false)
 const API_URL = 'http://localhost:8080/api/stellen'
 
-// Profil der Nachwuchskraft (Beispieldaten)
-const nwkExperience = ref({
-  id: 1,
-  experiences: ['Praktikum Webentwicklung', 'Backend bei Stadtverwaltung'],
-  knowsProgramming: true,
-  programmingLanguages: ['JavaScript', 'Python'],
-  interests: ['Webentwicklung', 'Cloud', 'Datenbanken', 'IT-Sicherheit']
+// Prüfen, ob Nutzer eingeloggt ist (SessionStorage)
+onMounted(() => {
+  loggedIn.value = sessionStorage.getItem('loggedIn') === 'true'
+
+  if (!loggedIn.value) {
+    router.replace('/login') // Weiterleitung zum Login
+    return
+  }
+
+  const userJson = sessionStorage.getItem("user")
+  if (userJson) {
+    const userData = JSON.parse(userJson)
+    profileId.value = userData.id
+    ladeStellen()
+  } else {
+    console.error("Kein eingeloggter Nutzer gefunden")
+  }
 })
 
-// --- TypeScript Interfaces ---
-interface Tag {
-  id: number
-  name: string
-}
-
-interface Servicebereichsleiter {
-  id: number
-  name: string
-}
-
-interface Stelle {
-  id: number           // ✅ long → number (TS-kompatibel)
-  titel: string
-  standort: string
-  beschreibung: string
-  tags: Tag[]
-  status: 'OFFEN' | 'GESCHLOSSEN'
-  bewerbungsfrist: string
-  servicebereichsleiter: Servicebereichsleiter
-  bewerbungen: any[]
-}
-
-// --- Reactive Variablen ---
-const stellen = ref<Stelle[]>([])
-
-// --- Methoden ---
+// ------------------ Lade alle Stellen ------------------
 const ladeStellen = async () => {
+  if (!profileId.value) return
   try {
     const response = await axios.get(API_URL)
     stellen.value = response.data
+    for (const stelle of stellen.value) {
+      await ladeMatchingScore(stelle)
+    }
   } catch (error) {
-    console.error('Fehler beim Laden der Stellen:', error)
+    console.error("Fehler beim Laden der Stellen:", error)
   }
 }
 
-// Wird beim Laden der Seite ausgeführt
-onMounted(ladeStellen)
+// ------------------ Matching Score ------------------
+const ladeMatchingScore = async (stelle: any) => {
+  if (!profileId.value) return
+  try {
+    const response = await axios.get(
+      `http://localhost:8080/api/matching/${profileId.value}/${stelle.id}`
+    )
+    stelle.matchingScore = response.data
+  } catch (error) {
+    console.error(`Fehler beim Matching-Score für Stelle ${stelle.id}:`, error)
+    stelle.matchingScore = 0
+  }
+}
 
-// Stelle merken (Beispiel-Funktion)
+// ------------------ Merkfunktion ------------------
 const merkeStelle = async (stellenId: number) => {
+  if (!profileId.value) return alert("Kein eingeloggter Nutzer gefunden")
   try {
     const response = await axios.post(
       `${API_URL}/${stellenId}/merken`,
       null,
-      { params: { nachwuchskraftId: nwkExperience.value.id } }
+      { params: { nachwuchskraftId: profileId.value } }
     )
     alert(response.data)
   } catch (error: any) {
-    console.error('Fehler beim Merken der Stelle:', error)
-    alert(error.response?.data || 'Fehler beim Merken der Stelle')
+    alert(error.response?.data || "Fehler beim Merken der Stelle")
   }
 }
-</script>
 
+// ------------------ Gefilterte Stellen ------------------
+const filteredStellen = computed(() => {
+  return stellen.value
+    .filter(s =>
+      s.titel.toLowerCase().includes(search.value.toLowerCase()) ||
+      s.beschreibung.toLowerCase().includes(search.value.toLowerCase())
+    )
+    .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0))
+})
+</script>
 
 <style scoped>
 .box {
   margin: 2% 1% 1%;
   border: 2px solid #0000001a;
 }
-
 .no-underline {
   text-decoration: none;
   color: inherit;

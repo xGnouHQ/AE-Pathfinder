@@ -1,58 +1,51 @@
 <template>
-  <!-- Wichtig: Dialog sichtbar, wenn internalModel true -->
   <v-dialog v-model="internalModel" max-width="600px" persistent>
     <v-card>
-      <v-card-title class="text-h6">
-        Bevorzugte Abteilungen & Interessen bearbeiten
-      </v-card-title>
-
+      <v-card-title>Abteilungen & Interessen bearbeiten</v-card-title>
       <v-card-text>
-        <v-form ref="form">
-          <!-- Abteilungen -->
-          <div class="mb-4">
-            <h3>Bevorzugte Abteilungen <span class="text-red">*</span></h3>
-            <v-select
-              v-for="(item, index) in formData.erfahrung"
-              :key="'erfahrung-' + index"
-              v-model="formData.erfahrung[index]"
-              :label="`Abteilung ${index + 1}`"
-              :items="erfahrungOptions"
-              class="mb-2"
-              clearable
-              hide-details
-            />
-          </div>
-
-          <!-- Programmieren -->
-          <v-checkbox
-            v-model="formData.knowsProgramming"
-            label="Kannst du programmieren?"
-          />
-          <v-text-field
-            v-if="formData.knowsProgramming"
-            v-model="formData.programmingLanguagesString"
-            label="Programmiersprachen (Komma getrennt)"
+        <!-- Abteilungen Dropdowns -->
+        <div class="mb-4">
+          <h3>Bevorzugte Abteilungen <span class="text-red">*</span></h3>
+          <v-select
+            v-for="i in 3"
+            :key="'dept-' + i"
+            v-model="selectedDepartmentsNames[i-1]"
+            :items="departmentNames"
+            label="Abteilung auswählen"
+            clearable
             hide-details
+            class="mb-2"
           />
+        </div>
 
-          <!-- Interessen -->
-          <div class="mt-4">
-            <h3>Interessen <span class="text-red">*</span></h3>
-            <v-select
-              v-for="(interest, index) in formData.interests"
-              :key="'interest-' + index"
-              v-model="formData.interests[index]"
-              :label="`Interesse ${index + 1}`"
-              :items="interestOptions"
-              class="mb-2"
-              clearable
-              hide-details
-            />
-          </div>
+        <!-- Checkbox Programmieren -->
+        <v-checkbox
+          v-model="formData.knowsProgramming"
+          label="Kannst du programmieren?"
+        />
+        <v-text-field
+          v-if="formData.knowsProgramming"
+          v-model="formData.programmingLanguagesString"
+          label="Programmiersprachen (Komma getrennt)"
+          hide-details
+        />
 
-          <!-- Fehlermeldung -->
-          <p v-if="error" class="text-red mt-2">{{ error }}</p>
-        </v-form>
+        <!-- Interessen Dropdowns -->
+        <div class="mb-4">
+          <h3>Interessen <span class="text-red">*</span></h3>
+          <v-select
+            v-for="i in 3"
+            :key="'tag-' + i"
+            v-model="selectedTagsNames[i-1]"
+            :items="tagNames"
+            label="Interesse auswählen"
+            clearable
+            hide-details
+            class="mb-2"
+          />
+        </div>
+
+        <p v-if="error" class="text-red mt-2">{{ error }}</p>
       </v-card-text>
 
       <v-card-actions>
@@ -65,18 +58,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, defineProps, defineEmits, computed } from 'vue'
 
+interface Abteilung { id: number; name: string }
+interface Tag { id: number; name: string }
 interface NwkExperience {
-  erfahrung: string[]
+  wunschabteilungen: Abteilung[]
+  interessen: Tag[]
   knowsProgramming: boolean
   programmingLanguages: string[]
-  interests: string[]
 }
 
 const props = defineProps<{
   modelValue: boolean
-  nwkExperience: NwkExperience
+  nwkExperience: NwkExperience | null
   nwkId: number
 }>()
 
@@ -88,42 +83,59 @@ const emit = defineEmits<{
 const internalModel = ref(props.modelValue)
 const error = ref('')
 
-// Synchronisation mit Props
-watch(() => props.modelValue, val => (internalModel.value = val))
-watch(internalModel, val => emit('update:modelValue', val))
+// Dropdown-Optionen
+const allDepartments: Abteilung[] = [
+  { id: 1, name: 'IT@M - IT-Dienstleistungen' },
+  { id: 2, name: 'IT-Architektur' },
+  { id: 3, name: 'Finanzen' },
+  { id: 4, name: 'Kreisverwaltungsreferat - Bürgerdienste' },
+  { id: 5, name: 'Kommunalreferat - Stadtplanung' }
+]
 
-// Optionen
-const erfahrungOptions = ['Km1', 'Km2', 'Km3', 'Km4']
-const interestOptions = ['Programmieren', 'Teamarbeit', 'Infrastruktur', 'Projekt']
+const allTags: Tag[] = [
+  { id: 1, name: 'Java' },
+  { id: 2, name: 'Spring Boot' },
+  { id: 3, name: 'Projektmanagement' },
+  { id: 4, name: 'Teamarbeit' },
+  { id: 5, name: 'Kommunikation' },
+  { id: 6, name: 'Datenanalyse' },
+  { id: 7, name: 'Bürgerdienste' },
+  { id: 8, name: 'Stadtplanung' }
+]
 
-// Default-Werte
-const formData = ref({
-  erfahrung: [null, null, null],
-  knowsProgramming: false,
-  programmingLanguagesString: '',
-  interests: [null, null, null, null, null]
-})
+// Nur Namen für die Dropdowns
+const departmentNames = computed(() => allDepartments.map(d => d.name))
+const tagNames = computed(() => allTags.map(t => t.name))
 
-// Props → formData synchronisieren
+// Auswahlmodelle: nur Namen für die v-selects
+const selectedDepartmentsNames = ref<string[]>(['', '', ''])
+const selectedTagsNames = ref<string[]>(['', '', ''])
+const formData = ref({ knowsProgramming: false, programmingLanguagesString: '' })
+
+// Props → initialisieren
 watch(
-  () => props.nwkExperience,
-  newVal => {
-    if (!newVal) return
-    formData.value.erfahrung = newVal.erfahrung?.length
-      ? [...newVal.erfahrung]
-      : [null, null, null]
-    formData.value.knowsProgramming = newVal.knowsProgramming
-    formData.value.programmingLanguagesString = newVal.programmingLanguages.join(', ')
-    formData.value.interests = newVal.interests?.length
-      ? [...newVal.interests]
-      : [null, null, null, null, null]
+  () => props.modelValue,
+  val => {
+    if (val && props.nwkExperience) {
+      selectedDepartmentsNames.value = props.nwkExperience.wunschabteilungen
+        .map(d => d.name)
+        .concat(['', '', ''])
+        .slice(0,3)
+
+      selectedTagsNames.value = props.nwkExperience.interessen
+        .map(t => t.name)
+        .concat(['', '', ''])
+        .slice(0,3)
+
+      formData.value.knowsProgramming = props.nwkExperience.knowsProgramming
+      formData.value.programmingLanguagesString = (props.nwkExperience.programmingLanguages || []).join(', ')
+    }
   },
   { immediate: true }
 )
 
-watch(() => formData.value.knowsProgramming, val => {
-  if (!val) formData.value.programmingLanguagesString = ''
-})
+watch(() => props.modelValue, val => (internalModel.value = val))
+watch(internalModel, val => emit('update:modelValue', val))
 
 function close() {
   error.value = ''
@@ -131,44 +143,51 @@ function close() {
 }
 
 async function save() {
-  const hasErfahrung = formData.value.erfahrung.some(e => e && e.trim().length > 0)
-  const hasInterest = formData.value.interests.some(i => i && i.trim().length > 0)
-
-  if (!hasErfahrung || !hasInterest) {
-    error.value = 'Bitte mindestens eine bevorzugte Abteilung und ein Interesse angeben.'
+  if (selectedDepartmentsNames.value.every(v => !v) || selectedTagsNames.value.every(v => !v)) {
+    error.value = 'Bitte mindestens eine Abteilung und ein Interesse auswählen.'
     return
   }
 
-  const updatedNwk: NwkExperience = {
-    erfahrung: formData.value.erfahrung.filter(Boolean),
+  // IDs anhand der Namen ermitteln
+  const wunschabteilungenIds = selectedDepartmentsNames.value
+    .map(name => allDepartments.find(d => d.name === name)?.id)
+    .filter(Boolean) as number[]
+
+  const interessenIds = selectedTagsNames.value
+    .map(name => allTags.find(t => t.name === name)?.id)
+    .filter(Boolean) as number[]
+
+  // JSON-Body für Backend
+  const payload = {
+    wunschabteilungenIds,
+    interessenIds,
     knowsProgramming: formData.value.knowsProgramming,
     programmingLanguages: formData.value.programmingLanguagesString
       .split(',')
-      .map(lang => lang.trim())
-      .filter(lang => lang.length > 0),
-    interests: formData.value.interests.filter(Boolean)
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
   }
 
   try {
     const res = await fetch(`/api/meinKonto/experience/${props.nwkId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        interessen: updatedNwk.interests.join(', '),
-        erfahrung: updatedNwk.erfahrung.join(', ')
-      })
+      body: JSON.stringify(payload)
     })
 
-    const text = await res.text() // 👈 Antworttext lesen
-    console.log('Serverantwort:', res.status, text) // 👈 Debug
-
     if (!res.ok) throw new Error(`Fehler: ${res.status}`)
-    emit('save', updatedNwk)
+    emit('save', payload)
     close()
     alert('Erfahrungen & Interessen gespeichert!')
   } catch (err) {
-    console.error('Fehler beim Speichern:', err)
+    console.error(err)
     error.value = 'Fehler beim Speichern!'
   }
 }
 </script>
+
+<style scoped>
+.text-red { color: red; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+</style>

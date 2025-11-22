@@ -1,7 +1,5 @@
 package com.pathfinder.dto;
 
-import com.pathfinder.dto.DocumentResponseDTO;
-import com.pathfinder.dto.DocumentUploadResponseDTO;
 import com.pathfinder.model.NachwuchskraftAnhang;
 
 public class DocumentMapper {

@@ -5,7 +5,7 @@
       <h1 class="text-h3 font-weight-bold mb-4">Login</h1>
 
       <form @submit.prevent="handleLogin">
-        <input v-model="username" placeholder="Benutzername" class="login-input" />
+        <input v-model="email" placeholder="E-Mail" class="login-input" />
         <input v-model="password" type="password" placeholder="Passwort" class="login-input" />
         <button type="submit" class="login-button">Einloggen</button>
         <p v-if="error" class="error">{{ error }}</p>
@@ -17,26 +17,44 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import App from '@/App.vue'
+import { createApp } from 'vue'
 import { registerPlugins } from '@/plugins'
+import axios from 'axios'
 
-const username = ref('')
+const email = ref('')
 const password = ref('')
 const error = ref('')
 
-function handleLogin() {
-  if (username.value === 'admin' && password.value === '1234') {
-    // Login-Status speichern
-    localStorage.setItem('loggedIn', 'true')
+async function handleLogin() {
+  error.value = ''
+  try {
+    const response = await axios.post('http://localhost:8080/api/auth/login', {
+      email: email.value,
+      password: password.value
+    })
+
+    const user = response.data
+
+    // Session Storage statt localStorage
+    sessionStorage.setItem('loggedIn', 'true')
+    sessionStorage.setItem('user', JSON.stringify(user))
 
     // Haupt-App starten
     const app = createApp(App)
     registerPlugins(app)
     app.mount('#app')
-  } else {
-    error.value = 'Falscher Benutzername oder Passwort'
+  } catch (err: any) {
+    if (err.response) {
+      if (err.response.status === 404) error.value = 'E-Mail nicht gefunden'
+      else if (err.response.status === 401) error.value = 'Falsches Passwort'
+      else error.value = 'Fehler beim Einloggen'
+    } else {
+      error.value = 'Server nicht erreichbar'
+    }
   }
 }
 </script>
+
 
 <style scoped>
 .login-background {
@@ -55,10 +73,7 @@ function handleLogin() {
   width: 100%;
   max-width: 400px;
 }
-.login-image {
-  width: 100px;
-  margin-bottom: 20px;
-}
+.login-image { width: 100px; margin-bottom: 20px; }
 .login-input {
   display: block;
   width: 100%;
@@ -78,12 +93,6 @@ function handleLogin() {
   font-size: 16px;
   cursor: pointer;
 }
-.login-button:hover {
-  background-color: #115293;
-}
-.error {
-  color: red;
-  margin-top: 10px;
-  font-weight: 500;
-}
+.login-button:hover { background-color: #115293; }
+.error { color: red; margin-top: 10px; font-weight: 500; }
 </style>
