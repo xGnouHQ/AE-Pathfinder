@@ -40,10 +40,6 @@ public class Bewerbung {
 
     private String kommentar;
 
-    // Beziehung zu Anhängen (1:n)
-    @OneToMany(mappedBy = "bewerbung", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<NachwuchskraftAnhang> anhange = new ArrayList<>();
-
     public enum Status {
         EINGEREICHT,
         IN_PRUEFUNG,
@@ -59,17 +55,5 @@ public class Bewerbung {
         this.kommentar = kommentar;
         this.status = Status.EINGEREICHT;
         this.eingereichtAm = LocalDateTime.now();
-    }
-
-    // Methode zum Hinzufügen von Anhängen
-    public void addAnhang(NachwuchskraftAnhang anhang) {
-        anhange.add(anhang);
-        anhang.setBewerbung(this);
-    }
-
-    // Methode zum Entfernen von Anhängen
-    public void removeAnhang(NachwuchskraftAnhang anhang) {
-        anhange.remove(anhang);
-        anhang.setBewerbung(null);
     }
 }
