@@ -61,44 +61,6 @@ public ResponseEntity<ExperienceResponse> updateExperience(
         return ResponseEntity.ok(mapper.toExperienceDTO(updated));
     }
   
-  @PostMapping("/nachwuchskraft/{nwkId}/experience")
-public ResponseEntity<ExperienceResponse> updateExperience(
-        @PathVariable Long nwkId,
-        @RequestBody ExperienceUpdateRequest req
-) {
-    Nachwuchskraft existing = nwkService.getById(nwkId);
-    if (existing == null) return ResponseEntity.notFound().build();
 
-    // Wunschabteilungen aktualisieren
-    if (req.getWunschabteilungenIds() != null) {
-        List<Abteilung> neueAbteilungen = req.getWunschabteilungenIds().stream()
-                .map(abteilungService::getById)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-        existing.setWunschabteilungen(neueAbteilungen);
-    }
-
-    // Interessen aktualisieren
-    if (req.getInteressenIds() != null) {
-        List<Tag> neueTags = req.getInteressenIds().stream()
-                .map(tagService::getById) // Tags existieren ja schon
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-        existing.setInteressen(neueTags);
-    }
-
-    Nachwuchskraft saved = nwkService.save(existing);
-
-    // DTO für Response erzeugen
-    ExperienceResponse response = new ExperienceResponse();
-    response.setInteressen(saved.getInteressen().stream()
-        .map(t -> new TagDTO(t.getId(), t.getName()))
-        .toList());
-    response.setWunschabteilungen(saved.getWunschabteilungen().stream()
-        .map(a -> new AbteilungDTO(a.getId(), a.getName()))
-        .toList());
-
-    return ResponseEntity.ok(response);
-}
 
 }
