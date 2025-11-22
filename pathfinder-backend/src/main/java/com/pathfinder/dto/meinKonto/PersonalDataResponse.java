@@ -1,6 +1,5 @@
 package com.pathfinder.dto.meinKonto;
 
-import com.pathfinder.model.Abteilung;
 import java.util.List;
 
 public record PersonalDataResponse(
@@ -10,5 +9,5 @@ public record PersonalDataResponse(
         String email,
         String studienrichtung,
         String jahrgang,
-        List<Abteilung> praktika
+        List<AbteilungDTO> praktika
 ) {}

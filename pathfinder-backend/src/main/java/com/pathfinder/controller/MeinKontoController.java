@@ -4,16 +4,11 @@ import com.pathfinder.dto.meinKonto.ExperienceResponse;
 import com.pathfinder.dto.meinKonto.ExperienceUpdateRequest;
 import com.pathfinder.dto.meinKonto.PersonalDataResponse;
 import com.pathfinder.exception.NachwuchskraftNotFoundException;
-import com.pathfinder.model.Abteilung;
 import com.pathfinder.model.Nachwuchskraft;
-import com.pathfinder.model.Tag;
-import com.pathfinder.service.AbteilungService;
 import com.pathfinder.service.NachwuchskraftService;
-import com.pathfinder.service.TagService;
+import com.pathfinder.service.NwkDTOMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/meinKonto")
@@ -21,16 +16,14 @@ import java.util.List;
 public class MeinKontoController {
 
     private final NachwuchskraftService nwkService;
-    private final AbteilungService abteilungService;
-    private final TagService tagService;
+    private final NwkDTOMapper mapper;
 
     public MeinKontoController(
             NachwuchskraftService nwkService,
-            AbteilungService abteilungService,
-            TagService tagService) {
+            NwkDTOMapper mapper
+    ) {
         this.nwkService = nwkService;
-        this.abteilungService = abteilungService;
-        this.tagService = tagService;
+        this.mapper = mapper;
     }
 
     // ============ PERSONAL DATA =======================
@@ -40,17 +33,7 @@ public class MeinKontoController {
         Nachwuchskraft nwk = nwkService.getOrThrow(nwkId);
         if (nwk == null) throw new NachwuchskraftNotFoundException(nwkId);
 
-        PersonalDataResponse dto = new PersonalDataResponse(
-                nwk.getId(),
-                nwk.getVorname(),
-                nwk.getNachname(),
-                nwk.getEmail(),
-                nwk.getStudienrichtung(),
-                nwk.getJahrgang(),
-                nwk.getPraktika()
-        );
-
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(mapper.toPersonalDataDTO(nwk));
     }
 
     // ============ EXPERIENCE DATA =======================
@@ -60,15 +43,8 @@ public class MeinKontoController {
         Nachwuchskraft nwk = nwkService.getOrThrow(nwkId);
         if (nwk == null) throw new NachwuchskraftNotFoundException(nwkId);
 
-        ExperienceResponse dto = new ExperienceResponse(
-                nwk.getId(),
-                nwk.getInteressen(),
-                nwk.getWunschabteilungen()
-        );
-
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(mapper.toExperienceDTO(nwk));
     }
-
 
     // ============ UPDATE EXPERIENCE =======================
     @PutMapping("/experience/{nwkId}")
@@ -82,12 +58,6 @@ public class MeinKontoController {
                 req.wunschabteilungenIds()
         );
 
-        return ResponseEntity.ok(
-                new ExperienceResponse(
-                        updated.getId(),
-                        updated.getInteressen(),
-                        updated.getWunschabteilungen()
-                )
-        );
+        return ResponseEntity.ok(mapper.toExperienceDTO(updated));
     }
 }
