@@ -46,6 +46,7 @@ public class NwkDTOMapper {
                 nwk.getEmail(),
                 nwk.getStudienrichtung(),
                 nwk.getJahrgang(),
+                nwk.getPersonalnummer(),
                 toAbteilungDTOList(nwk.getPraktika())
         );
     }

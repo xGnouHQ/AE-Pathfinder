@@ -9,5 +9,6 @@ public record PersonalDataResponse(
         String email,
         String studienrichtung,
         String jahrgang,
+        String personalnummer,
         List<AbteilungDTO> praktika
 ) {}
