@@ -1,11 +1,12 @@
 package com.pathfinder.controller;
 
 import com.pathfinder.dto.DocumentListResponseDTO;
+import com.pathfinder.dto.DocumentMapper;
 import com.pathfinder.dto.DocumentResponseDTO;
 import com.pathfinder.dto.DocumentUploadResponseDTO;
-import com.pathfinder.dto.DocumentMapper;
 import com.pathfinder.model.NachwuchskraftAnhang;
 import com.pathfinder.service.NachwuchskraftAnhangService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,8 +30,9 @@ public class MeinKontoDocumentsController {
     public ResponseEntity<DocumentListResponseDTO> getDocuments(@PathVariable Long nwkId) {
         List<NachwuchskraftAnhang> docs = service.getByNachwuchskraft(nwkId);
 
-        if (docs.isEmpty())
+        if (docs.isEmpty()) {
             return ResponseEntity.noContent().build();
+        }
 
         List<DocumentResponseDTO> dtos = docs.stream()
                 .map(DocumentMapper::toDTO)
@@ -40,23 +42,25 @@ public class MeinKontoDocumentsController {
     }
 
     // POST (Upload)
-    @PostMapping(consumes = "multipart/form-data")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DocumentUploadResponseDTO> uploadDocument(
             @RequestParam("file") MultipartFile file,
             @RequestParam("nwkId") Long nwkId,
             @RequestParam("typ") NachwuchskraftAnhang.DokumentTyp typ
     ) throws IOException {
+
         NachwuchskraftAnhang saved = service.storeFile(file, nwkId, typ);
         return ResponseEntity.ok(DocumentMapper.toUploadDTO(saved));
     }
 
     // PUT (Update)
-    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DocumentUploadResponseDTO> updateDocument(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file,
             @RequestParam("typ") NachwuchskraftAnhang.DokumentTyp typ
     ) throws IOException {
+
         NachwuchskraftAnhang saved = service.updateFile(id, file, typ);
         return ResponseEntity.ok(DocumentMapper.toUploadDTO(saved));
     }
