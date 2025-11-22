@@ -4,30 +4,39 @@
       <span>Erfahrungen & Interessen</span>
       <BaseButtonEdit v-if="editable" @click="$emit('edit')" />
     </v-card-title>
-    <v-divider></v-divider>
+
+    <v-divider />
+
     <v-card-text>
+      <!-- Wunschabteilungen -->
       <div class="mb-4">
         <h3>Bevorzugte Abteilungen</h3>
-        <ul v-if="filledDepartments.length > 0" class="pl-4">
-          <li v-for="(dept, index) in filledDepartments" :key="index">{{ dept }}</li>
+        <ul v-if="departments.length > 0" class="pl-4">
+          <li v-for="dept in departments" :key="dept.id">
+            {{ dept.name }}
+          </li>
         </ul>
-        <p v-else>Noch keine Abteilungen angegeben.</p>
-      </div>
-
-      <div class="mb-4">
-        <h3>Programmierkenntnisse</h3>
-        <p v-if="nwk.knowsProgramming && nwk.programmingLanguages.length > 0">
-          Programmiersprachen: {{ nwk.programmingLanguages.slice(0,5).join(', ') }}
+        <p v-else>
+          Noch keine Abteilungen angegeben.
         </p>
-        <p v-else>Keine Programmierkenntnisse angegeben.</p>
       </div>
 
-      <div>
+      <!-- Interessen -->
+      <div class="mb-4">
         <h3>Interessen</h3>
-        <ul v-if="filledInterests.length > 0" class="pl-4">
-          <li v-for="(interest, index) in filledInterests" :key="index">{{ interest }}</li>
+        <ul v-if="interests.length > 0" class="pl-4">
+          <li v-for="tag in interests" :key="tag.id">
+            {{ tag.name }}
+          </li>
         </ul>
-        <p v-else>Noch keine Interessen angegeben.</p>
+        <p v-else>
+          Noch keine Interessen angegeben.
+        </p>
+      </div>
+
+      <!-- Programmieren Info nur anzeigen, wenn gesetzt -->
+      <div v-if="knowsProgramming === true">
+        <strong>Programmieren:</strong> Ja
       </div>
     </v-card-text>
   </v-card>
@@ -37,27 +46,25 @@
 import { computed, defineProps } from 'vue'
 import BaseButtonEdit from '@/components/common/BaseButtonEdit.vue'
 
-interface NwkExperience {
-  departments: string[]
-  knowsProgramming: boolean
-  programmingLanguages: string[]
-  interests: string[]
-}
+interface Tag { id: number; name: string }
+interface Abteilung { id: number; name: string }
 
 const props = defineProps<{
-  nwk: NwkExperience
+  nwkExperience: {
+    interessen: Tag[]
+    wunschabteilungen: Abteilung[]
+    knowsProgramming?: boolean
+  }
   editable?: boolean
 }>()
 
-const filledDepartments = computed(() =>
-  props.nwk.departments.filter(d => d && d.trim() !== '').slice(0, 5)
-)
-const filledInterests = computed(() =>
-  props.nwk.interests.filter(i => i && i.trim() !== '').slice(0, 5)
-)
+const departments = computed(() => props.nwkExperience?.wunschabteilungen ?? [])
+const interests = computed(() => props.nwkExperience?.interessen ?? [])
+const knowsProgramming = computed(() => props.nwkExperience?.knowsProgramming)
 </script>
 
 <style scoped>
 ul { margin: 0; padding-left: 1.2rem; }
 li { list-style-type: disc; }
+.mb-4 { margin-bottom: 1rem; }
 </style>

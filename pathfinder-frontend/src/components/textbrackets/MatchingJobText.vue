@@ -12,15 +12,17 @@
         >
           <v-card variant="outlined" class="pa-3">
             <div class="d-flex justify-space-between align-center mb-2">
-              <strong>{{ job.title }}</strong>
-              <v-chip color="green" variant="flat" size="small">
-                {{ job.match }} % Match
+              <strong>{{ job.titel }}</strong>
+              <v-chip
+                color="green"
+                variant="flat"
+                size="small"
+                v-if="job.matchingScore !== undefined && job.matchingScore > 0"
+              >
+                {{ job.matchingScore.toFixed(2) }} % Match
               </v-chip>
             </div>
-            <p class="text-body-2 mb-1">
-              <strong>Department:</strong> {{ job.department }}
-            </p>
-            <p class="text-body-2 mb-2">{{ job.description }}</p>
+
             <v-btn color="primary" size="small" @click="$emit('view-job', job)">
               View Details
             </v-btn>
@@ -28,9 +30,10 @@
         </v-col>
       </v-row>
     </div>
+
     <div v-else>
       <v-alert type="info" variant="tonal">
-        No jobs with more than 70% match found.
+        No jobs with more than 50% match found.
       </v-alert>
     </div>
   </div>
@@ -41,13 +44,15 @@ import { computed, defineProps } from 'vue'
 
 interface Job {
   id: number
-  title: string
-  department: string
-  description: string
-  match: number
+  titel: string
+  beschreibung: string
+  matchingScore?: number
 }
 
 const props = defineProps<{ jobs: Job[] }>()
 
-const matchingJobs = computed(() => props.jobs)
+// Filter: nur Jobs mit MatchingScore > 50%
+const matchingJobs = computed(() =>
+  props.jobs.filter(job => (job.matchingScore ?? 0) > 30)
+)
 </script>
