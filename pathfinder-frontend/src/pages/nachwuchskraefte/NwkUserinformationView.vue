@@ -57,6 +57,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue"
+import { useRouter } from 'vue-router'
 import BaseDialogNwkUploadDocuments from "@/components/nachwuchskraefte/BaseDialogNwkUploadDocuments.vue"
 import BaseCardNwkPersonal from "@/components/nachwuchskraefte/BaseCardNwkPersonal.vue"
 import BaseCardNwkDocuments from "@/components/nachwuchskraefte/BaseCardNwkDocuments.vue"
@@ -88,6 +89,9 @@ interface StoredFile {
   fileObject?: File
 }
 
+const router = useRouter()
+const loggedIn = ref(false)
+
 const nwk = ref<Nachwuchskraft | null>(null)
 const nwkExperience = ref<NwkExperience | null>(null)
 const savedFiles = ref<StoredFile[]>([])
@@ -118,7 +122,6 @@ async function loadPersonal() {
       wunschabteilungen: data.wunschabteilungen ?? []
     }
 
-    // Initial Experience auf Basis der persönlichen Daten
     nwkExperience.value = {
       interessen: nwk.value.interessen.map(t => ({ id: t.id, name: t.name })),
       wunschabteilungen: nwk.value.wunschabteilungen.map(d => ({ id: d.id, name: d.name })),
@@ -161,18 +164,25 @@ function handleExperienceSave(updated: NwkExperience) {
 }
 
 async function handleUploadSave(newFiles: StoredFile[]) {
-  // Implementierung bleibt wie bisher
+  // Implementierung wie bisher
 }
 
 async function handleDeleteFile(id: number) {
-  // Implementierung bleibt wie bisher
+  // Implementierung wie bisher
 }
 
 // ----------------------------------------
-// onMounted: Benutzer aus localStorage laden
+// onMounted: Session-Login prüfen
 // ----------------------------------------
 onMounted(() => {
-  const userJson = localStorage.getItem("user")
+  loggedIn.value = sessionStorage.getItem("loggedIn") === "true"
+
+  if (!loggedIn.value) {
+    router.replace("/login")
+    return
+  }
+
+  const userJson = sessionStorage.getItem("user")
   if (userJson) {
     const userData = JSON.parse(userJson)
     nwk.value = {
@@ -200,6 +210,7 @@ onMounted(() => {
   }
 })
 </script>
+
 
 <style scoped>
 .v-card-title { font-weight: 600; }

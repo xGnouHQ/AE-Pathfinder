@@ -34,8 +34,10 @@ async function handleLogin() {
     })
 
     const user = response.data
-    localStorage.setItem('loggedIn', 'true')
-    localStorage.setItem('user', JSON.stringify(user))
+
+    // Session Storage statt localStorage
+    sessionStorage.setItem('loggedIn', 'true')
+    sessionStorage.setItem('user', JSON.stringify(user))
 
     // Haupt-App starten
     const app = createApp(App)
@@ -52,6 +54,7 @@ async function handleLogin() {
   }
 }
 </script>
+
 
 <style scoped>
 .login-background {
@@ -70,10 +73,7 @@ async function handleLogin() {
   width: 100%;
   max-width: 400px;
 }
-.login-image {
-  width: 100px;
-  margin-bottom: 20px;
-}
+.login-image { width: 100px; margin-bottom: 20px; }
 .login-input {
   display: block;
   width: 100%;
@@ -93,12 +93,6 @@ async function handleLogin() {
   font-size: 16px;
   cursor: pointer;
 }
-.login-button:hover {
-  background-color: #115293;
-}
-.error {
-  color: red;
-  margin-top: 10px;
-  font-weight: 500;
-}
+.login-button:hover { background-color: #115293; }
+.error { color: red; margin-top: 10px; font-weight: 500; }
 </style>

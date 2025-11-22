@@ -44,15 +44,14 @@ interface Bewerbung {
 }
 
 const router = useRouter()
-const nwkId = ref<number | null>(null)  // Dynamisch aus Login
+const nwkId = ref<number>(0)
 const bewerbungen = ref<Bewerbung[]>([])
 const API_BEW = 'http://localhost:8080/api/bewerbungen'
 
 // Bewerbungen laden
-const ladeBewerbungen = async () => {
-  if (!nwkId.value) return
+const ladeBewerbungen = async (id: number) => {
   try {
-    const res = await axios.get<Bewerbung[]>(`${API_BEW}/nachwuchskraft/${nwkId.value}`)
+    const res = await axios.get<Bewerbung[]>(`${API_BEW}/nachwuchskraft/${id}`)
     bewerbungen.value = res.data
   } catch (err) {
     console.error('Fehler beim Laden der Bewerbungen:', err)
@@ -67,7 +66,6 @@ const goToDetail = (id: number) => {
 
 // Bewerbung zurückziehen
 const handleWithdraw = async (id: number) => {
-  if (!nwkId.value) return
   try {
     await axios.delete(`${API_BEW}/${id}`)
     alert("Bewerbung erfolgreich zurückgezogen")
@@ -78,15 +76,27 @@ const handleWithdraw = async (id: number) => {
   }
 }
 
-// onMounted: Nachwuchskraft-ID aus localStorage laden
+// onMounted: Nachwuchskraft-ID aus SessionStorage laden und Bewerbungen laden
 onMounted(() => {
-  const userJson = localStorage.getItem('user')
+  const loggedIn = sessionStorage.getItem('loggedIn') === 'true'
+  if (!loggedIn) {
+    router.replace('/login') // Weiterleitung zum Login, falls nicht eingeloggt
+    return
+  }
+
+  const userJson = sessionStorage.getItem('user')
   if (userJson) {
     const userData = JSON.parse(userJson)
-    nwkId.value = userData.id
-    ladeBewerbungen()
+    if (userData?.id) {
+      nwkId.value = userData.id
+      ladeBewerbungen(userData.id)
+    } else {
+      console.error('Ungültige Nutzer-ID im SessionStorage')
+      router.replace('/login')
+    }
   } else {
     console.error('Kein eingeloggter Nutzer gefunden')
+    router.replace('/login')
   }
 })
 </script>

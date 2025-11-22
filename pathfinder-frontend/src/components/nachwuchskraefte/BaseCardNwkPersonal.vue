@@ -68,7 +68,13 @@ const departmentList = computed(() => {
 
 // Daten vom Backend laden
 onMounted(async () => {
-  const userJson = localStorage.getItem('user')
+  const loggedIn = sessionStorage.getItem('loggedIn') === 'true'
+  if (!loggedIn) {
+    console.error('Nutzer nicht eingeloggt')
+    return
+  }
+
+  const userJson = sessionStorage.getItem('user')
   if (!userJson) {
     console.error('Kein eingeloggter Nutzer gefunden')
     return
@@ -82,9 +88,6 @@ onMounted(async () => {
     if (!res.ok) throw new Error(`Fehler beim Laden: ${res.status}`)
     const data = await res.json()
 
-    // Backend Response prüfen
-    console.log('Backend Response:', data)
-
     nwk.value = {
       id: data.id,
       personalnummer: data.personalnummer,
@@ -93,7 +96,7 @@ onMounted(async () => {
       email: data.email,
       jahrgang: data.jahrgang ?? data.eintrittsjahr,
       studienrichtung: data.studienrichtung,
-      departments: data.departments // optional vom Backend
+      departments: data.departments
     }
   } catch (err) {
     console.error('Fehler beim Laden der Daten:', err)

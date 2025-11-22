@@ -90,9 +90,15 @@ const removeJob = async (stellenId: number) => {
   }
 }
 
-// onMounted: Nachwuchskraft aus localStorage laden
+// onMounted: Nachwuchskraft aus SessionStorage laden
 onMounted(() => {
-  const userJson = localStorage.getItem('user')
+  const loggedIn = sessionStorage.getItem('loggedIn') === 'true'
+  if (!loggedIn) {
+    window.location.href = '/login' // oder router.replace('/login') falls vue-router verwendet wird
+    return
+  }
+
+  const userJson = sessionStorage.getItem('user')
   if (userJson) {
     const userData = JSON.parse(userJson)
     nwkId.value = userData.id

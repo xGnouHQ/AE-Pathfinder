@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container v-if="loggedIn">
     <h1 class="mb-6">Stellenausschreibung</h1>
 
     <v-container class="box">
@@ -35,10 +35,14 @@
       v-model="dialogOpen"
       :job="selectedStelle"
       :uploaded-files="nwkDocuments"
-      :nwk-id="nwk.id"
+      :nwk-id="nwk?.id"
       @submit="handleSubmit"
     />
   </v-container>
+
+  <div v-else>
+    <p>Bitte einloggen...</p>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -59,6 +63,7 @@ const API_NWK_DOCS = 'http://localhost:8080/api/meinKonto/documents'
 
 interface Nachwuchskraft { id: number }
 const nwk = ref<Nachwuchskraft | null>(null)
+const loggedIn = ref(false)
 const stelle = ref<any>(null)
 const dialogOpen = ref(false)
 const selectedStelle = ref<any>(null)
@@ -126,7 +131,14 @@ const ladeDocuments = async () => {
 
 // ------------------ onMounted ------------------
 onMounted(() => {
-  const userJson = localStorage.getItem("user")
+  loggedIn.value = sessionStorage.getItem('loggedIn') === 'true'
+
+  if (!loggedIn.value) {
+    router.replace('/login')
+    return
+  }
+
+  const userJson = sessionStorage.getItem("user")
   if (userJson) {
     const userData = JSON.parse(userJson)
     nwk.value = { id: userData.id }

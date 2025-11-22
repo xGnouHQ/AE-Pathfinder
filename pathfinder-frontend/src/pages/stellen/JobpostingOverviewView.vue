@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container v-if="loggedIn">
     <h1 class="mb-6">Offene Stellen</h1>
 
     <v-text-field
@@ -31,46 +31,51 @@
       </v-row>
     </v-container>
   </v-container>
+
+  <!-- Login Weiterleitung, falls nicht eingeloggt -->
+  <div v-else>
+    <p>Bitte einloggen...</p>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 import BaseCardJobMini from '@/components/stellen/BaseCardJobMini.vue'
 
-// ------------------ Search ------------------
+const router = useRouter()
 const search = ref("")
-
-// Backend
+const stellen = ref<any[]>([])
+const profileId = ref<number | null>(null)
+const loggedIn = ref(false)
 const API_URL = 'http://localhost:8080/api/stellen'
 
-// ------------------ Interfaces ------------------
-interface Tag { id: number; name: string }
+// Prüfen, ob Nutzer eingeloggt ist (SessionStorage)
+onMounted(() => {
+  loggedIn.value = sessionStorage.getItem('loggedIn') === 'true'
 
-interface Stelle {
-  id: number
-  titel: string
-  standort: string
-  beschreibung: string
-  tags: Tag[]
-  status: string
-  bewerbungsfrist: string
-  matchingScore?: number
-}
+  if (!loggedIn.value) {
+    router.replace('/login') // Weiterleitung zum Login
+    return
+  }
 
-// ------------------ Data ------------------
-const stellen = ref<Stelle[]>([])
-const profileId = ref<number | null>(null)  // wird dynamisch gesetzt
+  const userJson = sessionStorage.getItem("user")
+  if (userJson) {
+    const userData = JSON.parse(userJson)
+    profileId.value = userData.id
+    ladeStellen()
+  } else {
+    console.error("Kein eingeloggter Nutzer gefunden")
+  }
+})
 
-// ------------------ Load all jobs ------------------
+// ------------------ Lade alle Stellen ------------------
 const ladeStellen = async () => {
   if (!profileId.value) return
-
   try {
     const response = await axios.get(API_URL)
     stellen.value = response.data
-
-    // Matching-Score pro Stelle nachladen
     for (const stelle of stellen.value) {
       await ladeMatchingScore(stelle)
     }
@@ -79,8 +84,8 @@ const ladeStellen = async () => {
   }
 }
 
-// ------------------ Load score ------------------
-const ladeMatchingScore = async (stelle: Stelle) => {
+// ------------------ Matching Score ------------------
+const ladeMatchingScore = async (stelle: any) => {
   if (!profileId.value) return
   try {
     const response = await axios.get(
@@ -108,7 +113,7 @@ const merkeStelle = async (stellenId: number) => {
   }
 }
 
-// ------------------ Computed (Filter + Sortierung) ------------------
+// ------------------ Gefilterte Stellen ------------------
 const filteredStellen = computed(() => {
   return stellen.value
     .filter(s =>
@@ -117,18 +122,6 @@ const filteredStellen = computed(() => {
     )
     .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0))
 })
-
-// ------------------ On Mounted ------------------
-onMounted(() => {
-  const userJson = localStorage.getItem("user")
-  if (userJson) {
-    const userData = JSON.parse(userJson)
-    profileId.value = userData.id
-    ladeStellen()
-  } else {
-    console.error("Kein eingeloggter Nutzer gefunden")
-  }
-})
 </script>
 
 <style scoped>
@@ -136,7 +129,6 @@ onMounted(() => {
   margin: 2% 1% 1%;
   border: 2px solid #0000001a;
 }
-
 .no-underline {
   text-decoration: none;
   color: inherit;

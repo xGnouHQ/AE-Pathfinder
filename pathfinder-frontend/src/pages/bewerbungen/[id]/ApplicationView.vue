@@ -32,29 +32,10 @@ import BaseCardApplicationProcess from '@/components/bewerbungen/BaseCardApplica
 import BaseDialogMessage from '@/components/bewerbungen/BaseDialogMessage.vue'
 
 // Interfaces
-interface Servicebereichsleiter {
-  id: number
-  bereich: string
-  kontaktperson: string
-  email: string
-  telefonnummer: string
-}
-
+interface Servicebereichsleiter { id: number; bereich: string; kontaktperson: string; email: string; telefonnummer: string }
 interface Tag { id: number; name: string }
-
-interface Stelle {
-  id: number
-  titel: string
-  standort: string
-  beschreibung?: string
-  status: 'OFFEN' | 'GESCHLOSSEN'
-  bewerbungsfrist?: string
-  servicebereichsleiter?: Servicebereichsleiter
-  tags?: Tag[]
-}
-
+interface Stelle { id: number; titel: string; standort: string; beschreibung?: string; status: 'OFFEN' | 'GESCHLOSSEN'; bewerbungsfrist?: string; servicebereichsleiter?: Servicebereichsleiter; tags?: Tag[] }
 interface Nachwuchskraft { id: number; vorname: string; nachname: string; email: string }
-
 interface Bewerbung {
   id: number
   status: 'EINGEREICHT' | 'IN_PRUEFUNG' | 'ABGELEHNT' | 'ANGELADEN' | 'ANGENOMMEN'
@@ -75,29 +56,43 @@ const dialogOpen = ref(false)
 const API_BEW = 'http://localhost:8080/api/bewerbungen'
 const nwkId = ref<number | null>(null) // aktuell eingeloggte Nachwuchskraft
 
-// Bewerbung laden
 onMounted(async () => {
-  const userJson = localStorage.getItem('user')
-  if (userJson) {
-    const userData = JSON.parse(userJson)
-    nwkId.value = userData.id
-  } else {
-    console.error('Kein eingeloggter Nutzer gefunden')
+  // Session prüfen
+  const loggedIn = sessionStorage.getItem('loggedIn') === 'true'
+  if (!loggedIn) {
+    router.replace('/login')
     return
   }
 
+  const userJson = sessionStorage.getItem('user')
+  if (!userJson) {
+    console.error('Kein eingeloggter Nutzer gefunden')
+    router.replace('/login')
+    return
+  }
+
+  const userData = JSON.parse(userJson)
+  nwkId.value = userData.id
+
   try {
     const res = await axios.get<Bewerbung>(`${API_BEW}/${jobId}`)
-    // Optional: prüfen, ob die Bewerbung zur eingeloggten Nachwuchskraft gehört
-    if (res.data.nachwuchskraft?.id !== nwkId.value) {
+    const data = res.data
+
+    console.log('NWK ID eingeloggter User:', nwkId.value)
+    console.log('NWK ID der Bewerbung:', data.nachwuchskraft?.id)
+
+    // Nur weiter, wenn die Bewerbung der eingeloggten Nachwuchskraft gehört
+    if (data.nachwuchskraft?.id && data.nachwuchskraft.id !== nwkId.value) {
       alert('Du darfst diese Bewerbung nicht ansehen')
-      router.push('/bewerbungen/ApplicationListView')
+      router.replace('/bewerbungen/ApplicationListView')
       return
     }
-    bewerbung.value = res.data
+
+    bewerbung.value = data
   } catch (err) {
     console.error('Fehler beim Laden der Bewerbung:', err)
     alert('Bewerbung konnte nicht geladen werden')
+    router.replace('/bewerbungen/ApplicationListView')
   }
 })
 

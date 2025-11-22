@@ -30,7 +30,7 @@ import MatchingJobText from '@/components/textbrackets/MatchingJobText.vue'
 import ApplicationStatusText from '@/components/textbrackets/ApplicationStatusText.vue'
 
 const router = useRouter()
-const nwkId = ref<number | null>(null) // dynamisch aus Login
+const nwkId = ref<number | null>(null) // dynamisch aus Session-Login
 
 interface Job {
   id: number
@@ -77,15 +77,25 @@ function goToJob(job: Job) {
   router.push(`/stellen/${job.id}/JobpostingTemplateView`)
 }
 
-// onMounted: nwkId aus localStorage, dann Jobs laden
+// onMounted: nwkId aus sessionStorage, dann Jobs laden
 onMounted(() => {
-  const userJson = localStorage.getItem('user')
-  if (userJson) {
-    const userData = JSON.parse(userJson)
-    nwkId.value = userData.id
-    ladeJobs()
-  } else {
-    console.error('Kein eingeloggter Nutzer gefunden')
+  const loggedIn = sessionStorage.getItem('loggedIn') === 'true'
+  if (!loggedIn) {
+    console.error('Nutzer nicht eingeloggt')
+    router.push('/login')
+    return
   }
+
+  const userJson = sessionStorage.getItem('user')
+  if (!userJson) {
+    console.error('Kein eingeloggter Nutzer gefunden')
+    router.push('/login')
+    return
+  }
+
+  const userData = JSON.parse(userJson)
+  nwkId.value = userData.id
+  ladeJobs()
 })
 </script>
+

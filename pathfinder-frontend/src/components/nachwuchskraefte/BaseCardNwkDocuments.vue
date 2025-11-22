@@ -115,11 +115,17 @@ function handleUploadSave(newFiles: StoredFile[]) {
 }
 
 // ----------------------------
-// onMounted: nwkId aus localStorage, dann Dokumente laden
+// onMounted: nwkId aus sessionStorage, dann Dokumente laden
 // ----------------------------
 onMounted(() => {
   if (!nwkId.value) {
-    const userJson = localStorage.getItem('user')
+    const loggedIn = sessionStorage.getItem('loggedIn') === 'true'
+    if (!loggedIn) {
+      console.error('Nutzer nicht eingeloggt')
+      return
+    }
+
+    const userJson = sessionStorage.getItem('user')
     if (userJson) {
       const userData = JSON.parse(userJson)
       nwkId.value = userData.id
