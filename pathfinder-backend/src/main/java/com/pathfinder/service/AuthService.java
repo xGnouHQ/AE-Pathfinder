@@ -1,6 +1,7 @@
 package com.pathfinder.service;
 
 import com.pathfinder.dto.LoginRequestDTO;
+import com.pathfinder.dto.LoginResponseDTO;
 import com.pathfinder.exception.EmailNotFoundException;
 import com.pathfinder.exception.WrongPasswordException;
 import com.pathfinder.model.Nachwuchskraft;
@@ -14,15 +15,22 @@ public class AuthService {
 
     private final NachwuchskraftRepository repo;
 
-    public Nachwuchskraft login(LoginRequestDTO req) {
+    public LoginResponseDTO login(LoginRequestDTO req) {
 
-        // Passwort check (fake)
+        // Passwort check (Demo)
         if (!req.password().equals("pass123")) {
             throw new WrongPasswordException();
         }
 
-        // Nachwuchskraft anhand E-Mail finden
-        return repo.findByEmail(req.email())
+        Nachwuchskraft nwk = repo.findByEmail(req.email())
                 .orElseThrow(() -> new EmailNotFoundException(req.email()));
+
+        return new LoginResponseDTO(
+                nwk.getId(),
+                nwk.getVorname(),
+                nwk.getNachname(),
+                nwk.getEmail(),
+                nwk.getJahrgang()
+        );
     }
 }
