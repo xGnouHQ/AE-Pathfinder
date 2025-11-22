@@ -1,12 +1,9 @@
 package com.pathfinder.controller;
 
-import com.pathfinder.model.Bewerbung;
+import com.pathfinder.dto.BewerbungDTORead;
+import com.pathfinder.dto.BewerbungDTOWrite;
 import com.pathfinder.service.BewerbungService;
-import com.pathfinder.service.NachwuchskraftAnhangService;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.util.List;
 
 @RestController
@@ -14,79 +11,44 @@ import java.util.List;
 @CrossOrigin
 public class BewerbungController {
 
-    private final BewerbungService bewerbungService;
-    private final NachwuchskraftAnhangService anhangService;
+    private final BewerbungService service;
 
-    public BewerbungController(BewerbungService bewerbungService, NachwuchskraftAnhangService anhangService) {
-        this.bewerbungService = bewerbungService;
-        this.anhangService = anhangService;
+    public BewerbungController(BewerbungService service) {
+        this.service = service;
     }
 
-    // --- Alle Bewerbungen
     @GetMapping
-    public List<Bewerbung> getAll() {
-        return bewerbungService.getAll();
+    public List<BewerbungDTORead> getAll() {
+        return service.getAllDTO();
     }
 
-    // --- Einzelne Bewerbung
     @GetMapping("/{id}")
-    public Bewerbung getOne(@PathVariable Long id) {
-        return bewerbungService.getById(id);
+    public BewerbungDTORead getOne(@PathVariable Long id) {
+        return service.getDTOById(id);
     }
 
-    @PostMapping(consumes = "application/json")
-    public Bewerbung createBewerbung(@RequestBody java.util.Map<String, Object> payload) {
-        try {
-            // Pflichtfelder prüfen
-            Object stelleObj = payload.get("stelleId");
-            Object nwkObj = payload.get("nachwuchskraftId");
-
-            if (stelleObj == null || nwkObj == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "stelleId oder nachwuchskraftId fehlt");
-            }
-
-            Long stelleId = Long.valueOf(stelleObj.toString());
-            Long nwkId = Long.valueOf(nwkObj.toString());
-
-            // Optional: Datei-IDs auslesen, falls vorhanden
-            @SuppressWarnings("unchecked")
-            java.util.List<Long> fileIds = null;
-            Object filesObj = payload.get("fileIds");
-            if (filesObj instanceof java.util.List<?>) {
-                fileIds = ((java.util.List<Object>) filesObj).stream()
-                        .map(o -> Long.valueOf(o.toString()))
-                        .toList();
-            }
-
-            // Optional: HR-Notiz
-            String hrNote = payload.get("hrNote") != null ? payload.get("hrNote").toString() : null;
-
-            return bewerbungService.createBewerbung(stelleId, nwkId, fileIds, hrNote);
-        } catch (ResponseStatusException e) {
-            throw e; // BAD_REQUEST weiterleiten
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Fehler beim Erstellen der Bewerbung: " + e.getMessage());
-        }
+    @PostMapping
+    public BewerbungDTORead create(@RequestBody BewerbungDTOWrite dto) {
+        return service.create(dto);
     }
 
+    @PutMapping("/{id}")
+    public BewerbungDTORead update(@PathVariable Long id, @RequestBody BewerbungDTOWrite dto) {
+        return service.update(id, dto);
+    }
 
-    // --- Bewerbung löschen
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
-        bewerbungService.delete(id);
+        service.delete(id);
     }
 
-    // --- Nach Nachwuchskraft filtern
     @GetMapping("/nachwuchskraft/{nwkId}")
-    public List<Bewerbung> getByNachwuchskraft(@PathVariable Long nwkId) {
-        return bewerbungService.getByNachwuchskraft(nwkId);
+    public List<BewerbungDTORead> getByNachwuchskraft(@PathVariable Long nwkId) {
+        return service.getByNachwuchskraftDTO(nwkId);
     }
 
-    // --- Nach Stelle filtern
     @GetMapping("/stelle/{stelleId}")
-    public List<Bewerbung> getByStelle(@PathVariable Long stelleId) {
-        return bewerbungService.getByStelle(stelleId);
+    public List<BewerbungDTORead> getByStelle(@PathVariable Long stelleId) {
+        return service.getByStelleDTO(stelleId);
     }
 }

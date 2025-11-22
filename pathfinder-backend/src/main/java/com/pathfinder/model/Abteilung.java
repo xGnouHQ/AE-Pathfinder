@@ -17,6 +17,9 @@ public class Abteilung {
     @Column(name = "ID")
     private Long id;
 
+    @OneToOne(mappedBy = "abteilung")
+    private Servicebereichsleiter servicebereichsleiter;
+
     // z.B. "IT@M - IT-Dienstleistungen"
     @Column(name = "NAME", nullable = false, unique = true)
     private String name;

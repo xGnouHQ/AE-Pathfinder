@@ -1,19 +1,14 @@
 package com.pathfinder.controller;
 
-import com.pathfinder.model.Abteilung;
+import com.pathfinder.dto.meinKonto.ExperienceResponse;
+import com.pathfinder.dto.meinKonto.ExperienceUpdateRequest;
+import com.pathfinder.dto.meinKonto.PersonalDataResponse;
+import com.pathfinder.exception.NachwuchskraftNotFoundException;
 import com.pathfinder.model.Nachwuchskraft;
-import com.pathfinder.model.Tag;
-import com.pathfinder.service.AbteilungService;
 import com.pathfinder.service.NachwuchskraftService;
+import com.pathfinder.service.NwkDTOMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.ArrayList;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/meinKonto")
@@ -21,102 +16,89 @@ import java.util.List;
 public class MeinKontoController {
 
     private final NachwuchskraftService nwkService;
-    private final AbteilungService abteilungService;
+    private final NwkDTOMapper mapper;
 
-    public MeinKontoController(NachwuchskraftService nwkService, AbteilungService abteilungService) {
+    public MeinKontoController(
+            NachwuchskraftService nwkService,
+            NwkDTOMapper mapper
+    ) {
         this.nwkService = nwkService;
-        this.abteilungService = abteilungService;
+        this.mapper = mapper;
     }
 
-    // ========================================================
-    // GET /api/meinKonto/personal/{nwkId}
-    // -> nur Anzeige persönlicher Daten + Praktika
-    // ========================================================
+    // ============ PERSONAL DATA =======================
     @GetMapping("/personal/{nwkId}")
-    public ResponseEntity<?> getPersonalData(@PathVariable("nwkId") Long id) {
+    public ResponseEntity<PersonalDataResponse> getPersonalData(@PathVariable Long nwkId) {
 
-        Nachwuchskraft nwk = nwkService.getById(id);
+        Nachwuchskraft nwk = nwkService.getOrThrow(nwkId);
+        if (nwk == null) throw new NachwuchskraftNotFoundException(nwkId);
 
-        if (nwk == null) return ResponseEntity.notFound().build();
-
-        var dto = new Object() {
-            public final Long id = nwk.getId();
-            public final String personalnummer = nwk.getPersonalnummer();
-            public final String vorname = nwk.getVorname();
-            public final String nachname = nwk.getNachname();
-            public final String email = nwk.getEmail();
-            public final String studienrichtung = nwk.getStudienrichtung();
-            public final String jahrgang = nwk.getJahrgang();
-            public final List<Abteilung> praktika = nwk.getPraktika();
-        };
-
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(mapper.toPersonalDataDTO(nwk));
     }
 
-    // ========================================================
-    // GET /api/meinKonto/experience/{nwkId}
-    // -> Interessen + Wunschabteilungen anzeigen
-    // ========================================================
+    // ============ EXPERIENCE DATA =======================
     @GetMapping("/experience/{nwkId}")
+    public ResponseEntity<ExperienceResponse> getExperience(@PathVariable Long nwkId) {
 
-    public ResponseEntity<?> getExperience(@PathVariable("nwkId") Long id) {
-        Nachwuchskraft nwk = nwkService.getById(id);
-        if (nwk == null) return ResponseEntity.notFound().build();
+        Nachwuchskraft nwk = nwkService.getOrThrow(nwkId);
+        if (nwk == null) throw new NachwuchskraftNotFoundException(nwkId);
 
-        var dto = new Object() {
-            public final Long id = nwk.getId();
-            public final List<Tag> interessen = nwk.getInteressen();
-            public final List<Abteilung> wunschabteilungen = nwk.getWunschabteilungen();
-        };
-
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(mapper.toExperienceDTO(nwk));
     }
 
-
-    // ========================================================
-    // PUT /api/meinKonto/experience/{nwkId}
-    // -> Interessen oder Wunschabteilungen ändern
-    // ========================================================
+    // ============ UPDATE EXPERIENCE =======================
     @PutMapping("/experience/{nwkId}")
-    public ResponseEntity<?> updateExperience(
-            @PathVariable("nwkId") Long id,
-            @RequestBody Map<String, Object> updatedMap) {
+public ResponseEntity<ExperienceResponse> updateExperience(
+            @PathVariable Long nwkId,
+            @RequestBody ExperienceUpdateRequest req
+    ) {
+        Nachwuchskraft updated = nwkService.updateExperience(
+                nwkId,
+                req.interessenIds(),
+                req.wunschabteilungenIds()
+        );
 
-        Nachwuchskraft existing = nwkService.getById(id);
-        if (existing == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(mapper.toExperienceDTO(updated));
+    }
+  
+  @PostMapping("/nachwuchskraft/{nwkId}/experience")
+public ResponseEntity<ExperienceResponse> updateExperience(
+        @PathVariable Long nwkId,
+        @RequestBody ExperienceUpdateRequest req
+) {
+    Nachwuchskraft existing = nwkService.getById(nwkId);
+    if (existing == null) return ResponseEntity.notFound().build();
 
-        // Wunschabteilungen aktualisieren
-        if (updatedMap.containsKey("wunschabteilungen")) {
-            List<Map<String, Object>> abteilungen = (List<Map<String, Object>>) updatedMap.get("wunschabteilungen");
-            List<Abteilung> neueAbteilungen = abteilungen.stream()
-                    .map(a -> {
-                        Long aid = ((Number) a.get("id")).longValue();
-                        return abteilungService.getById(aid);
-                    })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            existing.setWunschabteilungen(neueAbteilungen);
-        }
-
-        // Interessen aktualisieren
-        if (updatedMap.containsKey("interessen")) {
-            List<Map<String, Object>> tags = (List<Map<String, Object>>) updatedMap.get("interessen");
-            List<com.pathfinder.model.Tag> neueTags = tags.stream()
-                    .map(t -> {
-                        com.pathfinder.model.Tag tag = new com.pathfinder.model.Tag();
-                        tag.setId(((Number) t.get("id")).longValue());
-                        tag.setName((String) t.get("name")); // optional
-                        return tag;
-                    })
-                    .collect(Collectors.toList());
-            existing.setInteressen(neueTags);
-        }
-
-
-        Nachwuchskraft saved = nwkService.save(existing);
-        return ResponseEntity.ok(saved);
+    // Wunschabteilungen aktualisieren
+    if (req.getWunschabteilungenIds() != null) {
+        List<Abteilung> neueAbteilungen = req.getWunschabteilungenIds().stream()
+                .map(abteilungService::getById)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        existing.setWunschabteilungen(neueAbteilungen);
     }
 
+    // Interessen aktualisieren
+    if (req.getInteressenIds() != null) {
+        List<Tag> neueTags = req.getInteressenIds().stream()
+                .map(tagService::getById) // Tags existieren ja schon
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        existing.setInteressen(neueTags);
+    }
 
+    Nachwuchskraft saved = nwkService.save(existing);
+
+    // DTO für Response erzeugen
+    ExperienceResponse response = new ExperienceResponse();
+    response.setInteressen(saved.getInteressen().stream()
+        .map(t -> new TagDTO(t.getId(), t.getName()))
+        .toList());
+    response.setWunschabteilungen(saved.getWunschabteilungen().stream()
+        .map(a -> new AbteilungDTO(a.getId(), a.getName()))
+        .toList());
+
+    return ResponseEntity.ok(response);
+}
 
 }
