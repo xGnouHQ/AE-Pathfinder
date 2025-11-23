@@ -3,6 +3,7 @@ package com.pathfinder.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,19 +19,19 @@ public class Abteilung {
     private Long id;
 
     @OneToOne(mappedBy = "abteilung")
+    @ToString.Exclude   // <<< verhindert rekursives toString()
     private Servicebereichsleiter servicebereichsleiter;
 
-    // z.B. "IT@M - IT-Dienstleistungen"
     @Column(name = "NAME", nullable = false, unique = true)
     private String name;
 
-    // Rückverweis auf interessierte Nachwuchskräfte (nur intern, nicht notwendig fürs JSON)
     @ManyToMany(mappedBy = "wunschabteilungen")
     @JsonIgnore
+    @ToString.Exclude
     private List<Nachwuchskraft> interessierteNachwuchskraefte = new ArrayList<>();
 
     @ManyToMany(mappedBy = "praktika")
     @JsonIgnore
+    @ToString.Exclude
     private List<Nachwuchskraft> praktikumNachwuchskraefte = new ArrayList<>();
-
 }

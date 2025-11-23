@@ -3,6 +3,8 @@ package com.pathfinder.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +20,7 @@ public class Servicebereichsleiter {
 
     @OneToOne
     @JoinColumn(name = "abteilung_id", nullable = false)
+    @ToString.Exclude
     private Abteilung abteilung;
 
     private String kontaktperson;
@@ -28,5 +31,6 @@ public class Servicebereichsleiter {
 
     @OneToMany(mappedBy = "servicebereichsleiter")
     @JsonIgnore
+    @ToString.Exclude
     private List<Stelle> stellen = new ArrayList<>();
 }
