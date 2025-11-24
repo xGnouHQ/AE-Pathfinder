@@ -74,7 +74,7 @@ const matchingJobs = computed(() =>
 
 // --- Navigation zu Jobdetails ---
 function goToJob(job: Job) {
-  router.push(`/stellen/${job.id}/JobpostingTemplateView`)
+  router.push(`/stellenportal/${job.id}/JobpostingTemplateView`)
 }
 
 // onMounted: nwkId aus sessionStorage, dann Jobs laden
