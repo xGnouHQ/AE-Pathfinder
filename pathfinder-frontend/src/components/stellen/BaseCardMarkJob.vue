@@ -1,5 +1,5 @@
 <template>
-  <v-card class="pa-4 mb-4">
+  <v-card class="pa-4 mb-4" @click="goToDetail" style="cursor: pointer;">
     <v-card-title class="d-flex justify-space-between align-center">
       <span>{{ job.titel }}</span>
 
@@ -7,7 +7,7 @@
         small
         color="red"
         icon
-        @click="$emit('remove')"
+        @click.stop="$emit('remove')"
         title="Gemerkte Stelle entfernen"
       >
         <v-icon>mdi-delete</v-icon>
@@ -19,24 +19,16 @@
     </v-card-subtitle>
 
     <v-card-text>
-      <v-chip
-        v-for="tag in job.tags"
-        :key="tag"
-        class="ma-1"
-        small
-        outlined
-      >
-        {{ tag }}
-      </v-chip>
-
       <p class="mt-3 text-caption grey--text">
-        Gemerkt am: {{ new Date(job.gemerktAm).toLocaleDateString() }}
+        Gemerkt am: {{ formatDate(job.gemerktAm) }}
       </p>
     </v-card-text>
   </v-card>
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
+
 interface JobCard {
   stellenId: number
   titel: string
@@ -47,7 +39,30 @@ interface JobCard {
   gemerktAm: string
 }
 
-defineProps<{
+// Props korrekt abgreifen
+const props = defineProps<{
   job: JobCard
 }>()
+
+const router = useRouter()
+
+// Weiterleitung zur Detailseite
+const goToDetail = () => {
+  router.push(`/stellen/${props.job.stellenId}/JobpostingTemplateView`)
+}
+
+// Optional: Datum formatieren
+const formatDate = (dateStr: string) => {
+  return new Date(dateStr).toLocaleDateString('de-DE')
+}
 </script>
+
+<style scoped>
+.v-card {
+  transition: 0.2s;
+}
+.v-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+</style>

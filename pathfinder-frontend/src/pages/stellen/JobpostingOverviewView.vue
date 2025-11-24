@@ -49,7 +49,7 @@ const search = ref("")
 const stellen = ref<any[]>([])
 const profileId = ref<number | null>(null)
 const loggedIn = ref(false)
-const API_URL = 'http://localhost:8080/api/stellen'
+const API_URL = '/api/stellenportal'
 
 // Prüfen, ob Nutzer eingeloggt ist (SessionStorage)
 onMounted(() => {
@@ -89,7 +89,7 @@ const ladeMatchingScore = async (stelle: any) => {
   if (!profileId.value) return
   try {
     const response = await axios.get(
-      `http://localhost:8080/api/matching/${profileId.value}/${stelle.id}`
+      `/api/matching/${profileId.value}/${stelle.id}`
     )
     stelle.matchingScore = response.data
   } catch (error) {
@@ -116,10 +116,12 @@ const merkeStelle = async (stellenId: number) => {
 // ------------------ Gefilterte Stellen ------------------
 const filteredStellen = computed(() => {
   return stellen.value
-    .filter(s =>
-      s.titel.toLowerCase().includes(search.value.toLowerCase()) ||
-      s.beschreibung.toLowerCase().includes(search.value.toLowerCase())
-    )
+    .filter(s => {
+      const titel = (s.titel ?? "").toString().toLowerCase()
+      const beschreibung = (s.beschreibung ?? "").toString().toLowerCase()
+      const query = search.value.toLowerCase()
+      return titel.includes(query) || beschreibung.includes(query)
+    })
     .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0))
 })
 </script>

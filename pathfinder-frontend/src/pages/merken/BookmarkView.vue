@@ -28,7 +28,6 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import BaseCardMarkJob from '@/components/stellen/BaseCardMarkJob.vue'
 
-/** 👇 GENAUES DTO WIE BACKEND ES LIEFERT */
 interface GemerkteStelleDTO {
   stellenId: number
   titel: string
@@ -39,21 +38,15 @@ interface GemerkteStelleDTO {
   gemerktAm: string
 }
 
-/** Nachwuchskraft-ID */
 const nwkId = ref<number | null>(null)
-
-/** Liste der gemerkten Stellen */
 const bookmarkedJobs = ref<GemerkteStelleDTO[]>([])
 
-/** 🔍 Gemerkte Stellen vom Backend laden */
 const ladeGemerkteStellen = async () => {
   if (!nwkId.value) return
-
   try {
     const response = await axios.get<GemerkteStelleDTO[]>(
-      `http://localhost:8080/api/meineListe/nachwuchskraft/${nwkId.value}`
+      `/api/meineListe/nachwuchskraft/${nwkId.value}`
     )
-
     bookmarkedJobs.value = response.data
   } catch (error) {
     console.error('Fehler beim Laden der gemerkten Stellen:', error)
@@ -61,17 +54,13 @@ const ladeGemerkteStellen = async () => {
   }
 }
 
-/** ❌ Stelle aus der Merkliste entfernen */
 const removeJob = async (stellenId: number) => {
   if (!nwkId.value) return
-
   if (!confirm('Diese Stelle wirklich entfernen?')) return
-
   try {
     await axios.delete(
-      `http://localhost:8080/api/meineListe/${stellenId}/nachwuchskraft/${nwkId.value}`
+      `/api/meineListe/${stellenId}/nachwuchskraft/${nwkId.value}`
     )
-
     bookmarkedJobs.value = bookmarkedJobs.value.filter(j => j.stellenId !== stellenId)
   } catch (error) {
     console.error('Fehler beim Entfernen der Stelle:', error)
@@ -79,10 +68,8 @@ const removeJob = async (stellenId: number) => {
   }
 }
 
-/** 🔐 Login & User-Id laden */
 onMounted(() => {
   const loggedIn = sessionStorage.getItem('loggedIn') === 'true'
-
   if (!loggedIn) {
     window.location.href = '/login'
     return

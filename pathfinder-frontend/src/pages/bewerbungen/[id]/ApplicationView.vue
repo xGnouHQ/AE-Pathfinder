@@ -1,10 +1,11 @@
 <template>
   <v-container v-if="bewerbung">
-    <h1>Bewerbung: {{ bewerbung.stelle?.titel || 'Lädt...' }}</h1>
+    <!-- Stelle-Titel aus DTO -->
+    <h1>Bewerbung: {{ bewerbung.stelleTitel || 'Lädt...' }}</h1>
 
     <!-- Bewerbungsdetails anzeigen -->
     <BaseCardApplicationProcess
-      :job="bewerbung"
+      :bewerbung="bewerbung"
       @open-message="dialogOpen = true"
     />
 
@@ -32,10 +33,30 @@ import BaseCardApplicationProcess from '@/components/bewerbungen/BaseCardApplica
 import BaseDialogMessage from '@/components/bewerbungen/BaseDialogMessage.vue'
 
 // Interfaces
-interface Servicebereichsleiter { id: number; bereich: string; kontaktperson: string; email: string; telefonnummer: string }
+interface Servicebereichsleiter {
+  id: number
+  bereich: string
+  kontaktperson: string
+  email: string
+  telefonnummer: string
+}
 interface Tag { id: number; name: string }
-interface Stelle { id: number; titel: string; standort: string; beschreibung?: string; status: 'OFFEN' | 'GESCHLOSSEN'; bewerbungsfrist?: string; servicebereichsleiter?: Servicebereichsleiter; tags?: Tag[] }
-interface Nachwuchskraft { id: number; vorname: string; nachname: string; email: string }
+interface Stelle {
+  id: number
+  titel?: string
+  standort?: string
+  beschreibung?: string
+  status?: 'OFFEN' | 'GESCHLOSSEN'
+  bewerbungsfrist?: string
+  servicebereichsleiter?: Servicebereichsleiter
+  tags?: Tag[]
+}
+interface Nachwuchskraft {
+  id: number
+  vorname: string
+  nachname: string
+  email: string
+}
 interface Bewerbung {
   id: number
   status: 'EINGEREICHT' | 'IN_PRUEFUNG' | 'ABGELEHNT' | 'ANGELADEN' | 'ANGENOMMEN'
@@ -43,6 +64,7 @@ interface Bewerbung {
   eingereichtAm: string
   nachwuchskraft?: Nachwuchskraft
   stelle?: Stelle
+  stelleTitel: string        // ← wichtig: entspricht Backend DTO
 }
 
 // Router
@@ -53,7 +75,7 @@ const jobId = Number(route.params.id)
 // Daten
 const bewerbung = ref<Bewerbung | null>(null)
 const dialogOpen = ref(false)
-const API_BEW = 'http://localhost:8080/api/bewerbungen'
+const API_BEW = '/api/bewerbungen'
 const nwkId = ref<number | null>(null) // aktuell eingeloggte Nachwuchskraft
 
 onMounted(async () => {

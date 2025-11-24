@@ -1,16 +1,16 @@
 <template>
   <v-card outlined class="mb-4">
     <v-card-title class="d-flex justify-space-between align-center">
-      <span>{{ job.title }}</span>
+      <span>{{ bewerbung.stelleTitel }}</span>
     </v-card-title>
 
     <v-divider />
 
     <v-card-text>
       <v-row>
-        <v-col>Eingangsdatum: {{ job.date }}</v-col>
-        <v-col>Entgeltgruppe: {{ job.payGrade }}</v-col>
-        <v-col>Referat: {{ job.department }}</v-col>
+        <v-col>Eingangsdatum: {{ formatDate(bewerbung.eingereichtAm) }}</v-col>
+        <v-col>Entgeltgruppe: –</v-col> <!-- Kein Äquivalent im DTO -->
+        <v-col>Standort: {{ bewerbung.stelle?.standort || '–' }}</v-col>
       </v-row>
     </v-card-text>
 
@@ -19,7 +19,6 @@
     <!-- ⭐ STATUS TRACK -->
     <v-card-text>
       <div class="d-flex align-center justify-space-between">
-
         <div
           v-for="(step, index) in statusSteps"
           :key="index"
@@ -28,7 +27,7 @@
         >
           <!-- Icon -->
           <v-icon
-            :color="step.value === job.status ? 'primary' : 'grey'"
+            :color="step.value === bewerbung.status ? 'primary' : 'grey'"
             size="32"
           >
             {{ step.icon }}
@@ -37,39 +36,37 @@
           <!-- Label -->
           <div
             :style="{
-              fontWeight: step.value === job.status ? 'bold' : 'normal',
-              color: step.value === job.status ? '#1976D2' : '#555'
+              fontWeight: step.value === bewerbung.status ? 'bold' : 'normal',
+              color: step.value === bewerbung.status ? '#1976D2' : '#555'
             }"
           >
             {{ step.label }}
           </div>
-
         </div>
-        <!-- Button nur bei EINGELADEN -->
-            <v-card-actions v-if="job.status === 'ANGELADEN'">
-              <v-btn color="primary" @click="$emit('open-message')">Message</v-btn>
-            </v-card-actions>
+
+        <!-- Button nur bei ANGELADEN -->
+        <v-card-actions v-if="bewerbung.status === 'ANGELADEN'">
+          <v-btn color="primary" @click="$emit('open-message')">Message</v-btn>
+        </v-card-actions>
       </div>
-
     </v-card-text>
-
-
-
   </v-card>
 </template>
 
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue'
 
-interface Job {
-  title: string
-  date: string
-  payGrade: string
-  department: string
-  status: 'EINGEREICHT' | 'IN_PRUEFUNG' | 'ABGELEHNT' | 'EINGELADEN' | 'ANGENOMMEN'
+interface Bewerbung {
+  stelleTitel: string
+  eingereichtAm: string
+  status: 'EINGEREICHT' | 'IN_PRUEFUNG' | 'ABGELEHNT' | 'ANGELADEN' | 'ANGENOMMEN'
+  stelle?: {
+    standort?: string
+    bewerbungsfrist?: string
+  }
 }
 
-const props = defineProps<{ job: Job }>()
+const props = defineProps<{ bewerbung: Bewerbung }>()
 defineEmits<{ (e: 'open-message'): void }>()
 
 // ⭐ ICON + LABEL Mapping
@@ -80,4 +77,8 @@ const statusSteps = [
   { value: 'ANGELADEN', label: 'Eingeladen', icon: 'mdi-calendar' },
   { value: 'ANGENOMMEN', label: 'Angenommen', icon: 'mdi-check-circle' }
 ]
+
+// Hilfsfunktion Datum formatieren
+const formatDate = (dateString: string) =>
+  new Date(dateString).toLocaleDateString()
 </script>

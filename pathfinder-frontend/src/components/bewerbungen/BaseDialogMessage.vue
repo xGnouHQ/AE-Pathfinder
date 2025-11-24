@@ -25,18 +25,13 @@
 <script setup lang="ts">
 import { ref, defineProps, defineEmits, watch } from 'vue'
 
-const props = defineProps<{
-  modelValue: boolean
-}>()
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', val: boolean): void
-}>()
+const props = defineProps<{ modelValue: boolean }>()
+const emit = defineEmits<{ (e: 'update:modelValue', val: boolean): void }>()
 
 const isOpen = ref(props.modelValue)
 const reply = ref('')
 
-// Watcher um v-model zu synchronisieren
+// Watcher, um v-model zu synchronisieren
 watch(() => props.modelValue, val => (isOpen.value = val))
 watch(isOpen, val => emit('update:modelValue', val))
 
@@ -44,8 +39,18 @@ function close() {
   isOpen.value = false
 }
 
+// ⭐ Anpassung: Feedback beim Senden
 function sendReply() {
+  // Feedback anzeigen
+  alert('Nachricht abgeschickt')
+
+  // Optional: Log in der Konsole
   console.log('Antwort gesendet:', reply.value)
+
+  // Dialog schließen
   close()
+
+  // Textarea zurücksetzen
+  reply.value = ''
 }
 </script>
