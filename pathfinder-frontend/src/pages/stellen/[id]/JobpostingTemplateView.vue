@@ -88,7 +88,7 @@ const ladeStelle = async (id: string | string[]) => {
 
     // Merkliste prüfen
     const merklisteRes = await axios.get(`${API_MERKLISTE}/nachwuchskraft/${nwk.value.id}`)
-    const gemerktIds = merklisteRes.data.map((e: any) => e.stelle.id)
+    const gemerktIds = merklisteRes.data.map((e: any) => e.stellenId)
     s.gemerkt = gemerktIds.includes(s.id)
 
     stelle.value = s
