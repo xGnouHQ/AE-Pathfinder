@@ -79,10 +79,10 @@ async function loadNotifications() {
 
     notifications.value = data.map((b: any) => ({
       id: b.id,
-      stelleTitel: b.stelle?.titel ?? `Stelle #${b.stelle?.id ?? 'Unbekannt'}`,
+      stelleTitel: b.stelleTitel ?? `Stelle #${b.stelleId}`,
       status: b.status,
       eingereichtAm: b.eingereichtAm,
-      stelleId: b.stelle?.id ?? 0
+      stelleId: b.stelleId
     }))
   } catch (err) {
     console.error('Fehler beim Laden der Bewerbungen:', err)
