@@ -35,7 +35,7 @@
       </div>
 
       <!-- Programmieren Info nur anzeigen, wenn gesetzt -->
-      <div v-if="knowsProgramming === true">
+      <div v-if="knowsProgramming">
         <strong>Programmieren:</strong> Ja
       </div>
     </v-card-text>
@@ -46,21 +46,22 @@
 import { computed, defineProps } from 'vue'
 import BaseButtonEdit from '@/components/common/BaseButtonEdit.vue'
 
-interface Tag { id: number; name: string }
-interface Abteilung { id: number; name: string }
+interface TagDTO { id: number; name: string }
+interface AbteilungDTO { id: number; name: string }
 
 const props = defineProps<{
   nwkExperience: {
-    interessen: Tag[]
-    wunschabteilungen: Abteilung[]
+    interessen: TagDTO[]
+    wunschabteilungen: AbteilungDTO[]
     knowsProgramming?: boolean
   }
   editable?: boolean
 }>()
 
+// Computed für sauberen Zugriff
 const departments = computed(() => props.nwkExperience?.wunschabteilungen ?? [])
 const interests = computed(() => props.nwkExperience?.interessen ?? [])
-const knowsProgramming = computed(() => props.nwkExperience?.knowsProgramming)
+const knowsProgramming = computed(() => props.nwkExperience?.knowsProgramming ?? false)
 </script>
 
 <style scoped>

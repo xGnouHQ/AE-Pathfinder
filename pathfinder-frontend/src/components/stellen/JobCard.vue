@@ -24,21 +24,22 @@
 
       <p> {{ stelle.beschreibung }}</p>
 
-      <!-- Tags -->
-      <v-row dense class="mt-2">
-        <v-col v-for="tag in stelle.tags || []" :key="tag.id" cols="auto">
-          <v-chip small outlined>{{ tag.name }}</v-chip>
-        </v-col>
-      </v-row>
-      <p></p>
+       <!-- Tags -->
+          <div v-if="stelle.tags && stelle.tags.length">
+            <v-chip
+              v-for="(tag, i) in stelle.tags"
+              :key="i"
+              color="primary"
+              class="mr-2"
+            >
+              {{ tag }}
+            </v-chip>
+          </div>
 
-      <v-divider></v-divider>
-      <p v-if="stelle.servicebereichsleiter">
-        <strong>Dein/e Ansprechpartner*in:</strong>
-        <p> - {{ stelle.servicebereichsleiter.bereich }} - {{ stelle.servicebereichsleiter.kontaktperson }}</p>
-        <p> - E-Mail: {{ stelle.servicebereichsleiter.email }} </p>
-        <p> - Telefonnummer: {{ stelle.servicebereichsleiter.telefonnummer }} </p>
-      </p>
+          <!-- Servicebereichsleiter -->
+          <div class="mt-4" v-if="stelle.servicebereichsleiter">
+            <p><strong>Kontakt:</strong> {{ stelle.servicebereichsleiter }}</p>
+          </div>
     </v-card-text>
 
     <!-- Snackbar für Bestätigung -->

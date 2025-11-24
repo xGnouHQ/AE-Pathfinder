@@ -1,10 +1,11 @@
 <template>
   <v-container v-if="bewerbung">
-    <h1>Bewerbung: {{ bewerbung.stelle?.titel || 'Lädt...' }}</h1>
+    <!-- Stelle-Titel aus DTO -->
+    <h1>Bewerbung: {{ bewerbung.stelleTitel || 'Lädt...' }}</h1>
 
     <!-- Bewerbungsdetails anzeigen -->
     <BaseCardApplicationProcess
-      :job="bewerbung"
+      :bewerbung="bewerbung"
       @open-message="dialogOpen = true"
     />
 
@@ -32,12 +33,29 @@ import BaseCardApplicationProcess from '@/components/bewerbungen/BaseCardApplica
 import BaseDialogMessage from '@/components/bewerbungen/BaseDialogMessage.vue'
 
 // Interfaces
-interface Servicebereichsleiter { id: number; bereich: string; kontaktperson: string; email: string; telefonnummer: string }
+interface Servicebereichsleiter {
+  id: number
+  bereich: string
+  kontaktperson: string
+  email: string
+  telefonnummer: string
+}
 interface Tag { id: number; name: string }
-interface Stelle { id: number; titel: string; standort: string; beschreibung?: string; status: 'OFFEN' | 'GESCHLOSSEN'; bewerbungsfrist?: string; servicebereichsleiter?: Servicebereichsleiter; tags?: Tag[] }
+interface Stelle {
+  id: number
+  titel?: string
+  standort?: string
+  beschreibung?: string
+  status?: 'OFFEN' | 'GESCHLOSSEN'
+  bewerbungsfrist?: string
+  servicebereichsleiter?: Servicebereichsleiter
+  tags?: Tag[]
+}
 interface Nachwuchskraft {
   id: number
-  name?: string
+  vorname: string
+  nachname: string
+  email: string
 }
 interface Bewerbung {
   id: number
