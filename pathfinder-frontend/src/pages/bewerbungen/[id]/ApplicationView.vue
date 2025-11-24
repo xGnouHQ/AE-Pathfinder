@@ -35,14 +35,19 @@ import BaseDialogMessage from '@/components/bewerbungen/BaseDialogMessage.vue'
 interface Servicebereichsleiter { id: number; bereich: string; kontaktperson: string; email: string; telefonnummer: string }
 interface Tag { id: number; name: string }
 interface Stelle { id: number; titel: string; standort: string; beschreibung?: string; status: 'OFFEN' | 'GESCHLOSSEN'; bewerbungsfrist?: string; servicebereichsleiter?: Servicebereichsleiter; tags?: Tag[] }
-interface Nachwuchskraft { id: number; vorname: string; nachname: string; email: string }
+interface Nachwuchskraft {
+  id: number
+  name?: string
+}
 interface Bewerbung {
   id: number
   status: 'EINGEREICHT' | 'IN_PRUEFUNG' | 'ABGELEHNT' | 'ANGELADEN' | 'ANGENOMMEN'
   kommentar?: string
   eingereichtAm: string
-  nachwuchskraft?: Nachwuchskraft
-  stelle?: Stelle
+  nachwuchskraftId: number
+  nachwuchskraftName: string
+  stelleId: number
+  stelleTitel: string
 }
 
 // Router
