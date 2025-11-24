@@ -122,11 +122,15 @@ async function loadPersonal() {
       wunschabteilungen: data.wunschabteilungen ?? []
     }
 
-    nwkExperience.value = {
-      interessen: nwk.value.interessen.map(t => ({ id: t.id, name: t.name })),
-      wunschabteilungen: nwk.value.wunschabteilungen.map(d => ({ id: d.id, name: d.name })),
-      knowsProgramming: false
+    // Nur initialisieren, wenn noch kein Wert existiert
+    if (!nwkExperience.value) {
+      nwkExperience.value = {
+        interessen: nwk.value.interessen.map(t => ({ id: t.id, name: t.name })),
+        wunschabteilungen: nwk.value.wunschabteilungen.map(d => ({ id: d.id, name: d.name })),
+        knowsProgramming: data.knowsProgramming ?? false
+      }
     }
+
   } catch (err) {
     console.error("Fehler beim Laden der persönlichen Daten:", err)
   }
@@ -155,6 +159,7 @@ async function loadDocuments() {
 // Aktionen
 // ----------------------------------------
 function handleExperienceSave(updated: NwkExperience) {
+  // Wert übernehmen und nicht zurücksetzen
   nwkExperience.value = {
     wunschabteilungen: updated.wunschabteilungen.map(d => ({ id: d.id, name: d.name })),
     interessen: updated.interessen.map(t => ({ id: t.id, name: t.name })),
@@ -197,10 +202,13 @@ onMounted(() => {
       wunschabteilungen: userData.wunschabteilungen ?? []
     }
 
-    nwkExperience.value = {
-      interessen: nwk.value.interessen.map(t => ({ id: t.id, name: t.name })),
-      wunschabteilungen: nwk.value.wunschabteilungen.map(d => ({ id: d.id, name: d.name })),
-      knowsProgramming: false
+    // Erfahrung nur initialisieren, wenn noch nicht gesetzt
+    if (!nwkExperience.value) {
+      nwkExperience.value = {
+        interessen: nwk.value.interessen.map(t => ({ id: t.id, name: t.name })),
+        wunschabteilungen: nwk.value.wunschabteilungen.map(d => ({ id: d.id, name: d.name })),
+        knowsProgramming: false
+      }
     }
 
     loadPersonal()
@@ -210,7 +218,6 @@ onMounted(() => {
   }
 })
 </script>
-
 
 <style scoped>
 .v-card-title { font-weight: 600; }
