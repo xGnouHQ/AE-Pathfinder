@@ -2,7 +2,9 @@
   <v-card class="pa-4 mb-6">
     <v-card-title class="d-flex justify-space-between align-center">
       <span>Erfahrungen & Interessen</span>
-      <BaseButtonEdit v-if="editable" @click="$emit('edit')" />
+      <div class="d-flex align-center">
+        <BaseButtonEdit v-if="editable" @click="$emit('edit')" class="mr-2" />
+      </div>
     </v-card-title>
 
     <v-divider />
@@ -12,29 +14,21 @@
       <div class="mb-4">
         <h3>Bevorzugte Abteilungen</h3>
         <ul v-if="departments.length > 0" class="pl-4">
-          <li v-for="dept in departments" :key="dept.id">
-            {{ dept.name }}
-          </li>
+          <li v-for="dept in departments" :key="dept.id">{{ dept.name }}</li>
         </ul>
-        <p v-else>
-          Noch keine Abteilungen angegeben.
-        </p>
+        <p v-else>Noch keine Abteilungen angegeben.</p>
       </div>
 
       <!-- Interessen -->
       <div class="mb-4">
         <h3>Interessen</h3>
         <ul v-if="interests.length > 0" class="pl-4">
-          <li v-for="tag in interests" :key="tag.id">
-            {{ tag.name }}
-          </li>
+          <li v-for="tag in interests" :key="tag.id">{{ tag.name }}</li>
         </ul>
-        <p v-else>
-          Noch keine Interessen angegeben.
-        </p>
+        <p v-else>Noch keine Interessen angegeben.</p>
       </div>
 
-      <!-- Programmieren Info nur anzeigen, wenn gesetzt -->
+      <!-- Programmieren Info -->
       <div v-if="knowsProgramming">
         <strong>Programmieren:</strong> Ja
       </div>
@@ -58,7 +52,6 @@ const props = defineProps<{
   editable?: boolean
 }>()
 
-// Computed für sauberen Zugriff
 const departments = computed(() => props.nwkExperience?.wunschabteilungen ?? [])
 const interests = computed(() => props.nwkExperience?.interessen ?? [])
 const knowsProgramming = computed(() => props.nwkExperience?.knowsProgramming ?? false)
@@ -68,4 +61,5 @@ const knowsProgramming = computed(() => props.nwkExperience?.knowsProgramming ??
 ul { margin: 0; padding-left: 1.2rem; }
 li { list-style-type: disc; }
 .mb-4 { margin-bottom: 1rem; }
+.mr-2 { margin-right: 0.5rem; }
 </style>
