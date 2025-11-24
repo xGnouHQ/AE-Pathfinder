@@ -46,7 +46,7 @@ const jobs = ref<Job[]>([])
 const ladeJobs = async () => {
   if (!nwkId.value) return
   try {
-    const response = await axios.get('/api/stellen')
+    const response = await axios.get('/api/stellenportal')
     jobs.value = response.data
 
     // Matching-Score für jede Stelle abrufen
