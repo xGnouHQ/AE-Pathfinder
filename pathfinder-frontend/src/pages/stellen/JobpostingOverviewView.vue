@@ -49,7 +49,7 @@ const search = ref("")
 const stellen = ref<any[]>([])
 const profileId = ref<number | null>(null)
 const loggedIn = ref(false)
-const API_URL = '/api/stellen'
+const API_URL = '/api/stellenportal'
 
 // Prüfen, ob Nutzer eingeloggt ist (SessionStorage)
 onMounted(() => {
