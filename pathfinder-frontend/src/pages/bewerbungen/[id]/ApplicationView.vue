@@ -62,9 +62,10 @@ interface Bewerbung {
   status: 'EINGEREICHT' | 'IN_PRUEFUNG' | 'ABGELEHNT' | 'ANGELADEN' | 'ANGENOMMEN'
   kommentar?: string
   eingereichtAm: string
-  nachwuchskraft?: Nachwuchskraft
-  stelle?: Stelle
-  stelleTitel: string        // ← wichtig: entspricht Backend DTO
+  nachwuchskraftId: number
+  nachwuchskraftName: string
+  stelleId: number
+  stelleTitel: string
 }
 
 // Router
@@ -101,16 +102,17 @@ onMounted(async () => {
     const data = res.data
 
     console.log('NWK ID eingeloggter User:', nwkId.value)
-    console.log('NWK ID der Bewerbung:', data.nachwuchskraft?.id)
+    console.log('NWK ID der Bewerbung:', data.nachwuchskraftId)
 
-    // Nur weiter, wenn die Bewerbung der eingeloggten Nachwuchskraft gehört
-    if (data.nachwuchskraft?.id && data.nachwuchskraft.id !== nwkId.value) {
+    // Prüfen, ob die Bewerbung der eingeloggten Nachwuchskraft gehört
+    if (data.nachwuchskraftId !== nwkId.value) {
       alert('Du darfst diese Bewerbung nicht ansehen')
       router.replace('/bewerbungen/ApplicationListView')
       return
     }
 
     bewerbung.value = data
+    
   } catch (err) {
     console.error('Fehler beim Laden der Bewerbung:', err)
     alert('Bewerbung konnte nicht geladen werden')
