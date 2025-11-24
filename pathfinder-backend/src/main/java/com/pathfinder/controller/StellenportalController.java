@@ -7,7 +7,7 @@ import com.pathfinder.model.Stelle;
 import com.pathfinder.model.Stellenmerkliste;
 import com.pathfinder.model.StellenmerklisteId;
 import com.pathfinder.repository.NachwuchskraftRepository;
-import com.pathfinder.service.StelleDTOMapper;
+import com.pathfinder.dto.stelle.StelleDTOMapper;
 import com.pathfinder.service.StelleService;
 import com.pathfinder.service.StellenmerklisteService;
 import org.springframework.http.ResponseEntity;
