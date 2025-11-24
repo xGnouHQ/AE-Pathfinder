@@ -56,10 +56,10 @@ import BaseDialogApplication from '@/components/bewerbungen/BaseDialogApplicatio
 const route = useRoute()
 const router = useRouter()
 
-const API_STELLE = 'http://localhost:8080/api/stellen'
-const API_MERKLISTE = 'http://localhost:8080/api/meineListe'
-const API_SBL = 'http://localhost:8080/api/servicebereichsleiter'
-const API_NWK_DOCS = 'http://localhost:8080/api/meinKonto/documents'
+const API_STELLE = '/api/stellenportal'
+const API_MERKLISTE = '/api/meineListe'
+const API_SBL = '/api/servicebereichsleiter'
+const API_NWK_DOCS = '/api/meinKonto/documents'
 
 interface Nachwuchskraft { id: number }
 const nwk = ref<Nachwuchskraft | null>(null)
@@ -88,7 +88,7 @@ const ladeStelle = async (id: string | string[]) => {
 
     // Merkliste prüfen
     const merklisteRes = await axios.get(`${API_MERKLISTE}/nachwuchskraft/${nwk.value.id}`)
-    const gemerktIds = merklisteRes.data.map((e: any) => e.stelle.id)
+    const gemerktIds = merklisteRes.data.map((e: any) => e.stellenId)
     s.gemerkt = gemerktIds.includes(s.id)
 
     stelle.value = s

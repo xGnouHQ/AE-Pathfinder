@@ -46,7 +46,7 @@ interface Bewerbung {
 const router = useRouter()
 const nwkId = ref<number>(0)
 const bewerbungen = ref<Bewerbung[]>([])
-const API_BEW = 'http://localhost:8080/api/bewerbungen'
+const API_BEW = '/api/bewerbungen'
 
 // Bewerbungen laden
 const ladeBewerbungen = async (id: number) => {

@@ -40,7 +40,7 @@ const fetchScore = async () => {
 
   try {
     const response = await axios.get(
-      `http://localhost:8080/api/matching/${props.profile.id}/${props.job.id}`
+      `/api/matching/${props.profile.id}/${props.job.id}`
     )
     // Backend liefert double zwischen 0 und 100
     score.value = Number(response.data ?? 0)

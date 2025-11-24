@@ -35,14 +35,19 @@ import BaseDialogMessage from '@/components/bewerbungen/BaseDialogMessage.vue'
 interface Servicebereichsleiter { id: number; bereich: string; kontaktperson: string; email: string; telefonnummer: string }
 interface Tag { id: number; name: string }
 interface Stelle { id: number; titel: string; standort: string; beschreibung?: string; status: 'OFFEN' | 'GESCHLOSSEN'; bewerbungsfrist?: string; servicebereichsleiter?: Servicebereichsleiter; tags?: Tag[] }
-interface Nachwuchskraft { id: number; vorname: string; nachname: string; email: string }
+interface Nachwuchskraft {
+  id: number
+  name?: string
+}
 interface Bewerbung {
   id: number
   status: 'EINGEREICHT' | 'IN_PRUEFUNG' | 'ABGELEHNT' | 'ANGELADEN' | 'ANGENOMMEN'
   kommentar?: string
   eingereichtAm: string
-  nachwuchskraft?: Nachwuchskraft
-  stelle?: Stelle
+  nachwuchskraftId: number
+  nachwuchskraftName: string
+  stelleId: number
+  stelleTitel: string
 }
 
 // Router
@@ -53,7 +58,7 @@ const jobId = Number(route.params.id)
 // Daten
 const bewerbung = ref<Bewerbung | null>(null)
 const dialogOpen = ref(false)
-const API_BEW = 'http://localhost:8080/api/bewerbungen'
+const API_BEW = '/api/bewerbungen'
 const nwkId = ref<number | null>(null) // aktuell eingeloggte Nachwuchskraft
 
 onMounted(async () => {
@@ -79,16 +84,17 @@ onMounted(async () => {
     const data = res.data
 
     console.log('NWK ID eingeloggter User:', nwkId.value)
-    console.log('NWK ID der Bewerbung:', data.nachwuchskraft?.id)
+    console.log('NWK ID der Bewerbung:', data.nachwuchskraftId)
 
-    // Nur weiter, wenn die Bewerbung der eingeloggten Nachwuchskraft gehört
-    if (data.nachwuchskraft?.id && data.nachwuchskraft.id !== nwkId.value) {
+    // Prüfen, ob die Bewerbung der eingeloggten Nachwuchskraft gehört
+    if (data.nachwuchskraftId !== nwkId.value) {
       alert('Du darfst diese Bewerbung nicht ansehen')
       router.replace('/bewerbungen/ApplicationListView')
       return
     }
 
     bewerbung.value = data
+    
   } catch (err) {
     console.error('Fehler beim Laden der Bewerbung:', err)
     alert('Bewerbung konnte nicht geladen werden')
