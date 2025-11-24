@@ -238,7 +238,7 @@ INSERT INTO STELLE_TAG (STELLE_ID, TAG_ID) VALUES
 -- ===========================
 INSERT INTO BEWERBUNG (EINGEREICHT_AM, KOMMENTAR, STATUS, NACHWUCHSKRAFT_ID, STELLE_ID)
 VALUES
-('2024-05-20', 'Ich freue mich auf diese spannende Position!', 'EINGEREICHT', 1, 1),
+('2024-05-20', 'Ich freue mich auf diese spannende Position!', 'ANGELADEN', 1, 1),
 ('2024-06-15', 'Meine Kenntnisse passen sehr gut zur Stelle.', 'EINGEREICHT', 2, 2),
 ('2024-07-10', 'Habe bereits Erfahrung im Bereich Controlling.', 'EINGEREICHT', 3, 2),
 ('2024-08-02', 'Motiviert und bereit für neue Aufgaben.', 'EINGEREICHT', 4, 4);

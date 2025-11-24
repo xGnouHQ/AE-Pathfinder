@@ -1,7 +1,6 @@
-package com.pathfinder.service;
+package com.pathfinder.dto.stelle;
 
-import com.pathfinder.dto.stelle.StelleDetailDTO;
-import com.pathfinder.dto.stelle.StelleListDTO;
+import com.pathfinder.model.Servicebereichsleiter;
 import com.pathfinder.model.Stelle;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +21,17 @@ public class StelleDTOMapper {
         );
     }
 
+    // Mapping für Detailansicht
     public StelleDetailDTO toDetailDTO(Stelle s) {
+        Servicebereichsleiter sbl = s.getServicebereichsleiter();
+        String kontaktInfo = null;
+
+        if (sbl != null) {
+            kontaktInfo = sbl.getKontaktperson()
+                    + (sbl.getEmail() != null ? " | " + sbl.getEmail() : "")
+                    + (sbl.getTelefonnummer() != null ? " | " + sbl.getTelefonnummer() : "");
+        }
+
         return new StelleDetailDTO(
                 s.getId(),
                 s.getTitel(),
@@ -32,11 +41,8 @@ public class StelleDTOMapper {
                 s.getBeschreibung(),
                 s.getStatus().name(),
                 s.getBewerbungsfrist(),
-                s.getTags().stream()
-                        .map(t -> t.getName())
-                        .collect(Collectors.toList()),
-                s.getServicebereichsleiter().getKontaktperson()
-                        + " (" + s.getServicebereichsleiter().getAbteilung() + ")"
+                s.getTags().stream().map(t -> t.getName()).toList(),
+                kontaktInfo
         );
     }
 }

@@ -116,10 +116,12 @@ const merkeStelle = async (stellenId: number) => {
 // ------------------ Gefilterte Stellen ------------------
 const filteredStellen = computed(() => {
   return stellen.value
-    .filter(s =>
-      s.titel.toLowerCase().includes(search.value.toLowerCase()) ||
-      s.beschreibung.toLowerCase().includes(search.value.toLowerCase())
-    )
+    .filter(s => {
+      const titel = (s.titel ?? "").toString().toLowerCase()
+      const beschreibung = (s.beschreibung ?? "").toString().toLowerCase()
+      const query = search.value.toLowerCase()
+      return titel.includes(query) || beschreibung.includes(query)
+    })
     .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0))
 })
 </script>
