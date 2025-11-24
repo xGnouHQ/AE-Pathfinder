@@ -56,7 +56,7 @@ import BaseDialogApplication from '@/components/bewerbungen/BaseDialogApplicatio
 const route = useRoute()
 const router = useRouter()
 
-const API_STELLE = '/api/stellen'
+const API_STELLE = '/api/stellenportal'
 const API_MERKLISTE = '/api/meineListe'
 const API_SBL = '/api/servicebereichsleiter'
 const API_NWK_DOCS = '/api/meinKonto/documents'
