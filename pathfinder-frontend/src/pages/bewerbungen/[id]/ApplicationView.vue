@@ -53,7 +53,7 @@ const jobId = Number(route.params.id)
 // Daten
 const bewerbung = ref<Bewerbung | null>(null)
 const dialogOpen = ref(false)
-const API_BEW = 'http://localhost:8080/api/bewerbungen'
+const API_BEW = '/api/bewerbungen'
 const nwkId = ref<number | null>(null) // aktuell eingeloggte Nachwuchskraft
 
 onMounted(async () => {

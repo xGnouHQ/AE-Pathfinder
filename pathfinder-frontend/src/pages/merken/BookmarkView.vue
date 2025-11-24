@@ -67,7 +67,7 @@ const bookmarkedJobs = ref<Stelle[]>([])
 const ladeGemerkteStellen = async () => {
   if (!nwkId.value) return
   try {
-    const response = await axios.get<GemerkteStelle[]>(`http://localhost:8080/api/meineListe/nachwuchskraft/${nwkId.value}`)
+    const response = await axios.get<GemerkteStelle[]>(`/api/meineListe/nachwuchskraft/${nwkId.value}`)
     bookmarkedJobs.value = response.data
       .map(e => ({ ...e.stelle }))
       .filter(stelle => stelle.status !== 'Geschlossen')
@@ -82,7 +82,7 @@ const removeJob = async (stellenId: number) => {
   if (!nwkId.value) return
   if (!confirm('Möchtest du diese Stelle wirklich aus der Merkliste entfernen?')) return
   try {
-    await axios.delete(`http://localhost:8080/api/meineListe/${stellenId}/nachwuchskraft/${nwkId.value}`)
+    await axios.delete(`/api/meineListe/${stellenId}/nachwuchskraft/${nwkId.value}`)
     bookmarkedJobs.value = bookmarkedJobs.value.filter(job => job.id !== stellenId)
   } catch (error) {
     console.error('Fehler beim Entfernen der Stelle:', error)
