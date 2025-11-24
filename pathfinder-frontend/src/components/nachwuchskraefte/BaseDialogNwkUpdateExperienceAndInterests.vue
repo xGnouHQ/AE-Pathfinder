@@ -2,6 +2,7 @@
   <v-dialog v-model="internalModel" max-width="600px" persistent>
     <v-card>
       <v-card-title>Abteilungen & Interessen bearbeiten</v-card-title>
+
       <v-card-text>
         <!-- Bevorzugte Abteilungen -->
         <div class="mb-4">
@@ -64,8 +65,8 @@ interface Abteilung { id: number; name: string }
 interface Tag { id: number; name: string }
 
 interface NwkExperience {
-  interessen: Tag[]
   wunschabteilungen: Abteilung[]
+  interessen: Tag[]
   knowsProgramming?: boolean
   programmingLanguages?: string[]
 }
@@ -122,11 +123,12 @@ const selectedDepartmentsNames = ref<string[]>(['', '', ''])
 const selectedTagsNames = ref<string[]>(['', '', ''])
 const formData = ref({ knowsProgramming: false, programmingLanguagesString: '' })
 
-// ---------------- Props → initialisieren ----------------
+// ---------------- Initialisierung einmalig ----------------
+let initialized = false
 watch(
   () => props.modelValue,
   val => {
-    if (val && props.nwkExperience) {
+    if (val && props.nwkExperience && !initialized) {
       selectedDepartmentsNames.value = props.nwkExperience.wunschabteilungen
         .map(d => d.name)
         .concat(['', '', ''])
@@ -138,12 +140,16 @@ watch(
         .slice(0, 3)
 
       formData.value.knowsProgramming = props.nwkExperience.knowsProgramming ?? false
-      formData.value.programmingLanguagesString = (props.nwkExperience.programmingLanguages || []).join(', ')
+      formData.value.programmingLanguagesString =
+        (props.nwkExperience.programmingLanguages || []).join(', ')
+
+      initialized = true
     }
   },
   { immediate: true }
 )
 
+// ---------------- Sync Dialog ----------------
 watch(() => props.modelValue, val => (internalModel.value = val))
 watch(internalModel, val => emit('update:modelValue', val))
 
@@ -153,24 +159,19 @@ function close() {
 }
 
 // ---------------- Speichern ----------------
-async function save() {
+function save() {
   if (selectedDepartmentsNames.value.every(v => !v) || selectedTagsNames.value.every(v => !v)) {
     error.value = 'Bitte mindestens eine Abteilung und ein Interesse auswählen.'
     return
   }
 
-  // IDs anhand der Namen
-  const wunschabteilungenIds = selectedDepartmentsNames.value
-    .map(name => allDepartments.find(d => d.name === name)?.id)
-    .filter((id): id is number => !!id)
-
-  const interessenIds = selectedTagsNames.value
-    .map(name => allTags.find(t => t.name === name)?.id)
-    .filter((id): id is number => !!id)
-
-  const payload = {
-    wunschabteilungenIds,
-    interessenIds,
+  const updated: NwkExperience = {
+    wunschabteilungen: selectedDepartmentsNames.value
+      .map(name => allDepartments.find(d => d.name === name))
+      .filter((d): d is Abteilung => !!d),
+    interessen: selectedTagsNames.value
+      .map(name => allTags.find(t => t.name === name))
+      .filter((t): t is Tag => !!t),
     knowsProgramming: formData.value.knowsProgramming,
     programmingLanguages: formData.value.programmingLanguagesString
       .split(',')
@@ -178,23 +179,9 @@ async function save() {
       .filter(s => s.length > 0)
   }
 
-  try {
-    const res = await fetch(`/api/meinKonto/experience/${props.nwkId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-
-    if (!res.ok) throw new Error(`Fehler: ${res.status}`)
-
-    const data = await res.json() // <-- ExperienceResponse vom Backend
-    emit('save', data)
-    close()
-    alert('Erfahrungen & Interessen gespeichert!')
-  } catch (err) {
-    console.error(err)
-    error.value = 'Fehler beim Speichern!'
-  }
+  emit('save', updated)
+  initialized = false // Bei erneutem Öffnen aktuelle Werte laden
+  close()
 }
 </script>
 

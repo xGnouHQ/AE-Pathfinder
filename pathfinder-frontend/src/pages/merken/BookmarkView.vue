@@ -3,6 +3,7 @@
     <h1 class="mb-6">Meine gemerkten Stellen</h1>
 
     <v-row>
+      <!-- Gemerkte Stellen -->
       <v-col
         v-for="job in bookmarkedJobs"
         :key="job.stellenId"
@@ -16,6 +17,7 @@
         />
       </v-col>
 
+      <!-- Keine Stellen vorhanden -->
       <v-col v-if="bookmarkedJobs.length === 0" cols="12">
         <p>Keine gemerkten Stellen vorhanden.</p>
       </v-col>
@@ -41,12 +43,20 @@ interface GemerkteStelleDTO {
 const nwkId = ref<number | null>(null)
 const bookmarkedJobs = ref<GemerkteStelleDTO[]>([])
 
+// Funktion: gemerkte Stellen laden
 const ladeGemerkteStellen = async () => {
-  if (!nwkId.value) return
+  if (!nwkId.value) {
+    console.warn('NWK ID ist null. Keine gemerkten Stellen geladen.')
+    return
+  }
+
   try {
     const response = await axios.get<GemerkteStelleDTO[]>(
       `/api/meineListe/nachwuchskraft/${nwkId.value}`
+      // Optional: Auth Header falls nötig
+      // { headers: { Authorization: `Bearer ${token}` } }
     )
+    console.log('Geladene Stellen:', response.data)
     bookmarkedJobs.value = response.data
   } catch (error) {
     console.error('Fehler beim Laden der gemerkten Stellen:', error)
@@ -54,20 +64,29 @@ const ladeGemerkteStellen = async () => {
   }
 }
 
+// Funktion: Stelle entfernen
 const removeJob = async (stellenId: number) => {
   if (!nwkId.value) return
+
   if (!confirm('Diese Stelle wirklich entfernen?')) return
+
   try {
     await axios.delete(
       `/api/meineListe/${stellenId}/nachwuchskraft/${nwkId.value}`
+      // Optional: Auth Header falls nötig
+      // { headers: { Authorization: `Bearer ${token}` } }
     )
-    bookmarkedJobs.value = bookmarkedJobs.value.filter(j => j.stellenId !== stellenId)
+    bookmarkedJobs.value = bookmarkedJobs.value.filter(
+      j => j.stellenId !== stellenId
+    )
+    console.log(`Stelle ${stellenId} entfernt.`)
   } catch (error) {
     console.error('Fehler beim Entfernen der Stelle:', error)
     alert('Fehler beim Entfernen der Stelle')
   }
 }
 
+// Mounted: Nutzer prüfen und Daten laden
 onMounted(() => {
   const loggedIn = sessionStorage.getItem('loggedIn') === 'true'
   if (!loggedIn) {
@@ -79,9 +98,11 @@ onMounted(() => {
   if (userJson) {
     const userData = JSON.parse(userJson)
     nwkId.value = userData.id
+    console.log('Eingeloggt, NWK ID:', nwkId.value)
     ladeGemerkteStellen()
   } else {
     console.error('Kein eingeloggter Nutzer gefunden')
+    window.location.href = '/login'
   }
 })
 </script>
