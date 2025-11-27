@@ -5,7 +5,6 @@
 
     <v-card-text v-if="nwk">
       <v-row>
-        <v-col><strong>ID:</strong> {{ nwk.id }}</v-col>
         <v-col><strong>Personalnummer:</strong> {{ nwk.personalnummer }}</v-col>
       </v-row>
 

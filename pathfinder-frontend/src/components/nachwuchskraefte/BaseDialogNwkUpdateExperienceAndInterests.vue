@@ -116,26 +116,32 @@ const formData = ref({ knowsProgramming: false, programmingLanguagesString: '' }
 let initialized = false
 watch(
   () => props.modelValue,
-  val => {
-    if (val && props.nwkExperience && !initialized) {
+  (isOpen) => {
+    if (!isOpen || !props.nwkExperience) return
+
+    if (selectedDepartmentsNames.value.every(v => !v)) {
       selectedDepartmentsNames.value = props.nwkExperience.wunschabteilungen
         .map(d => d.name)
         .concat(['', '', ''])
         .slice(0, 3)
+    }
 
+    if (selectedTagsNames.value.every(v => !v)) {
       selectedTagsNames.value = props.nwkExperience.interessen
         .map(t => t.name)
         .concat(['', '', ''])
         .slice(0, 3)
+    }
 
+    if (!formData.value.knowsProgramming) {
       formData.value.knowsProgramming = props.nwkExperience.knowsProgramming ?? false
       formData.value.programmingLanguagesString =
-        (props.nwkExperience.programmingLanguages || []).join(', ')
-
-      initialized = true
+        (props.nwkExperience.programmingLanguages ?? []).join(', ')
     }
+
+    error.value = ''
   },
-  { immediate: true }
+  { immediate: false }
 )
 
 // ---------------- Dynamische Optionen ohne Duplikate ----------------
@@ -156,8 +162,8 @@ watch(() => props.modelValue, val => (internalModel.value = val))
 watch(internalModel, val => emit('update:modelValue', val))
 
 function close() {
-  error.value = ''
   internalModel.value = false
+  error.value = ''
 }
 
 // ---------------- Speichern + PUT ----------------

@@ -4,7 +4,11 @@
       <div class="d-flex justify-space-between align-center w-100">
         <div>
           <h2>{{ stelle.titel }}</h2>
-          <p class="text-subtitle-1">Standort: {{ stelle.standort }}</p>
+          <p class="text-subtitle-1">
+              Standort: {{ stelle.standort }}
+              Entgeltgruppe: {{ stelle.entgeltgruppe }}
+              Referat: {{ stelle.referat }}
+              Frist: {{ stelle.bewerbungsfrist }}</p>
         </div>
 
         <!-- Merken nur für offene Stellen -->
@@ -64,6 +68,8 @@ interface Stelle {
   titel: string
   beschreibung: string
   standort: string
+  entgeltgruppe: string
+  referat: string
   status: 'OFFEN' | 'GESCHLOSSEN'
   bewerbungsfrist?: string
   tags?: Tag[]

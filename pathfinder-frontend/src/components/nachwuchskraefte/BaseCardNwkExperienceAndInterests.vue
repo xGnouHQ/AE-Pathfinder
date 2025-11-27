@@ -8,7 +8,6 @@
     <v-divider />
 
     <v-card-text>
-      <!-- Wunschabteilungen -->
       <div class="mb-4">
         <h3>Wunschabteilungen</h3>
         <ul v-if="departments.length > 0">
@@ -17,7 +16,6 @@
         <p v-else class="text-muted">Noch keine Abteilungen angegeben.</p>
       </div>
 
-      <!-- Interessen -->
       <div class="mb-4">
         <h3>Interessen</h3>
         <ul v-if="interests.length > 0">
@@ -29,6 +27,7 @@
       <!-- Programmieren nur anzeigen, wenn true -->
       <div v-if="knowsProgramming">
         <strong>Programmieren:</strong> Ja
+        <span v-if="programmingLanguages.length">({{ programmingLanguages.join(', ') }})</span>
       </div>
       <div v-if="knowsProgramming && programmingLanguages">
         <strong>Programmiersprachen:</strong> {{ programmingLanguages }}

@@ -144,9 +144,10 @@ async function loadExperience() {
 
 async function loadPersonal() {
   if (!nwk.value) return
+
   try {
     const res = await fetch(`/api/meinKonto/personal/${nwk.value.id}`)
-    if (!res.ok) throw new Error(`Fehler beim Laden: ${res.status}`)
+    if (!res.ok) throw new Error(`Fehler: ${res.status}`)
     const data = await res.json()
     nwk.value = {
       id: data.id,
@@ -163,6 +164,23 @@ async function loadPersonal() {
   }
 }
 
+
+// ----------------- Speichern nach Dialog -----------------
+function handleExperienceSave(updated: NwkExperience) {
+  // PUT an Backend
+  fetch(`/api/meinKonto/experience/${nwk.value!.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updated)
+  }).catch(err => console.error(err))
+
+  // Lokal übernehmen → Card sofort aktualisiert
+  nwkExperience.value = { ...updated }
+  dialogExperienceOpen.value = false
+}
+
+
+// ----------------- Dokumente -----------------
 async function loadDocuments() {
   if (!nwk.value) return
   try {
