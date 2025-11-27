@@ -4,6 +4,7 @@ import com.pathfinder.dto.meinKonto.*;
 import com.pathfinder.exception.NachwuchskraftNotFoundException;
 import com.pathfinder.model.Nachwuchskraft;
 import com.pathfinder.service.*;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,8 +47,12 @@ public class MeinKontoController {
         Nachwuchskraft nwk = nwkService.getOrThrow(nwkId);
         if (nwk == null) throw new NachwuchskraftNotFoundException(nwkId);
 
-        return ResponseEntity.ok(mapper.toExperienceDTO(nwk));
+        return ResponseEntity
+                .ok()
+                .cacheControl(CacheControl.noCache().mustRevalidate())
+                .body(mapper.toExperienceDTO(nwk));
     }
+
 
     // UPDATE experience
     @PutMapping("/experience/{nwkId}")
