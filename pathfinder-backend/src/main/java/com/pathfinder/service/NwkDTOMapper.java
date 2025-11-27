@@ -55,7 +55,9 @@ public class NwkDTOMapper {
         return new ExperienceResponse(
                 nwk.getId(),
                 toTagDTOList(nwk.getInteressen()),
-                toAbteilungDTOList(nwk.getWunschabteilungen())
+                toAbteilungDTOList(nwk.getWunschabteilungen()),
+                nwk.isProgrammieren(),
+                nwk.getProgrammiersprachen()
         );
     }
 }
