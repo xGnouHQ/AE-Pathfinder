@@ -80,6 +80,7 @@ interface NwkExperience {
   wunschabteilungen: { id: number; name: string }[]
   interessen: { id: number; name: string }[]
   knowsProgramming: boolean
+  programmingLanguages?: string[]
 }
 
 interface StoredFile {
@@ -90,8 +91,8 @@ interface StoredFile {
 }
 
 const router = useRouter()
-const loggedIn = ref(false)
 
+// ----------------- State -----------------
 const nwk = ref<Nachwuchskraft | null>(null)
 const nwkExperience = ref<NwkExperience | null>(null)
 const savedFiles = ref<StoredFile[]>([])
@@ -100,14 +101,13 @@ const dialogOpen = ref(false)
 const dialogProfileOpen = ref(false)
 const dialogExperienceOpen = ref(false)
 
-// ----------------------------------------
-// Backend laden
-// ----------------------------------------
+// ----------------- Daten laden -----------------
 async function loadPersonal() {
   if (!nwk.value) return
+
   try {
     const res = await fetch(`/api/meinKonto/personal/${nwk.value.id}`)
-    if (!res.ok) throw new Error(`Fehler beim Laden: ${res.status}`)
+    if (!res.ok) throw new Error(`Fehler: ${res.status}`)
     const data = await res.json()
 
     nwk.value = {
@@ -122,20 +122,52 @@ async function loadPersonal() {
       wunschabteilungen: data.wunschabteilungen ?? []
     }
 
-    // Nur initialisieren, wenn noch kein Wert existiert
-    if (!nwkExperience.value) {
-      nwkExperience.value = {
-        interessen: nwk.value.interessen.map(t => ({ id: t.id, name: t.name })),
-        wunschabteilungen: nwk.value.wunschabteilungen.map(d => ({ id: d.id, name: d.name })),
-        knowsProgramming: data.knowsProgramming ?? false
-      }
-    }
-
+    await loadExperience() // Experience laden
   } catch (err) {
-    console.error("Fehler beim Laden der persönlichen Daten:", err)
+    console.error('Fehler beim Laden der persönlichen Daten:', err)
   }
 }
 
+async function loadExperience() {
+  if (!nwk.value) return
+
+  try {
+    const res = await fetch(`/api/meinKonto/experience/${nwk.value.id}`)
+    if (!res.ok) throw new Error(`Fehler: ${res.status}`)
+    const data = await res.json()
+
+    // ❗ Nur initialisieren, wenn noch nicht vorhanden
+    if (!nwkExperience.value) {
+      nwkExperience.value = {
+        wunschabteilungen: data.wunschabteilungen ?? [],
+        interessen: data.interessen ?? [],
+        knowsProgramming: data.knowsProgramming ?? false,
+        programmingLanguages: data.programmingLanguages ?? []
+      }
+    }
+    // Wenn nwkExperience schon existiert → NICHT überschreiben
+  } catch (err) {
+    console.error('Fehler beim Laden der Experience:', err)
+  }
+}
+
+
+// ----------------- Speichern nach Dialog -----------------
+function handleExperienceSave(updated: NwkExperience) {
+  // PUT an Backend
+  fetch(`/api/meinKonto/experience/${nwk.value!.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updated)
+  }).catch(err => console.error(err))
+
+  // Lokal übernehmen → Card sofort aktualisiert
+  nwkExperience.value = { ...updated }
+  dialogExperienceOpen.value = false
+}
+
+
+// ----------------- Dokumente -----------------
 async function loadDocuments() {
   if (!nwk.value) return
   try {
@@ -147,75 +179,39 @@ async function loadDocuments() {
     const data = await res.json()
     savedFiles.value = data.map((d: any) => ({
       id: d.id,
-      name: d.dateipfad.split("/").pop() ?? "Unbekannt",
+      name: d.dateipfad.split('/').pop() ?? 'Unbekannt',
       url: d.dateipfad
     }))
   } catch (err) {
-    console.error("Fehler beim Laden der Dokumente:", err)
+    console.error('Fehler beim Laden der Dokumente:', err)
   }
 }
 
-// ----------------------------------------
-// Aktionen
-// ----------------------------------------
-function handleExperienceSave(updated: NwkExperience) {
-  // Wert übernehmen und nicht zurücksetzen
-  nwkExperience.value = {
-    wunschabteilungen: updated.wunschabteilungen.map(d => ({ id: d.id, name: d.name })),
-    interessen: updated.interessen.map(t => ({ id: t.id, name: t.name })),
-    knowsProgramming: updated.knowsProgramming
-  }
-  alert("Bevorzugte Abteilungen & Interessen gespeichert!")
-}
+async function handleUploadSave(newFiles: StoredFile[]) { }
+async function handleDeleteFile(id: number) { }
 
-async function handleUploadSave(newFiles: StoredFile[]) {
-  // Implementierung wie bisher
-}
-
-async function handleDeleteFile(id: number) {
-  // Implementierung wie bisher
-}
-
-// ----------------------------------------
-// onMounted: Session-Login prüfen
-// ----------------------------------------
+// ----------------- onMounted -----------------
 onMounted(() => {
-  loggedIn.value = sessionStorage.getItem("loggedIn") === "true"
-
-  if (!loggedIn.value) {
-    router.replace("/login")
+  const userJson = sessionStorage.getItem('user')
+  if (!userJson) {
+    router.replace('/login')
     return
   }
 
-  const userJson = sessionStorage.getItem("user")
-  if (userJson) {
-    const userData = JSON.parse(userJson)
-    nwk.value = {
-      id: userData.id,
-      personalnummer: userData.personalnummer,
-      vorname: userData.vorname,
-      nachname: userData.nachname,
-      email: userData.email,
-      studienrichtung: userData.studienrichtung,
-      jahrgang: userData.jahrgang,
-      interessen: userData.interessen ?? [],
-      wunschabteilungen: userData.wunschabteilungen ?? []
-    }
+  const userData = JSON.parse(userJson)
+  nwk.value = { ...userData }
 
-    // Erfahrung nur initialisieren, wenn noch nicht gesetzt
-    if (!nwkExperience.value) {
-      nwkExperience.value = {
-        interessen: nwk.value.interessen.map(t => ({ id: t.id, name: t.name })),
-        wunschabteilungen: nwk.value.wunschabteilungen.map(d => ({ id: d.id, name: d.name })),
-        knowsProgramming: false
-      }
+  if (!nwkExperience.value) {
+    nwkExperience.value = {
+      wunschabteilungen: nwk.value.wunschabteilungen ?? [],
+      interessen: nwk.value.interessen ?? [],
+      knowsProgramming: false,
+      programmingLanguages: []
     }
-
-    loadPersonal()
-    loadDocuments()
-  } else {
-    console.error("Kein eingeloggter Nutzer gefunden")
   }
+
+  loadPersonal()
+  loadDocuments()
 })
 </script>
 

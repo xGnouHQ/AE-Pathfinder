@@ -85,7 +85,7 @@ const emit = defineEmits<{
 const internalModel = ref(props.modelValue)
 const error = ref('')
 
-// ---------------- Hardcodierte Dropdowns ----------------
+// ---------------- Hardcoded Dropdowns ----------------
 const allDepartments: Abteilung[] = [
   { id: 1, name: 'KM11' }, { id: 2, name: 'KM12' }, { id: 3, name: 'KM13' },
   { id: 4, name: 'KM21' }, { id: 5, name: 'KM22' }, { id: 6, name: 'KM23' },
@@ -119,34 +119,44 @@ const departmentNames = computed(() => allDepartments.map(d => d.name))
 const tagNames = computed(() => allTags.map(t => t.name))
 
 // ---------------- Auswahlmodelle ----------------
-const selectedDepartmentsNames = ref<string[]>(['', '', ''])
-const selectedTagsNames = ref<string[]>(['', '', ''])
-const formData = ref({ knowsProgramming: false, programmingLanguagesString: '' })
+const selectedDepartmentsNames = ref(['', '', ''])
+const selectedTagsNames = ref(['', '', ''])
+const formData = ref({
+  knowsProgramming: false,
+  programmingLanguagesString: ''
+})
 
-// ---------------- Initialisierung einmalig ----------------
-let initialized = false
+// ----------------------------------------------------
+// Initialisieren beim Öffnen ohne Zurücksetzen bestehender Werte
+// ----------------------------------------------------
 watch(
   () => props.modelValue,
-  val => {
-    if (val && props.nwkExperience && !initialized) {
+  (isOpen) => {
+    if (!isOpen || !props.nwkExperience) return
+
+    if (selectedDepartmentsNames.value.every(v => !v)) {
       selectedDepartmentsNames.value = props.nwkExperience.wunschabteilungen
         .map(d => d.name)
         .concat(['', '', ''])
         .slice(0, 3)
+    }
 
+    if (selectedTagsNames.value.every(v => !v)) {
       selectedTagsNames.value = props.nwkExperience.interessen
         .map(t => t.name)
         .concat(['', '', ''])
         .slice(0, 3)
+    }
 
+    if (!formData.value.knowsProgramming) {
       formData.value.knowsProgramming = props.nwkExperience.knowsProgramming ?? false
       formData.value.programmingLanguagesString =
-        (props.nwkExperience.programmingLanguages || []).join(', ')
-
-      initialized = true
+        (props.nwkExperience.programmingLanguages ?? []).join(', ')
     }
+
+    error.value = ''
   },
-  { immediate: true }
+  { immediate: false }
 )
 
 // ---------------- Sync Dialog ----------------
@@ -154,13 +164,14 @@ watch(() => props.modelValue, val => (internalModel.value = val))
 watch(internalModel, val => emit('update:modelValue', val))
 
 function close() {
-  error.value = ''
   internalModel.value = false
+  error.value = ''
 }
 
 // ---------------- Speichern ----------------
 function save() {
-  if (selectedDepartmentsNames.value.every(v => !v) || selectedTagsNames.value.every(v => !v)) {
+  if (selectedDepartmentsNames.value.every(v => !v) ||
+      selectedTagsNames.value.every(v => !v)) {
     error.value = 'Bitte mindestens eine Abteilung und ein Interesse auswählen.'
     return
   }
@@ -169,9 +180,11 @@ function save() {
     wunschabteilungen: selectedDepartmentsNames.value
       .map(name => allDepartments.find(d => d.name === name))
       .filter((d): d is Abteilung => !!d),
+
     interessen: selectedTagsNames.value
       .map(name => allTags.find(t => t.name === name))
       .filter((t): t is Tag => !!t),
+
     knowsProgramming: formData.value.knowsProgramming,
     programmingLanguages: formData.value.programmingLanguagesString
       .split(',')
@@ -180,7 +193,6 @@ function save() {
   }
 
   emit('save', updated)
-  initialized = false // Bei erneutem Öffnen aktuelle Werte laden
   close()
 }
 </script>
