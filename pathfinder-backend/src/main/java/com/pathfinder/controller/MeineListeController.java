@@ -24,9 +24,7 @@ public class MeineListeController {
         this.mapper = mapper;
     }
 
-    // ==================================================
-    // POST: Stelle merken
-    // ==================================================
+    // POST Stelle merken
     @PostMapping("/{stellenId}/merken/nachwuchskraft/{nachwuchskraftId}")
     public ResponseEntity<?> merkeStelle(
             @PathVariable Long stellenId,
@@ -45,10 +43,7 @@ public class MeineListeController {
         }
     }
 
-
-    // ==================================================
-    // GET: Alle gemerkten Stellen eines NWK
-    // ==================================================
+    // GET Alle gemerkten Stellen eines NWK
     @GetMapping("/nachwuchskraft/{id}")
     public ResponseEntity<List<MeineListeItemDTO>> getByNachwuchskraft(@PathVariable Long id) {
         try {
@@ -69,10 +64,7 @@ public class MeineListeController {
         }
     }
 
-
-    // ==================================================
-    // DELETE: Eintrag für NWK löschen
-    // ==================================================
+    // DELETE Eintrag für NWK löschen
     @DeleteMapping("/{stellenId}/nachwuchskraft/{nachwuchskraftId}")
     public ResponseEntity<Void> delete(
             @PathVariable Long stellenId,

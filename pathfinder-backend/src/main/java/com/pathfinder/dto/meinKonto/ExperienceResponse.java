@@ -5,5 +5,7 @@ import java.util.List;
 public record ExperienceResponse(
         Long id,
         List<TagDTO> interessen,
-        List<AbteilungDTO> wunschabteilungen
+        List<AbteilungDTO> wunschabteilungen,
+        boolean programmieren,
+        String programmiersprachen
 ) {}
