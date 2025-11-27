@@ -36,7 +36,9 @@ public class NachwuchskraftService {
     public Nachwuchskraft updateExperience(
             Long nwkId,
             List<Long> interessenIds,
-            List<Long> wunschabteilungenIds
+            List<Long> wunschabteilungenIds,
+            boolean programmieren,
+            String programmiersprachen
     ) {
         Nachwuchskraft nwk = getOrThrow(nwkId);
 
@@ -55,6 +57,10 @@ public class NachwuchskraftService {
                 nwk.getWunschabteilungen().addAll(abteilungService.getByIds(wunschabteilungenIds));
             }
         }
+
+        // Programmierfähigkeiten speichern
+        nwk.setProgrammieren(programmieren);
+        nwk.setProgrammiersprachen(programmiersprachen);
 
         return save(nwk);
     }

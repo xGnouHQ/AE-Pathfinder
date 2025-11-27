@@ -39,6 +39,12 @@ public class Nachwuchskraft {
     @Column(name = "ERSTELLT_AM")
     private LocalDateTime erstelltAm = LocalDateTime.now();
 
+    @Column(name = "PROGRAMMIEREN", nullable = false)
+    private boolean programmieren = false;
+
+    @Column(name = "PROGRAMMIERSPRACHEN")
+    private String programmiersprachen;
+
     // Interessen (Tags)
     @ManyToMany
     @JoinTable(
