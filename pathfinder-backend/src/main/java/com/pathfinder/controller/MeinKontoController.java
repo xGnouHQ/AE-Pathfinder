@@ -58,7 +58,9 @@ public class MeinKontoController {
         Nachwuchskraft updated = nwkService.updateExperience(
                 nwkId,
                 req.interessenIds(),
-                req.wunschabteilungenIds()
+                req.wunschabteilungenIds(),
+                req.programmieren(),
+                req.programmiersprachen()
         );
 
         return ResponseEntity.ok(mapper.toExperienceDTO(updated));
