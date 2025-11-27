@@ -4,7 +4,7 @@
       <div>
         <h2>{{ job.titel }}</h2>
         <p class="text-subtitle-1">
-          {{ job.standort }} | {{ job.status }} | Bewerbungsfrist: {{ formatDate(job.bewerbungsfrist) }}
+          {{ job.standort }} | {{ job.status }} | Bewerbungsfrist: {{ formatDate(job.bewerbungsfrist) }} | {{job.entgeltgruppe}} | {{job.referat}}
         </p>
       </div>
 
@@ -50,6 +50,8 @@ interface Stelle {
   beschreibung: string
   standort: string
   status: 'OFFEN' | 'GESCHLOSSEN'
+  referat:string
+  entgeltgruppe
   bewerbungsfrist?: string
   tags?: Tag[]
   matchingScore?: number  // <-- Double vom Backend
