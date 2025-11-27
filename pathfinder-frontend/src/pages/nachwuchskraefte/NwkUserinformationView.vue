@@ -166,7 +166,7 @@ async function loadPersonal() {
 
 
 // ----------------- Speichern nach Dialog -----------------
-function handleExperienceSave(updated: NwkExperience) {
+/*function handleExperienceSave(updated: NwkExperience) {
   // PUT an Backend
   fetch(`/api/meinKonto/experience/${nwk.value!.id}`, {
     method: 'PUT',
@@ -177,7 +177,7 @@ function handleExperienceSave(updated: NwkExperience) {
   // Lokal übernehmen → Card sofort aktualisiert
   nwkExperience.value = { ...updated }
   dialogExperienceOpen.value = false
-}
+}*/
 
 
 // ----------------- Dokumente -----------------
