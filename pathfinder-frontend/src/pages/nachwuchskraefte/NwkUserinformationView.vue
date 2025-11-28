@@ -81,7 +81,7 @@ interface Nachwuchskraft {
 interface NwkExperience {
   wunschabteilungen: { id: number; name: string }[]
   interessen: { id: number; name: string }[]
-  knowsProgramming?: boolean
+  programmieren?: boolean
   programmiersprachen?: string | null
 }
 
@@ -134,7 +134,7 @@ async function loadExperience() {
     nwkExperience.value = {
       wunschabteilungen: data.wunschabteilungen,
       interessen: data.interessen,
-      knowsProgramming: data.programmieren,
+      programmieren: data.programmieren,
       programmiersprachen: data.programmiersprachen ?? ''
     }
   } catch (err) {
@@ -191,7 +191,7 @@ async function handleExperienceSave(updated: NwkExperience) {
     const payload = {
       interessenIds: updated.interessen.map(t => t.id),
       wunschabteilungenIds: updated.wunschabteilungen.map(d => d.id),
-      programmieren: updated.knowsProgramming,
+      programmieren: updated.programmieren,
       programmiersprachen: updated.programmiersprachen ?? ''
     }
 
@@ -208,7 +208,7 @@ async function handleExperienceSave(updated: NwkExperience) {
     nwkExperience.value = {
       wunschabteilungen: saved.wunschabteilungen,
       interessen: saved.interessen,
-      knowsProgramming: saved.programmieren,
+      programmieren: saved.programmieren,
       programmiersprachen: saved.programmiersprachen ?? ''
     }
 
