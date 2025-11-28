@@ -26,4 +26,8 @@ public class AbteilungService {
                 .map(this::getById)
                 .toList();
     }
+
+    public List<Abteilung> getAll() {
+        return repository.findAll();
+    }
 }

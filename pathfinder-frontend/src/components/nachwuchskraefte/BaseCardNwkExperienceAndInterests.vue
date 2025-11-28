@@ -2,7 +2,7 @@
   <v-card class="pa-4 mb-6">
     <v-card-title class="d-flex justify-space-between align-center">
       <span>Erfahrungen & Interessen</span>
-      <BaseButtonEdit v-if="editable" @click="$emit('edit')" />
+      <BaseButtonEdit v-if="editable" @click="$emit('edit')" class="mr-2" />
     </v-card-title>
 
     <v-divider />
@@ -10,23 +10,27 @@
     <v-card-text>
       <div class="mb-4">
         <h3>Wunschabteilungen</h3>
-        <ul v-if="departments.length" class="pl-4">
+        <ul v-if="departments.length > 0">
           <li v-for="d in departments" :key="d.id">{{ d.name }}</li>
         </ul>
-        <p v-else>Noch keine Abteilungen angegeben.</p>
+        <p v-else class="text-muted">Noch keine Abteilungen angegeben.</p>
       </div>
 
       <div class="mb-4">
         <h3>Interessen</h3>
-        <ul v-if="interests.length" class="pl-4">
+        <ul v-if="interests.length > 0">
           <li v-for="t in interests" :key="t.id">{{ t.name }}</li>
         </ul>
-        <p v-else>Noch keine Interessen angegeben.</p>
+        <p v-else class="text-muted">Noch keine Interessen angegeben.</p>
       </div>
 
+      <!-- Programmieren nur anzeigen, wenn true -->
       <div v-if="knowsProgramming">
         <strong>Programmieren:</strong> Ja
         <span v-if="programmingLanguages.length">({{ programmingLanguages.join(', ') }})</span>
+      </div>
+      <div v-if="knowsProgramming && programmingLanguages">
+        <strong>Programmiersprachen:</strong> {{ programmingLanguages }}
       </div>
     </v-card-text>
   </v-card>
@@ -36,27 +40,25 @@
 import { computed, defineProps } from 'vue'
 import BaseButtonEdit from '@/components/common/BaseButtonEdit.vue'
 
-interface Abteilung { id: number; name: string }
-interface Tag { id: number; name: string }
+interface ExperienceDTO {
+  interessen: { id: number; name: string }[]
+  wunschabteilungen: { id: number; name: string }[]
+  programmieren: boolean
+  programmiersprachen: string | null
+}
 
-const props = defineProps<{
-  nwkExperience: {
-    wunschabteilungen: Abteilung[]
-    interessen: Tag[]
-    knowsProgramming: boolean
-    programmingLanguages?: string[]
-  }
-  editable?: boolean
-}>()
-
-const departments = computed(() => props.nwkExperience.wunschabteilungen)
-const interests = computed(() => props.nwkExperience.interessen)
-const knowsProgramming = computed(() => props.nwkExperience.knowsProgramming)
-const programmingLanguages = computed(() => props.nwkExperience.programmingLanguages ?? [])
+const props = defineProps<{ nwkExperience: ExperienceDTO, editable?: boolean }>()
+const departments = computed(() => props.nwkExperience.wunschabteilungen ?? [])
+const interests = computed(() => props.nwkExperience.interessen ?? [])
+const knowsProgramming = computed(() => props.nwkExperience.programmieren ?? false)
+const programmingLanguages = computed(() => props.nwkExperience.programmiersprachen ?? '')
 </script>
 
+
 <style scoped>
-ul { margin: 0; padding-left: 1.2rem; }
-li { list-style-type: disc; }
+.text-muted { color: #6c757d; }
 .mb-4 { margin-bottom: 1rem; }
+.mr-2 { margin-right: 0.5rem; }
+ul { padding-left: 1.2rem; margin: 0; }
+li { list-style-type: disc; }
 </style>

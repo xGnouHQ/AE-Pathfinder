@@ -88,32 +88,32 @@ INSERT INTO SERVICEBEREICHSLEITER (ABTEILUNG_ID, EMAIL, ERSTELLT_AM, KONTAKTPERS
 -- NACHWUCHSKRAFT
 -- ===========================
 INSERT INTO NACHWUCHSKRAFT
-(JAHRGANG, EMAIL, ERSTELLT_AM, NACHNAME, PERSONALNUMMER, STUDIENRICHTUNG, VORNAME)
+(JAHRGANG, EMAIL, ERSTELLT_AM, NACHNAME, PERSONALNUMMER, STUDIENRICHTUNG, VORNAME, PROGRAMMIEREN)
 VALUES
-('2022/2025', 'max.mustermann@muenchen.de', '2024-01-05 09:00:00', 'Mustermann', 'P1001', 'Wirtschaftsinformatik', 'Max'),
-('2023/2026', 'sophie.meier@muenchen.de',     '2024-02-12 10:00:00', 'Meier',       'P1002', 'Informatik',              'Sophie'),
-('2021/2024', 'leon.schneider@muenchen.de',   '2024-03-18 11:00:00', 'Schneider',   'P1003', 'BWL',                     'Leon'),
-('2024/2027', 'lena.huber@muenchen.de',       '2024-04-22 12:00:00', 'Huber',       'P1004', 'Verwaltungsinformatik',   'Lena'),
-('2023/2026', 'jonas.keller@muenchen.de',         '2024-01-10 09:00:00', 'Keller',      'P1005', 'Informatik',              'Jonas'),
-('2022/2025', 'mia.schramm@muenchen.de',          '2024-01-15 14:00:00', 'Schramm',     'P1006', 'Wirtschaftsinformatik',   'Mia'),
-('2024/2027', 'felix.hartmann@muenchen.de',       '2024-02-01 10:30:00', 'Hartmann',    'P1007', 'Data Science',            'Felix'),
-('2021/2024', 'luca.braun@muenchen.de',           '2024-02-07 08:45:00', 'Braun',       'P1008', 'BWL',                     'Luca'),
-('2025/2028', 'sarah.weiss@muenchen.de',          '2024-03-02 11:20:00', 'Weiss',       'P1009', 'Wirtschaftsinformatik',   'Sarah'),
-('2023/2026', 'tom.schulz@muenchen.de',           '2024-03-10 12:10:00', 'Schulz',      'P1010', 'Informatik',              'Tom'),
-('2022/2025', 'laura.stein@muenchen.de',          '2024-03-12 09:50:00', 'Stein',       'P1011', 'Public Management',       'Laura'),
-('2024/2027', 'paul.neumann@muenchen.de',         '2024-03-14 13:40:00', 'Neumann',     'P1012', 'Verwaltungsinformatik',   'Paul'),
-('2023/2026', 'klara.jung@muenchen.de',           '2024-03-20 08:30:00', 'Jung',        'P1013', 'Wirtschaftsinformatik',   'Klara'),
-('2021/2024', 'david.schuster@muenchen.de',       '2024-03-25 10:15:00', 'Schuster',    'P1014', 'BWL',                     'David'),
-('2022/2025', 'nina.frank@muenchen.de',           '2024-04-02 11:05:00', 'Frank',       'P1015', 'Informatik',              'Nina'),
-('2025/2028', 'martin.loew@muenchen.de',          '2024-04-10 09:55:00', 'Loew',        'P1016', 'Data Science',            'Martin'),
-('2023/2026', 'eline.moser@muenchen.de',          '2024-04-15 12:20:00', 'Moser',       'P1017', 'Wirtschaftsinformatik',   'Eline'),
-('2024/2027', 'julian.kraft@muenchen.de',         '2024-04-18 13:50:00', 'Kraft',       'P1018', 'Informatik',              'Julian'),
-('2022/2025', 'amelie.berger@muenchen.de',        '2024-04-22 14:30:00', 'Berger',      'P1019', 'Public Management',       'Amelie'),
-('2023/2026', 'tim.lorenz@muenchen.de',           '2024-04-25 15:10:00', 'Lorenz',      'P1020', 'Wirtschaftsinformatik',   'Tim'),
-('2021/2024', 'sandra.kunz@muenchen.de',          '2024-04-28 09:10:00', 'Kunz',        'P1021', 'BWL',                     'Sandra'),
-('2024/2027', 'benjamin.herrmann@muenchen.de',    '2024-05-01 11:40:00', 'Herrmann',    'P1022', 'Informatik',              'Benjamin'),
-('2022/2025', 'julia.adler@muenchen.de',          '2024-05-03 10:25:00', 'Adler',       'P1023', 'Wirtschaftsinformatik',   'Julia'),
-('2025/2028', 'kevin.maier@muenchen.de',          '2024-05-05 12:55:00', 'Maier',       'P1024', 'Data Science',            'Kevin');
+('2022/2025', 'max.mustermann@muenchen.de', '2024-01-05 09:00:00', 'Mustermann', 'P1001', 'Wirtschaftsinformatik', 'Max', false),
+('2023/2026', 'sophie.meier@muenchen.de',     '2024-02-12 10:00:00', 'Meier',       'P1002', 'Informatik',              'Sophie', false),
+('2021/2024', 'leon.schneider@muenchen.de',   '2024-03-18 11:00:00', 'Schneider',   'P1003', 'BWL',                     'Leon', false),
+('2024/2027', 'lena.huber@muenchen.de',       '2024-04-22 12:00:00', 'Huber',       'P1004', 'Verwaltungsinformatik',   'Lena', false),
+('2023/2026', 'jonas.keller@muenchen.de',         '2024-01-10 09:00:00', 'Keller',      'P1005', 'Informatik',              'Jonas', false),
+('2022/2025', 'mia.schramm@muenchen.de',          '2024-01-15 14:00:00', 'Schramm',     'P1006', 'Wirtschaftsinformatik',   'Mia', false),
+('2024/2027', 'felix.hartmann@muenchen.de',       '2024-02-01 10:30:00', 'Hartmann',    'P1007', 'Data Science',            'Felix', false),
+('2021/2024', 'luca.braun@muenchen.de',           '2024-02-07 08:45:00', 'Braun',       'P1008', 'BWL',                     'Luca', false),
+('2025/2028', 'sarah.weiss@muenchen.de',          '2024-03-02 11:20:00', 'Weiss',       'P1009', 'Wirtschaftsinformatik',   'Sarah', false),
+('2023/2026', 'tom.schulz@muenchen.de',           '2024-03-10 12:10:00', 'Schulz',      'P1010', 'Informatik',              'Tom', false),
+('2022/2025', 'laura.stein@muenchen.de',          '2024-03-12 09:50:00', 'Stein',       'P1011', 'Public Management',       'Laura', false),
+('2024/2027', 'paul.neumann@muenchen.de',         '2024-03-14 13:40:00', 'Neumann',     'P1012', 'Verwaltungsinformatik',   'Paul', false),
+('2023/2026', 'klara.jung@muenchen.de',           '2024-03-20 08:30:00', 'Jung',        'P1013', 'Wirtschaftsinformatik',   'Klara', false),
+('2021/2024', 'david.schuster@muenchen.de',       '2024-03-25 10:15:00', 'Schuster',    'P1014', 'BWL',                     'David', false),
+('2022/2025', 'nina.frank@muenchen.de',           '2024-04-02 11:05:00', 'Frank',       'P1015', 'Informatik',              'Nina', false),
+('2025/2028', 'martin.loew@muenchen.de',          '2024-04-10 09:55:00', 'Loew',        'P1016', 'Data Science',            'Martin', false),
+('2023/2026', 'eline.moser@muenchen.de',          '2024-04-15 12:20:00', 'Moser',       'P1017', 'Wirtschaftsinformatik',   'Eline', false),
+('2024/2027', 'julian.kraft@muenchen.de',         '2024-04-18 13:50:00', 'Kraft',       'P1018', 'Informatik',              'Julian', false),
+('2022/2025', 'amelie.berger@muenchen.de',        '2024-04-22 14:30:00', 'Berger',      'P1019', 'Public Management',       'Amelie', false),
+('2023/2026', 'tim.lorenz@muenchen.de',           '2024-04-25 15:10:00', 'Lorenz',      'P1020', 'Wirtschaftsinformatik',   'Tim', false),
+('2021/2024', 'sandra.kunz@muenchen.de',          '2024-04-28 09:10:00', 'Kunz',        'P1021', 'BWL',                     'Sandra', false),
+('2024/2027', 'benjamin.herrmann@muenchen.de',    '2024-05-01 11:40:00', 'Herrmann',    'P1022', 'Informatik',              'Benjamin', false),
+('2022/2025', 'julia.adler@muenchen.de',          '2024-05-03 10:25:00', 'Adler',       'P1023', 'Wirtschaftsinformatik',   'Julia', false),
+('2025/2028', 'kevin.maier@muenchen.de',          '2024-05-05 12:55:00', 'Maier',       'P1024', 'Data Science',            'Kevin', false);
 
 -- ===========================
 -- WUNSCHABTEILUNG

@@ -26,4 +26,8 @@ public class TagService {
                 .map(this::getById)
                 .toList();
     }
+
+    public List<Tag> getAll() {
+        return repository.findAll();
+    }
 }

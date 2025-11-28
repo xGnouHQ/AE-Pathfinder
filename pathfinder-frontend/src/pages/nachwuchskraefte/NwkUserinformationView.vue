@@ -21,8 +21,9 @@
 
     <!-- Abteilungen & Interessen -->
     <BaseCardNwkExperienceAndInterests
-      v-if="nwkExperience"
+      v-if="nwkExperience && optionsLoaded"
       :nwkExperience="nwkExperience"
+      :options="{ tags, abteilungen }"
       editable
       class="mt-4"
       @edit="dialogExperienceOpen = true"
@@ -50,19 +51,21 @@
       v-model="dialogExperienceOpen"
       :nwkExperience="nwkExperience"
       :nwkId="nwk?.id"
+      :options="{ tags, abteilungen }"
       @save="handleExperienceSave"
     />
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue"
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import BaseDialogNwkUploadDocuments from "@/components/nachwuchskraefte/BaseDialogNwkUploadDocuments.vue"
-import BaseCardNwkPersonal from "@/components/nachwuchskraefte/BaseCardNwkPersonal.vue"
-import BaseCardNwkDocuments from "@/components/nachwuchskraefte/BaseCardNwkDocuments.vue"
-import BaseCardNwkExperienceAndInterests from "@/components/nachwuchskraefte/BaseCardNwkExperienceAndInterests.vue"
-import BaseDialogNwkUpdateExperienceAndInterests from "@/components/nachwuchskraefte/BaseDialogNwkUpdateExperienceAndInterests.vue"
+
+import BaseDialogNwkUploadDocuments from '@/components/nachwuchskraefte/BaseDialogNwkUploadDocuments.vue'
+import BaseCardNwkPersonal from '@/components/nachwuchskraefte/BaseCardNwkPersonal.vue'
+import BaseCardNwkDocuments from '@/components/nachwuchskraefte/BaseCardNwkDocuments.vue'
+import BaseCardNwkExperienceAndInterests from '@/components/nachwuchskraefte/BaseCardNwkExperienceAndInterests.vue'
+import BaseDialogNwkUpdateExperienceAndInterests from '@/components/nachwuchskraefte/BaseDialogNwkUpdateExperienceAndInterests.vue'
 
 interface Nachwuchskraft {
   id: number
@@ -72,15 +75,14 @@ interface Nachwuchskraft {
   email: string
   studienrichtung: string
   jahrgang: string
-  interessen: { id: number; name: string }[]
-  wunschabteilungen: { id: number; name: string }[]
+  praktika: { id: number; name: string }[]
 }
 
 interface NwkExperience {
   wunschabteilungen: { id: number; name: string }[]
   interessen: { id: number; name: string }[]
-  knowsProgramming: boolean
-  programmingLanguages?: string[]
+  knowsProgramming?: boolean
+  programmiersprachen?: string | null
 }
 
 interface StoredFile {
@@ -90,18 +92,56 @@ interface StoredFile {
   fileObject?: File
 }
 
-const router = useRouter()
+interface OptionData {
+  tags: { id: number; name: string }[]
+  abteilungen: { id: number; name: string }[]
+}
 
-// ----------------- State -----------------
+// ---------------- State ----------------
+const router = useRouter()
+const loggedIn = ref(false)
 const nwk = ref<Nachwuchskraft | null>(null)
 const nwkExperience = ref<NwkExperience | null>(null)
 const savedFiles = ref<StoredFile[]>([])
+const tags = ref<OptionData['tags']>([])
+const abteilungen = ref<OptionData['abteilungen']>([])
+const optionsLoaded = ref(false)
 
 const dialogOpen = ref(false)
 const dialogProfileOpen = ref(false)
 const dialogExperienceOpen = ref(false)
 
-// ----------------- Daten laden -----------------
+// ---------------- Laden ----------------
+async function loadOptions() {
+  try {
+    const res = await fetch('/api/meinKonto/options')
+    if (!res.ok) throw new Error(`Fehler beim Laden der Optionen: ${res.status}`)
+    const data = await res.json()
+    tags.value = data.tags
+    abteilungen.value = data.abteilungen
+    optionsLoaded.value = true
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+async function loadExperience() {
+  if (!nwk.value) return
+  try {
+    const res = await fetch(`/api/meinKonto/experience/${nwk.value.id}`)
+    if (!res.ok) throw new Error(`Fehler beim Laden: ${res.status}`)
+    const data = await res.json()
+    nwkExperience.value = {
+      wunschabteilungen: data.wunschabteilungen,
+      interessen: data.interessen,
+      knowsProgramming: data.programmieren,
+      programmiersprachen: data.programmiersprachen ?? ''
+    }
+  } catch (err) {
+    console.error(err)
+  }
+}
+
 async function loadPersonal() {
   if (!nwk.value) return
 
@@ -109,7 +149,6 @@ async function loadPersonal() {
     const res = await fetch(`/api/meinKonto/personal/${nwk.value.id}`)
     if (!res.ok) throw new Error(`Fehler: ${res.status}`)
     const data = await res.json()
-
     nwk.value = {
       id: data.id,
       personalnummer: data.personalnummer,
@@ -118,36 +157,10 @@ async function loadPersonal() {
       email: data.email,
       studienrichtung: data.studienrichtung,
       jahrgang: data.jahrgang,
-      interessen: data.interessen ?? [],
-      wunschabteilungen: data.wunschabteilungen ?? []
+      praktika: data.praktika ?? []
     }
-
-    await loadExperience() // Experience laden
   } catch (err) {
-    console.error('Fehler beim Laden der persönlichen Daten:', err)
-  }
-}
-
-async function loadExperience() {
-  if (!nwk.value) return
-
-  try {
-    const res = await fetch(`/api/meinKonto/experience/${nwk.value.id}`)
-    if (!res.ok) throw new Error(`Fehler: ${res.status}`)
-    const data = await res.json()
-
-    // ❗ Nur initialisieren, wenn noch nicht vorhanden
-    if (!nwkExperience.value) {
-      nwkExperience.value = {
-        wunschabteilungen: data.wunschabteilungen ?? [],
-        interessen: data.interessen ?? [],
-        knowsProgramming: data.knowsProgramming ?? false,
-        programmingLanguages: data.programmingLanguages ?? []
-      }
-    }
-    // Wenn nwkExperience schon existiert → NICHT überschreiben
-  } catch (err) {
-    console.error('Fehler beim Laden der Experience:', err)
+    console.error(err)
   }
 }
 
@@ -183,34 +196,71 @@ async function loadDocuments() {
       url: d.dateipfad
     }))
   } catch (err) {
-    console.error('Fehler beim Laden der Dokumente:', err)
+    console.error(err)
   }
 }
 
-async function handleUploadSave(newFiles: StoredFile[]) { }
-async function handleDeleteFile(id: number) { }
+// ---------------- Aktionen ----------------
+async function handleExperienceSave(updated: NwkExperience) {
+  if (!nwk.value) return
+  try {
+    const payload = {
+      interessenIds: updated.interessen.map(t => t.id),
+      wunschabteilungenIds: updated.wunschabteilungen.map(d => d.id),
+      programmieren: updated.knowsProgramming,
+      programmiersprachen: updated.programmiersprachen ?? ''
+    }
 
-// ----------------- onMounted -----------------
+    const res = await fetch(`/api/meinKonto/experience/${nwk.value.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    if (!res.ok) throw new Error(`Fehler beim Speichern: ${res.status}`)
+
+    // Backend liefert die aktualisierte Experience zurück
+    const saved = await res.json()
+    nwkExperience.value = {
+      wunschabteilungen: saved.wunschabteilungen,
+      interessen: saved.interessen,
+      knowsProgramming: saved.programmieren,
+      programmiersprachen: saved.programmiersprachen ?? ''
+    }
+
+    alert('Bevorzugte Abteilungen & Interessen gespeichert!')
+  } catch (err) {
+    console.error(err)
+    alert('Fehler beim Speichern!')
+  }
+}
+
+
+// ---------------- Mounted ----------------
 onMounted(() => {
-  const userJson = sessionStorage.getItem('user')
-  if (!userJson) {
+  loggedIn.value = sessionStorage.getItem('loggedIn') === 'true'
+  if (!loggedIn.value) {
     router.replace('/login')
     return
   }
 
+  const userJson = sessionStorage.getItem('user')
+  if (!userJson) return console.error('Kein eingeloggter Nutzer gefunden')
   const userData = JSON.parse(userJson)
-  nwk.value = { ...userData }
-
-  if (!nwkExperience.value) {
-    nwkExperience.value = {
-      wunschabteilungen: nwk.value.wunschabteilungen ?? [],
-      interessen: nwk.value.interessen ?? [],
-      knowsProgramming: false,
-      programmingLanguages: []
-    }
+  nwk.value = {
+    id: userData.id,
+    personalnummer: userData.personalnummer,
+    vorname: userData.vorname,
+    nachname: userData.nachname,
+    email: userData.email,
+    studienrichtung: userData.studienrichtung,
+    jahrgang: userData.jahrgang,
+    praktika: userData.praktika ?? []
   }
 
+  loadOptions()
   loadPersonal()
+  loadExperience()
   loadDocuments()
 })
 </script>
