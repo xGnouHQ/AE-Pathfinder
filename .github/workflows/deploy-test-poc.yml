@@ -1,0 +1,166 @@
+name: Deploy Test PoC
+
+# Trigger: Bei Push oder Pull Request auf 'test-poc-1'
+on:
+  push:
+    branches: [ "test-poc-1" ]
+  pull_request:
+    branches: [ "test-poc-1" ]
+
+jobs:
+  # ====================================================
+  # STAGE 1: BUILD CHECK (Im GitHub Runner)
+  # ====================================================
+  
+  backend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21' # Wichtig: Java 21 nutzen!
+          distribution: 'temurin'
+          cache: maven
+          
+      - name: Build Backend with Maven
+        run: |
+          cd pathfinder-backend
+          mvn -B -DskipTests clean package
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22' # Wichtig: Node 22 für Vite 7
+          cache: 'npm'
+          cache-dependency-path: pathfinder-frontend/package-lock.json
+          
+      - name: Build Frontend
+        run: |
+          cd pathfinder-frontend
+          npm ci
+          # 'build-only' ignoriert TypeScript-Fehler (gut für PoC)
+          npm run build-only
+
+  # ====================================================
+  # STAGE 2: DEPLOY (Auf dem Server via SSH)
+  # ====================================================
+  
+  deploy-remote:
+    needs: [backend-build, frontend-build]
+    runs-on: ubuntu-latest
+    # Nur ausführen, wenn es ein echter Push ist (kein PR)
+    if: github.event_name == 'push' 
+    steps:
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Execute Remote Rebuild Script
+        run: |
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "bash -lc '
+            set -euo pipefail
+
+            echo \"=== 1. Git Sync (test-poc-1) ===\"
+            cd ~/AE-Pathfinder
+            
+            # FIX: Erstmal alle lokalen Änderungen (z.B. components.d.ts) verwerfen
+            git reset --hard HEAD
+            
+            # Updates holen
+            git fetch --all --prune
+            
+            # Branch wechseln
+            git checkout test-poc-1 || git checkout -b test-poc-1 origin/test-poc-1
+            
+            # Server-Stand exakt auf Git-Stand zwingen
+            git reset --hard origin/test-poc-1
+
+            echo \"=== 2. Bereinigung (Alte Builds löschen) ===\"
+            rm -rf pathfinder-backend/target
+            rm -rf pathfinder-frontend/dist
+            rm -rf pathfinder-frontend/node_modules
+
+            echo \"=== 3. Backend neu bauen (Server) ===\"
+            cd pathfinder-backend
+            mvn -B -DskipTests clean package
+
+            echo \"=== 4. Frontend neu bauen (Server) ===\"
+            cd ../pathfinder-frontend
+            if [ -f package-lock.json ]; then npm ci; else npm install; fi
+            
+            # Auch hier: build-only nutzen!
+            npm run build-only
+
+            echo \"=== 5. Services neustarten (mit SUDO) ===\"
+            sudo systemctl restart pathfinder-backend
+            sudo systemctl restart pathfinder-frontend
+          '"
+
+  # ====================================================
+  # STAGE 3: VERIFY (Ports & Status prüfen)
+  # ====================================================
+
+  verify-services:
+    needs: [deploy-remote]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Check Ports and Status
+        run: |
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "bash -lc '
+            set -e
+
+            echo \"--- Check Backend (Systemd) ---\"
+            if sudo systemctl is-active --quiet pathfinder-backend; then
+                echo \"✅ Backend Service läuft.\"
+            else
+                echo \"❌ Backend Service läuft NICHT!\"
+                sudo systemctl status pathfinder-backend --no-pager
+                exit 1
+            fi
+
+            echo \"--- Check Backend (Port 8080) ---\"
+            # 30 Sekunden warten, da Java kurz zum Starten braucht
+            if timeout 30 bash -c \"until echo > /dev/tcp/localhost/8080; do sleep 1; done\" 2>/dev/null; then
+                echo \"✅ Port 8080 ist offen.\"
+            else
+                echo \"❌ Port 8080 antwortet nicht!\"
+                exit 1
+            fi
+
+            echo \"--- Check Frontend (Systemd) ---\"
+            if sudo systemctl is-active --quiet pathfinder-frontend; then
+                echo \"✅ Frontend Service läuft.\"
+            else
+                echo \"❌ Frontend Service läuft NICHT!\"
+                sudo systemctl status pathfinder-frontend --no-pager
+                exit 1
+            fi
+
+            echo \"--- Check Frontend (Port 3000) ---\"
+            if timeout 30 bash -c \"until echo > /dev/tcp/localhost/3000; do sleep 1; done\" 2>/dev/null; then
+                echo \"✅ Port 3000 ist offen.\"
+            else
+                echo \"❌ Port 3000 antwortet nicht!\"
+                exit 1
+            fi
+            
+            echo \"=== ALL SYSTEMS GO ===\"
+          '"
