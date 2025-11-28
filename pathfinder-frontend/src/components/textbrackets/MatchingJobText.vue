@@ -5,6 +5,7 @@
     <div v-if="matchingJobs.length > 0">
       <v-row>
         <v-col
+          class="card-hover"
           v-for="job in matchingJobs"
           :key="job.id"
           cols="12"
@@ -56,3 +57,16 @@ const matchingJobs = computed(() =>
   props.jobs.filter(job => (job.matchingScore ?? 0) > 30)
 )
 </script>
+
+<style scoped>
+
+.card-hover {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+</style>

@@ -16,7 +16,7 @@
         <v-divider class="my-6" />
 
         <!-- Application Status Section -->
-        <ApplicationStatusText :nwkId="nwkId" />
+        <ApplicationStatusText :nwkId="nwkId!" />
       </v-card-text>
     </v-card>
   </v-container>
@@ -98,4 +98,3 @@ onMounted(() => {
   ladeJobs()
 })
 </script>
-

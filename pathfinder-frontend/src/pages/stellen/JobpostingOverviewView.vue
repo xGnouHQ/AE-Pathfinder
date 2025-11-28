@@ -23,6 +23,7 @@
             class="no-underline"
           >
             <BaseCardJobMini
+              class="card-hover"
               :job="stelle"
               @merke="() => merkeStelle(stelle.id)"
             />
@@ -134,5 +135,14 @@ const filteredStellen = computed(() => {
 .no-underline {
   text-decoration: none;
   color: inherit;
+}
+.card-hover {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
 }
 </style>
