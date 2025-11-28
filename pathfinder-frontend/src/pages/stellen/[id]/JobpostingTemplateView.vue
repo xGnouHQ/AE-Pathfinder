@@ -36,7 +36,7 @@
 
             <!-- Datum der Bewerbung -->
             <span v-if="hatBereitsBeworben(stelle.id)">
-              Eingereicht am: {{ formatDate(getEingereichtAm(stelle.id)) }}
+              Eingereicht am: {{ formatDate(getEingereichtAm(stelle.id) ?? '') }}
             </span>
 
             <!-- Bewerbungsbutton, wenn noch nicht beworben -->
@@ -61,7 +61,7 @@
       v-model="dialogOpen"
       :job="selectedStelle"
       :uploaded-files="nwkDocuments"
-      :nwk-id="nwk?.id"
+      :nwk-id="nwk?.id ?? 0"
       @submitted="handleSubmit"
     />
   </v-container>
@@ -96,6 +96,8 @@ const selectedStelle = ref<any>(null)
 const nwkDocuments = ref<any[]>([])
 const bewerbungs = ref<any[]>([]) // Bewerbungen der Nachwuchskraft
 const bewerbungsIds = ref<number[]>([]) // IDs der Stellen, auf die sich NWK bereits beworben hat
+const jobId = computed(() => Number((route.params as { id: string }).id))
+
 
 // -------------------------------------------------------------
 // Stelle laden
@@ -126,8 +128,10 @@ const ladeBewerbungen = async () => {
 // Watcher Route-ID
 // -------------------------------------------------------------
 watch(
-  () => route.params.id,
-  id => { if (id) ladeStelle(id) },
+  () => (route.params as { id: string }).id,
+  (id) => {
+    if (id) ladeStelle(id)
+  },
   { immediate: true }
 )
 
@@ -150,6 +154,13 @@ async function merkeStelle(id: number) {
   } catch (err) {
     console.error(err)
   }
+}
+
+function handleSubmit() {
+  console.log('Bewerbung abgesendet')
+  dialogOpen.value = false
+  // Optional: Bewerbungen neu laden
+  ladeBewerbungen()
 }
 
 // -------------------------------------------------------------

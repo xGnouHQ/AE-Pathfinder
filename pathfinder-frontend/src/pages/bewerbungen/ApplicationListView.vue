@@ -6,6 +6,7 @@
       <v-row>
         <v-col v-for="bewerbung in bewerbungen" :key="bewerbung.id" cols="12">
           <BaseCardApplicationMini
+            class="card-hover"
             :bewerbung="bewerbung"
             @detail="goToDetail"
             @withdraw="handleWithdraw"
@@ -41,6 +42,7 @@ interface Bewerbung {
   nachwuchskraftId: number
   stelleId: number
   stelle?: Stelle
+  stelleTitel: string
 }
 
 const router = useRouter()
@@ -102,9 +104,20 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* scoped */
 .box {
   margin: 2% 1% 1%;
   border: 2px solid #0000001a;
   padding: 16px;
+}
+
+.card-hover {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
 }
 </style>
