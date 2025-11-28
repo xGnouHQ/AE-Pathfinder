@@ -24,14 +24,13 @@
         <p v-else class="text-muted">Noch keine Interessen angegeben.</p>
       </div>
 
-      <!-- Programmieren nur anzeigen, wenn true -->
-      <div v-if="knowsProgramming">
-        <strong>Programmieren:</strong> Ja
-        <span v-if="programmingLanguages.length">({{ programmingLanguages.join(', ') }})</span>
-      </div>
-      <div v-if="knowsProgramming && programmingLanguages">
-        <strong>Programmiersprachen:</strong> {{ programmingLanguages }}
-      </div>
+      <!-- Programmieren -->
+            <div v-if="programmieren">
+              <strong>Programmieren:</strong> Ja
+              <div v-if="programmiersprachen">
+                <strong>Programmiersprachen:</strong> {{ programmiersprachen }}
+              </div>
+            </div>
     </v-card-text>
   </v-card>
 </template>
@@ -50,8 +49,8 @@ interface ExperienceDTO {
 const props = defineProps<{ nwkExperience: ExperienceDTO, editable?: boolean }>()
 const departments = computed(() => props.nwkExperience.wunschabteilungen ?? [])
 const interests = computed(() => props.nwkExperience.interessen ?? [])
-const knowsProgramming = computed(() => props.nwkExperience.programmieren ?? false)
-const programmingLanguages = computed(() => props.nwkExperience.programmiersprachen ?? '')
+const programmieren = computed(() => props.nwkExperience.programmieren ?? false)
+const programmiersprachen = computed(() => props.nwkExperience.programmiersprachen ?? '')
 </script>
 
 
