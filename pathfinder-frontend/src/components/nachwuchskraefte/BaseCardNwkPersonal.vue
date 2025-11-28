@@ -24,7 +24,7 @@
 
       <v-row>
         <v-col>
-          <strong>Praktika:</strong>
+          <strong>Einsatzstellen:</strong>
           <ul v-if="nwk.praktika && nwk.praktika.length">
             <li v-for="(dept, i) in nwk.praktika" :key="i">{{ dept.name }}</li>
           </ul>

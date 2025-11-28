@@ -21,12 +21,12 @@
 
         <!-- Programmieren optional -->
         <v-checkbox
-          v-model="formData.knowsProgramming"
+          v-model="formData.programmieren"
           label="Kannst du programmieren?"
         />
         <v-text-field
-          v-if="formData.knowsProgramming"
-          v-model="formData.programmingLanguagesString"
+          v-if="formData.programmieren"
+          v-model="formData.programmiersprachen"
           label="Programmiersprachen (Komma getrennt)"
           hide-details
         />
@@ -35,7 +35,7 @@
         <div class="mb-4 mt-4">
           <h3>Interessen <span class="text-red">*</span></h3>
           <v-select
-            v-for="i in 4"
+            v-for="i in 3"
             :key="'tag-' + i"
             v-model="selectedTagsNames[i-1]"
             :items="availableTags(i-1)"
@@ -77,7 +77,7 @@ const props = defineProps<{
   nwkExperience: {
     wunschabteilungen: Abteilung[]
     interessen: Tag[]
-    knowsProgramming?: boolean
+    programmieren?: boolean
     programmingLanguages?: string[]
   } | null
   nwkId: number
@@ -110,7 +110,7 @@ async function loadOptions() {
 // ---------------- Auswahlmodelle ----------------
 const selectedDepartmentsNames = ref<string[]>(['', '', ''])
 const selectedTagsNames = ref<string[]>(['', '', ''])
-const formData = ref({ knowsProgramming: false, programmingLanguagesString: '' })
+const formData = ref({ programmieren: false, programmiersprachen: '' })
 
 // ---------------- Initialisierung ----------------
 let initialized = false
@@ -133,9 +133,9 @@ watch(
         .slice(0, 3)
     }
 
-    if (!formData.value.knowsProgramming) {
-      formData.value.knowsProgramming = props.nwkExperience.knowsProgramming ?? false
-      formData.value.programmingLanguagesString =
+    if (!formData.value.programmieren) {
+      formData.value.programmieren = props.nwkExperience.programmieren ?? false
+      formData.value.programmiersprachen =
         (props.nwkExperience.programmingLanguages ?? []).join(', ')
     }
 
@@ -185,8 +185,8 @@ async function save() {
     id: props.nwkId,
     wunschabteilungen: selectedDepartments,
     interessen: selectedTags,
-    programmieren: formData.value.knowsProgramming,
-    programmiersprachen: formData.value.programmingLanguagesString
+    programmieren: formData.value.programmieren,
+    programmiersprachen: formData.value.programmiersprachen
       .split(',')
       .map(s => s.trim())
       .filter(Boolean)
