@@ -71,7 +71,7 @@ interface Bewerbung {
 // Router
 const route = useRoute()
 const router = useRouter()
-const jobId = Number(route.params.id)
+const jobId = Number((route.params as { id: string }).id)
 
 // Daten
 const bewerbung = ref<Bewerbung | null>(null)
@@ -112,7 +112,7 @@ onMounted(async () => {
     }
 
     bewerbung.value = data
-    
+
   } catch (err) {
     console.error('Fehler beim Laden der Bewerbung:', err)
     alert('Bewerbung konnte nicht geladen werden')

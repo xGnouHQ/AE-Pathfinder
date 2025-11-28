@@ -16,10 +16,10 @@
             :to="`/bewerbungen/${note.id}/ApplicationView`"
             :class="[
               'transition-all',
-              getStatusHoverColor(note.status, isHovering)
+              getStatusHoverColor(note.status, !!isHovering)
             ]"
           >
-           <v-list-item link nav @click="openApplication(note.id)" class="transition-all hover:bg-grey-lighten-4">
+           <v-list-item link nav @click="$emit('open', note.id)" class="transition-all hover:bg-grey-lighten-4">
              <!-- Icon + Titel nebeneinander -->
              <div class="d-flex align-center">
                <v-icon :color="getStatusColor(note.status)" class="mr-2">

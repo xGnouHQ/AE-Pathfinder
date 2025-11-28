@@ -51,7 +51,7 @@ interface Stelle {
   standort: string
   status: 'OFFEN' | 'GESCHLOSSEN'
   referat:string
-  entgeltgruppe
+  entgeltgruppe: string
   bewerbungsfrist?: string
   tags?: Tag[]
   matchingScore?: number  // <-- Double vom Backend

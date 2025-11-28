@@ -51,7 +51,7 @@ interface StoredFile {
   id: number
   name: string
   dateipfad: string
-  typ: string
+  typ: any
   hochgeladenAm: string
 }
 

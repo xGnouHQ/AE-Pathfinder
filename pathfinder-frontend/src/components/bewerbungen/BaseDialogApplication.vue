@@ -80,7 +80,7 @@ const props = defineProps<{
   modelValue: boolean;
   job: Job | null;
   uploadedFiles: FileItem[];
-  nwkId: number;
+  nwkId: any;
 }>();
 
 const emit = defineEmits<{
