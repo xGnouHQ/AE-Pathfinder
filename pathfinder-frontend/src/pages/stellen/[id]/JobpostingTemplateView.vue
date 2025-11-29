@@ -8,7 +8,6 @@
         <v-col cols="12" v-if="stelle">
           <JobCard
             :stelle="stelle"
-            :bereits-beworben-ids="bewerbungsIds"
             @merken="merkeStelle"
           />
         </v-col>
@@ -72,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
@@ -80,13 +79,18 @@ import JobCard from '@/components/stellen/JobCard.vue'
 import BaseButtonApplication from '@/components/common/BaseButtonApplication.vue'
 import BaseDialogApplication from '@/components/bewerbungen/BaseDialogApplication.vue'
 
+interface GemerkteStelleDTO {
+  stellenId: number
+  titel: string
+}
+
 const route = useRoute()
 const router = useRouter()
 
 const API_STELLE = '/api/stellenportal'
-const API_MERKLISTE = '/api/meineListe'
 const API_NWK_DOCS = '/api/meinKonto/documents'
 const API_BEW = '/api/bewerbungen'
+const API_MERKLISTE = '/api/meineListe'
 
 const nwk = ref<{ id: number } | null>(null)
 const loggedIn = ref(false)
@@ -94,25 +98,44 @@ const stelle = ref<any>(null)
 const dialogOpen = ref(false)
 const selectedStelle = ref<any>(null)
 const nwkDocuments = ref<any[]>([])
-const bewerbungs = ref<any[]>([]) // Bewerbungen der Nachwuchskraft
-const bewerbungsIds = ref<number[]>([]) // IDs der Stellen, auf die sich NWK bereits beworben hat
+const bewerbungs = ref<any[]>([])
+const bewerbungsIds = ref<number[]>([])
+const gemerkteStellenIds = ref<number[]>([])
 const jobId = computed(() => Number((route.params as { id: string }).id))
 
+// -------------------------------------------------------------
+// Lade gemerkte Stellen
+// -------------------------------------------------------------
+const ladeGemerkteStellen = async () => {
+  if (!nwk.value) return
+  try {
+    const res = await axios.get<GemerkteStelleDTO[]>(`${API_MERKLISTE}/nachwuchskraft/${nwk.value.id}`)
+    gemerkteStellenIds.value = res.data.map(j => j.stellenId)
+  } catch (err) {
+    console.error('Fehler beim Laden der Merkliste', err)
+    gemerkteStellenIds.value = []
+  }
+}
 
 // -------------------------------------------------------------
-// Stelle laden
+// Lade Stelle
 // -------------------------------------------------------------
 const ladeStelle = async (id: string | string[]) => {
   if (!id) return
   try {
     const res = await axios.get(`${API_STELLE}/${id}`)
-    stelle.value = res.data
+    stelle.value = {
+      ...res.data,
+      gemerkt: gemerkteStellenIds.value.includes(res.data.id)
+    }
   } catch (err) {
-    console.error("Fehler beim Laden der Stelle:", err)
+    console.error('Fehler beim Laden der Stelle:', err)
   }
 }
 
-// Bewerbungen der NWK laden, um zu prüfen, ob bereits beworben
+// -------------------------------------------------------------
+// Lade Bewerbungen
+// -------------------------------------------------------------
 const ladeBewerbungen = async () => {
   if (!nwk.value) return
   try {
@@ -120,20 +143,35 @@ const ladeBewerbungen = async () => {
     bewerbungs.value = res.data
     bewerbungsIds.value = res.data.map((b: any) => b.stelleId)
   } catch (err) {
-    console.error("Fehler beim Laden der Bewerbungen:", err)
+    console.error('Fehler beim Laden der Bewerbungen:', err)
   }
 }
 
 // -------------------------------------------------------------
-// Watcher Route-ID
+// Merkliste: Hinzufügen / Entfernen
 // -------------------------------------------------------------
-watch(
-  () => (route.params as { id: string }).id,
-  (id) => {
-    if (id) ladeStelle(id)
-  },
-  { immediate: true }
-)
+async function merkeStelle(id: number) {
+  if (!nwk.value || !stelle.value) return
+
+  try {
+    if (!stelle.value.gemerkt) {
+      await axios.post(`${API_MERKLISTE}/${id}/merken/nachwuchskraft/${nwk.value.id}`)
+      gemerkteStellenIds.value.push(id)
+      stelle.value = { ...stelle.value, gemerkt: true }
+      return
+    }
+
+    const confirmDelete = confirm("Möchtest du die Stelle von der Merkliste entfernen?")
+    if (!confirmDelete) return
+
+    await axios.delete(`${API_MERKLISTE}/${id}/nachwuchskraft/${nwk.value.id}`)
+    gemerkteStellenIds.value = gemerkteStellenIds.value.filter(x => x !== id)
+    stelle.value = { ...stelle.value, gemerkt: false }
+  } catch (err) {
+    console.error("Merken/Entfernen fehlgeschlagen:", err)
+    alert("Fehler beim Merken/Entfernen")
+  }
+}
 
 // -------------------------------------------------------------
 // Bewerbungsdialog öffnen
@@ -144,52 +182,17 @@ function openDialog(s: any) {
 }
 
 // -------------------------------------------------------------
-// Zur Merkliste hinzufügen
-// -------------------------------------------------------------
-async function merkeStelle(id: number) {
-  if (!nwk.value) return
-  try {
-    await axios.post(`/api/meineListe/${id}/merken/nachwuchskraft/${nwk.value.id}`)
-    stelle.value.gemerkt = true
-  } catch (err) {
-    console.error(err)
-  }
-}
-
-function handleSubmit() {
-  console.log('Bewerbung abgesendet')
-  dialogOpen.value = false
-  // Optional: Bewerbungen neu laden
-  ladeBewerbungen()
-}
-
-// -------------------------------------------------------------
-// Dokumente der Nachwuchskraft laden
-// -------------------------------------------------------------
-const ladeDocuments = async () => {
-  if (!nwk.value) return
-  try {
-    const res = await axios.get(`${API_NWK_DOCS}/${nwk.value.id}`)
-    nwkDocuments.value = res.data.documents || []
-  } catch (err) {
-    console.error("Fehler beim Laden der Dokumente:", err)
-  }
-}
-
-// -------------------------------------------------------------
-// Prüfen, ob NWK bereits auf die Stelle beworben hat
+// Hilfsfunktionen Bewerbung
 // -------------------------------------------------------------
 function hatBereitsBeworben(stelleId: number): boolean {
   return bewerbungsIds.value.includes(stelleId)
 }
 
-// Datum der Bewerbung holen
 function getEingereichtAm(stelleId: number): string | null {
   const bew = bewerbungs.value.find((b: any) => b.stelleId === stelleId)
   return bew ? bew.eingereichtAm : null
 }
 
-// Hilfsfunktion für Datum
 function formatDate(dateStr?: string) {
   if (!dateStr) return ''
   return new Date(dateStr).toLocaleDateString('de-DE')
@@ -205,27 +208,37 @@ function goBack() {
 // -------------------------------------------------------------
 // Mounted
 // -------------------------------------------------------------
-onMounted(() => {
-  loggedIn.value = sessionStorage.getItem('loggedIn') === 'true'
+onMounted(async () => {
+  loggedIn.value = sessionStorage.getItem("loggedIn") === "true"
+  if (!loggedIn.value) return router.replace("/login")
 
-  if (!loggedIn.value) {
-    router.replace('/login')
-    return
-  }
+  const userJson = sessionStorage.getItem("user")
+  if (!userJson) return router.replace("/login")
+  nwk.value = { id: JSON.parse(userJson).id }
 
-  const userJson = sessionStorage.getItem('user')
-  if (userJson) {
-    const userData = JSON.parse(userJson)
-    nwk.value = { id: userData.id }
-
-    ladeDocuments()
-    ladeBewerbungen()
-  }
+  // Reihenfolge wichtig
+  await ladeGemerkteStellen()
+  await ladeStelle(jobId.value)
+  await ladeBewerbungen()
+  await ladeDocuments()
 })
+
+const ladeDocuments = async () => {
+  if (!nwk.value) return
+  try {
+    const res = await axios.get(`${API_NWK_DOCS}/${nwk.value.id}`)
+    nwkDocuments.value = res.data.documents || []
+  } catch (err) {
+    console.error("Fehler beim Laden der Dokumente:", err)
+  }
+}
+
+function handleSubmit() {
+  dialogOpen.value = false
+  ladeBewerbungen()
+}
 </script>
 
 <style scoped>
-.box {
-  margin-top: 20px;
-}
+.box { margin-top: 20px; }
 </style>
