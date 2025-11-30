@@ -1,23 +1,18 @@
 <template>
   <v-card outlined class="mb-4">
-    <v-card-title class="d-flex justify-space-between align-center">
-      <span>{{ bewerbung.stelleTitel }}</span>
-    </v-card-title>
-
-    <v-divider />
-
     <v-card-text>
       <v-row>
-        <v-col>Eingangsdatum: {{ formatDate(bewerbung.eingereichtAm) }}</v-col>
-        <v-col>Entgeltgruppe: –</v-col> <!-- Kein Äquivalent im DTO -->
-        <v-col>Standort: {{ bewerbung.stelle?.standort || '–' }}</v-col>
+        <v-col>Bewerbung ID: {{ bewerbung.id }}</v-col>
+      </v-row>
+      <v-row>
+              <v-col>Eingangsdatum: {{ formatDate(bewerbung.eingereichtAm) }}</v-col>
       </v-row>
     </v-card-text>
-
     <v-divider />
-
     <!-- ⭐ STATUS TRACK -->
     <v-card-text>
+      <h1 > Bewerbungsstatusverfolgung </h1>
+      <p class="mt-7"></p>
       <div class="d-flex align-center justify-space-between">
         <div
           v-for="(step, index) in statusSteps"
@@ -46,9 +41,10 @@
 
         <!-- Button nur bei ANGELADEN -->
         <v-card-actions v-if="bewerbung.status === 'ANGELADEN'">
-          <v-btn color="primary" @click="$emit('open-message')">Message</v-btn>
+          <v-btn color="primary" @click="$emit('open-message')">Nachricht senden</v-btn>
         </v-card-actions>
       </div>
+      <p class="mt-7"></p>
     </v-card-text>
   </v-card>
 </template>
@@ -57,13 +53,10 @@
 import { defineProps, defineEmits } from 'vue'
 
 interface Bewerbung {
+  id: number
   stelleTitel: string
   eingereichtAm: string
   status: 'EINGEREICHT' | 'IN_PRUEFUNG' | 'ABGELEHNT' | 'ANGELADEN' | 'ANGENOMMEN'
-  stelle?: {
-    standort?: string
-    bewerbungsfrist?: string
-  }
 }
 
 const props = defineProps<{ bewerbung: Bewerbung }>()

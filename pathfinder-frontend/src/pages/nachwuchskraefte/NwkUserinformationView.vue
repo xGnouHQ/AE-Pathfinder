@@ -18,17 +18,19 @@
         <span>Lade persönliche Daten...</span>
       </v-row>
     </v-card>
-
     <!-- Abteilungen & Interessen -->
     <BaseCardNwkExperienceAndInterests
       v-if="nwkExperience && optionsLoaded"
-      :nwkExperience="nwkExperience"
+      :nwkExperience="{
+          ...nwkExperience,
+          programmieren: nwkExperience?.programmieren ?? false,
+          programmiersprachen: nwkExperience?.programmiersprachen ?? null
+        }"
       :options="{ tags, abteilungen }"
       editable
       class="mt-4"
       @edit="dialogExperienceOpen = true"
     />
-
     <!-- Dokumente -->
     <BaseCardNwkDocuments
       v-if="nwk"
@@ -43,14 +45,14 @@
     <BaseDialogNwkUploadDocuments
       v-model="dialogOpen"
       :savedFiles="savedFiles"
-      :nwkId="nwk?.id"
+      :nwkId="nwk?.id ?? 0"
       @save="handleUploadSave"
     />
 
     <BaseDialogNwkUpdateExperienceAndInterests
       v-model="dialogExperienceOpen"
       :nwkExperience="nwkExperience"
-      :nwkId="nwk?.id"
+      :nwkId="nwk?.id ?? 0"
       :options="{ tags, abteilungen }"
       @save="handleExperienceSave"
     />
@@ -183,6 +185,17 @@ async function loadDocuments() {
     console.error(err)
   }
 }
+
+function handleDeleteFile(fileId: number) {
+  console.log('Datei löschen:', fileId)
+  // Hier ggf. API-Call zum Löschen implementieren
+}
+
+function handleUploadSave(savedFiles: any[]) {
+  console.log('Dateien gespeichert:', savedFiles)
+  // Hier ggf. State oder API-Call aktualisieren
+}
+
 
 // ---------------- Aktionen ----------------
 async function handleExperienceSave(updated: NwkExperience) {
