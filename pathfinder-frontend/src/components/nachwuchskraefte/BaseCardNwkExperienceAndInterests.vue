@@ -42,7 +42,7 @@ import BaseButtonEdit from '@/components/common/BaseButtonEdit.vue'
 interface ExperienceDTO {
   interessen: { id: number; name: string }[]
   wunschabteilungen: { id: number; name: string }[]
-  programmieren: boolean
+  programmieren?: boolean
   programmiersprachen: string | null
 }
 

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3 class="text-h6 font-weight-medium mb-3">Application Status</h3>
+    <h3 class="text-h6 font-weight-medium mb-3">Aktuelle Neuigkeiten zu deinen Bewerbungen</h3>
 
     <div v-if="notifications.length > 0">
       <v-list>

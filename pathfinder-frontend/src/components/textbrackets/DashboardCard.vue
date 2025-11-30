@@ -6,7 +6,7 @@
         Dashboard
       </v-card-title>
 
-      <v-card-text>
+      <v-card-text class="mt-4">
         <!-- Matching Jobs Section -->
         <MatchingJobText
           :jobs="matchingJobs"
@@ -69,7 +69,7 @@ const ladeJobs = async () => {
 
 // --- Filter: nur Jobs mit MatchingScore > 30% ---
 const matchingJobs = computed(() =>
-  jobs.value.filter(job => (job.matchingScore ?? 0) > 30)
+  jobs.value.filter(job => (job.matchingScore ?? 0) > 50)
 )
 
 // --- Navigation zu Jobdetails ---

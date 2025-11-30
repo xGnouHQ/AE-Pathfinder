@@ -12,29 +12,18 @@
     <v-card-text>
       <v-row>
         <v-col>Eingereicht: {{ formatDate(bewerbung.eingereichtAm) }}</v-col>
-
-        <!-- Standort (falls im Response enthalten) -->
-        <v-col>Standort: {{ bewerbung.stelle?.standort || '–' }}</v-col>
-
-        <!-- Bewerbungsfrist -->
-        <v-col>
-          Bewerbungsfrist:
-          {{ bewerbung.stelle?.bewerbungsfrist
-              ? formatDate(bewerbung.stelle.bewerbungsfrist)
-              : '–'
-          }}
-        </v-col>
       </v-row>
-
-      <v-btn
-        color="error"
-        variant="text"
-        class="mt-2"
-        @click.stop="emitWithdraw"
-        size="small"
-      >
-        Bewerbung zurückziehen
-      </v-btn>
+      <div class="d-flex justify-end mt-3">
+        <v-btn
+          color="error"
+          variant="text"
+          class="mt-2"
+          @click.stop="emitWithdraw"
+          size="small"
+        >
+          Bewerbung zurückziehen
+        </v-btn>
+      </div>
     </v-card-text>
   </v-card>
 </template>
@@ -51,10 +40,6 @@ interface Bewerbung {
   nachwuchskraftId: number
   stelleId: number
   stelleTitel: string        // ← wichtig!
-  stelle?: {
-    standort?: string
-    bewerbungsfrist?: string
-  }
 }
 
 const props = defineProps<{ bewerbung: Bewerbung }>()

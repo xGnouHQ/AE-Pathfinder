@@ -41,6 +41,7 @@ public class MeinKontoDocumentsController {
         return ResponseEntity.ok(new DocumentListResponseDTO(nwkId, dtos));
     }
 
+
     // POST (Upload)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DocumentUploadResponseDTO> uploadDocument(

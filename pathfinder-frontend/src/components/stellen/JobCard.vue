@@ -1,24 +1,27 @@
 <template>
   <v-card class="pa-4 mb-4" v-if="stelle">
-    <v-card-title>
-      <div class="d-flex justify-space-between align-center w-100">
-        <div>
-          <h2>{{ stelle.titel }}</h2>
-          <p class="text-subtitle-1">
-              Standort: {{ stelle.standort }}
-              Entgeltgruppe: {{ stelle.entgeltgruppe }}
-              Referat: {{ stelle.referat }}
-              Frist: {{ stelle.bewerbungsfrist }}</p>
-        </div>
+    <v-card-title class="d-flex justify-space-between align-start">
+      <!-- Linke Seite: Titel + Details -->
+      <div class="d-flex flex-column">
+        <h2>{{ stelle.titel }}</h2>
+        <v-divider></v-divider>
+        <v-spacer></v-spacer>
+        <p class="text-subtitle-1">Stellen ID: {{ stelle.id }}</p>
+        <p class="text-subtitle-1">Standort: {{ stelle.standort }}</p>
+        <p class="text-subtitle-1">Entgeltgruppe: {{ stelle.entgeltgruppe }}</p>
+        <p class="text-subtitle-1">Referat: {{ stelle.referat }}</p>
+        <p class="text-subtitle-1">Frist: {{ stelle.bewerbungsfrist }}</p>
+      </div>
 
-        <!-- Merken nur für offene Stellen -->
+      <!-- Rechte Seite: Button auf Höhe Titel -->
+      <div>
         <v-btn
           v-if="stelle.status === 'OFFEN'"
-          :color="gemerkt ? 'success' : 'primary'"
+          :color="stelle.gemerkt ? 'success' : 'primary'"
           outlined
-          @click="handleMerken(stelle.id)"
+          @click="$emit('merken', stelle.id)"
         >
-          {{ gemerkt ? 'Gemerkte Stelle' : 'Merken' }}
+          {{ stelle.gemerkt ? 'Gemerkte Stelle' : 'Merken' }}
         </v-btn>
       </div>
     </v-card-title>
@@ -26,42 +29,64 @@
     <v-divider></v-divider>
 
     <v-card-text>
-      <p>{{ stelle.beschreibung }}</p>
-
+      <h2> Dein Einsatzbereich </h2>
+      <p class="mt-4">{{ stelle.beschreibung }}</p>
+      <p class="mt-4"></p>
+      <h2> Deine Tätigkeiten </h2>
+      <p class="mt-4"> Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              Pellentesque vitae sapien ac urna varius tincidunt. Vestibulum ante ipsum
+              primis in faucibus orci luctus et ultrices posuere cubilia curae; Integer vel
+              turpis a justo sollicitudin feugiat. Duis vitae orci nec metus fermentum blandit.
+              Sed nec risus non quam finibus sollicitudin a ac turpis. Morbi cursus, nisl at pretium
+              fringilla, nulla erat bibendum elit, at porta magna augue a lorem.
+      </p>
+       <p class="mt-4"></p>
+      <h2> Das bringst du mit </h2>
+        <p class="mt-4"></p>
+        <p> - Frondula quipster impletix </p>
+        <p> - Zandor flenbit koordinatus </p>
+        <p> - Blorptik und merandus von skopel </p>
+        <p> - Quintera analysum und frenthos </p>
+        <p> - Vortex planum et lumbrik </p>
+        <p>  - Snorblik kommunikat </p>
+        <p class="mt-4"></p>
       <!-- Tags -->
       <div v-if="stelle.tags && stelle.tags.length">
+      <strong> Tags: </strong>
         <v-chip
           v-for="(tag, i) in stelle.tags"
           :key="i"
           color="primary"
           class="mr-2"
         >
-          {{ tag }}
+           {{ typeof tag === 'object' ? tag.name : tag }}
         </v-chip>
       </div>
 
-      <!-- Servicebereichsleiter unverändert -->
+      <!-- Kontakt -->
       <div class="mt-4" v-if="stelle.servicebereichsleiter">
-        <p><strong>Kontakt:</strong> {{ stelle.servicebereichsleiter }}</p>
+        <p> <strong>Kontakt:</strong></p>
+        <p class="mt-4"></p>
+        <p> {{ typeof stelle.servicebereichsleiter === 'object' ? stelle.servicebereichsleiter.name : stelle.servicebereichsleiter }}</p>
       </div>
     </v-card-text>
-
-    <!-- Snackbar -->
-    <v-snackbar v-model="snackbar" :timeout="3000" top right>
-      Stelle erfolgreich gemerkt!
-      <template #actions>
-        <v-btn text @click="snackbar = false">Schließen</v-btn>
-      </template>
-    </v-snackbar>
   </v-card>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import axios from 'axios'
+interface Tag {
+  id?: number
+  name?: string
+}
 
-interface Tag { id: number; name: string }
-interface Servicebereichsleiter { id?: number; kontaktperson?: string; name?: string; email?: string; bereich?: string; telefonnummer?: string }
+interface Servicebereichsleiter {
+  id?: number
+  kontaktperson?: string
+  name?: string
+  email?: string
+  bereich?: string
+  telefonnummer?: string
+}
 
 interface Stelle {
   id: number
@@ -72,50 +97,16 @@ interface Stelle {
   referat: string
   status: 'OFFEN' | 'GESCHLOSSEN'
   bewerbungsfrist?: string
-  tags?: Tag[]
-  servicebereichsleiter?: Servicebereichsleiter
+  tags?: Tag[] | string[]
+  servicebereichsleiter?: Servicebereichsleiter | string
   gemerkt?: boolean
 }
 
-// Props & Emit
-const props = defineProps<{ stelle: Stelle }>()
+// Props & Emits
+const props = defineProps<{
+  stelle: Stelle
+}>()
 const emit = defineEmits<{ (e: 'merken', id: number): void }>()
-
-// Lokaler gemerkt-Status
-const gemerkt = ref(props.stelle.gemerkt ?? false)
-const snackbar = ref(false)
-
-// NWK-ID aus SessionStorage
-const nwkId = ref<number | null>(null)
-const userJson = sessionStorage.getItem('user')
-if (userJson) {
-  const userData = JSON.parse(userJson)
-  nwkId.value = userData.id
-} else {
-  console.error('Kein eingeloggter Nutzer gefunden')
-}
-
-// Klick auf Merken-Button
-const handleMerken = async (stellenId: number) => {
-  if (!nwkId.value) {
-    console.error('NWK-ID fehlt, kann Stelle nicht merken')
-    return
-  }
-
-  try {
-    // POST an Backend mit nachwuchskraftId als Request-Parameter
-    await axios.post(`/api/stellenportal/${stellenId}/merken`, null, {
-      params: { nachwuchskraftId: nwkId.value }
-    })
-
-    gemerkt.value = true
-    snackbar.value = true
-    emit('merken', stellenId)
-  } catch (err) {
-    console.error('Fehler beim Merken der Stelle:', err)
-    snackbar.value = true
-  }
-}
 </script>
 
 <style scoped>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3 class="text-h6 font-weight-medium mb-3">Matching Job Offers</h3>
+    <h3 class="text-h6 font-weight-medium mb-3">Stellenempfehlungen</h3>
 
     <div v-if="matchingJobs.length > 0">
       <v-row>
@@ -11,22 +11,19 @@
           cols="12"
           md="6"
         >
-          <v-card variant="outlined" class="pa-3">
+          <v-card variant="outlined" class="pa-3" @click="$emit('view-job', job)">
             <div class="d-flex justify-space-between align-center mb-2">
               <strong>{{ job.titel }}</strong>
               <v-chip
+                border="success sm opacity-100"
                 color="green"
-                variant="flat"
-                size="small"
+                ize="small"
+                variant="text"
                 v-if="job.matchingScore !== undefined && job.matchingScore > 0"
               >
-                {{ job.matchingScore.toFixed(2) }} % Match
+               MatchScore {{ job.matchingScore.toFixed(2) }} %
               </v-chip>
             </div>
-
-            <v-btn color="primary" size="small" @click="$emit('view-job', job)">
-              View Details
-            </v-btn>
           </v-card>
         </v-col>
       </v-row>
@@ -54,7 +51,7 @@ const props = defineProps<{ jobs: Job[] }>()
 
 // Filter: nur Jobs mit MatchingScore > 50%
 const matchingJobs = computed(() =>
-  props.jobs.filter(job => (job.matchingScore ?? 0) > 30)
+  props.jobs.filter(job => (job.matchingScore ?? 0) > 50)
 )
 </script>
 
