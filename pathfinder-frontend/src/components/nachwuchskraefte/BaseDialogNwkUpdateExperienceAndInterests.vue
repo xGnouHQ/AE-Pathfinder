@@ -6,7 +6,9 @@
       <v-card-text>
         <!-- Bevorzugte Abteilungen -->
         <div class="mb-4">
+          <p class="mt-4"></p>
           <h3>Wunschabteilungen <span class="text-red">*</span></h3>
+          <p class="mt-4"></p>
           <v-select
             v-for="i in 3"
             :key="'dept-' + i"
@@ -33,7 +35,9 @@
 
         <!-- Interessen -->
         <div class="mb-4 mt-4">
+          <p class="mt-4"></p>
           <h3>Interessen <span class="text-red">*</span></h3>
+          <p class="mt-4"></p>
           <v-select
             v-for="i in 3"
             :key="'tag-' + i"

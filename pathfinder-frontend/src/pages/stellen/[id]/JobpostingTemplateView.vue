@@ -218,7 +218,7 @@ onMounted(async () => {
 
   // Reihenfolge wichtig
   await ladeGemerkteStellen()
-  await ladeStelle(jobId.value)
+  await ladeStelle(jobId.value.toString())
   await ladeBewerbungen()
   await ladeDocuments()
 })

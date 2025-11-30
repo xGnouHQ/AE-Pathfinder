@@ -4,7 +4,7 @@
 
     <v-text-field
       v-model="search"
-      label="Search"
+      label="Suche"
       prepend-inner-icon="mdi-magnify"
       variant="outlined"
       hide-details
@@ -25,7 +25,6 @@
             <BaseCardJobMini
               class="card-hover"
               :job="stelle"
-              @merke="() => merkeStelle(stelle.id)"
             />
           </router-link>
         </v-col>
@@ -33,7 +32,6 @@
     </v-container>
   </v-container>
 
-  <!-- Login Weiterleitung, falls nicht eingeloggt -->
   <div v-else>
     <p>Bitte einloggen...</p>
   </div>
@@ -50,82 +48,83 @@ const search = ref("")
 const stellen = ref<any[]>([])
 const profileId = ref<number | null>(null)
 const loggedIn = ref(false)
+const bewerbungen = ref<any[]>([])
 const API_URL = '/api/stellenportal'
 
-// Prüfen, ob Nutzer eingeloggt ist (SessionStorage)
-onMounted(() => {
+// Prüfen, ob Nutzer eingeloggt
+onMounted(async () => {
   loggedIn.value = sessionStorage.getItem('loggedIn') === 'true'
-
-  if (!loggedIn.value) {
-    router.replace('/login') // Weiterleitung zum Login
-    return
-  }
+  if (!loggedIn.value) return router.replace('/login')
 
   const userJson = sessionStorage.getItem("user")
-  if (userJson) {
-    const userData = JSON.parse(userJson)
-    profileId.value = userData.id
-    ladeStellen()
-  } else {
-    console.error("Kein eingeloggter Nutzer gefunden")
-  }
+  if (!userJson) return
+  profileId.value = JSON.parse(userJson).id
+
+  await ladeStellen()
+  await ladeBewerbungen()
 })
 
-// ------------------ Lade alle Stellen ------------------
+// Lade alle Stellen + MatchingScore
 const ladeStellen = async () => {
   if (!profileId.value) return
   try {
-    const response = await axios.get(API_URL)
-    stellen.value = response.data
+    const res = await axios.get(API_URL)
+    stellen.value = res.data
+
     for (const stelle of stellen.value) {
       await ladeMatchingScore(stelle)
     }
-  } catch (error) {
-    console.error("Fehler beim Laden der Stellen:", error)
+  } catch (err) {
+    console.error("Fehler beim Laden der Stellen:", err)
   }
 }
 
-// ------------------ Matching Score ------------------
+// MatchingScore
 const ladeMatchingScore = async (stelle: any) => {
   if (!profileId.value) return
   try {
-    const response = await axios.get(
-      `/api/matching/${profileId.value}/${stelle.id}`
-    )
-    stelle.matchingScore = response.data
-  } catch (error) {
-    console.error(`Fehler beim Matching-Score für Stelle ${stelle.id}:`, error)
+    const res = await axios.get(`/api/matching/${profileId.value}/${stelle.id}`)
+    stelle.matchingScore = res.data
+  } catch (err) {
     stelle.matchingScore = 0
   }
 }
 
-// ------------------ Merkfunktion ------------------
-const merkeStelle = async (stellenId: number) => {
-  if (!profileId.value) return alert("Kein eingeloggter Nutzer gefunden")
+// Lade Bewerbungen einmal
+const ladeBewerbungen = async () => {
+  if (!profileId.value) return
   try {
-    const response = await axios.post(
-      `${API_URL}/${stellenId}/merken`,
-      null,
-      { params: { nachwuchskraftId: profileId.value } }
-    )
-    alert(response.data)
-  } catch (error: any) {
-    alert(error.response?.data || "Fehler beim Merken der Stelle")
+    const res = await axios.get(`/api/bewerbungen/nachwuchskraft/${profileId.value}`)
+    bewerbungen.value = res.data
+
+    // Für jede Stelle prüfen, ob bereits beworben
+    for (const stelle of stellen.value) {
+      stelle.beworben = bewerbungen.value.some((b: any) => b.stelleId === stelle.id)
+    }
+  } catch (err) {
+    console.error("Fehler beim Laden der Bewerbungen:", err)
+    for (const stelle of stellen.value) {
+      stelle.beworben = false
+    }
   }
 }
 
-// ------------------ Gefilterte Stellen ------------------
+
+// Filter + Sortierung
 const filteredStellen = computed(() => {
   return stellen.value
     .filter(s => {
-      const titel = (s.titel ?? "").toString().toLowerCase()
-      const beschreibung = (s.beschreibung ?? "").toString().toLowerCase()
-      const query = search.value.toLowerCase()
-      return titel.includes(query) || beschreibung.includes(query)
+      const q = search.value.toLowerCase()
+      return (s.titel?.toLowerCase().includes(q) || s.beschreibung?.toLowerCase().includes(q))
     })
-    .sort((a, b) => (b.matchingScore ?? 0) - (a.matchingScore ?? 0))
+    .sort((a, b) => {
+      if (a.beworben && !b.beworben) return 1
+      if (!a.beworben && b.beworben) return -1
+      return (b.matchingScore ?? 0) - (a.matchingScore ?? 0)
+    })
 })
 </script>
+
 
 <style scoped>
 .box {
@@ -139,7 +138,6 @@ const filteredStellen = computed(() => {
 .card-hover {
   transition: transform 0.2s, box-shadow 0.2s;
 }
-
 .card-hover:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);

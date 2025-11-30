@@ -37,7 +37,6 @@ interface Stelle {
 interface Bewerbung {
   id: number
   status: 'EINGEREICHT' | 'IN_PRUEFUNG' | 'ABGELEHNT' | 'ANGELADEN' | 'ANGENOMMEN'
-  kommentar?: string
   eingereichtAm: string
   nachwuchskraftId: number
   stelleId: number

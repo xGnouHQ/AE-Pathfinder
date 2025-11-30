@@ -44,8 +44,6 @@ interface Tag { id: number; name: string }
 interface Stelle {
   id: number
   titel?: string
-  standort?: string
-  beschreibung?: string
   status?: 'OFFEN' | 'GESCHLOSSEN'
   bewerbungsfrist?: string
   servicebereichsleiter?: Servicebereichsleiter

@@ -1,9 +1,11 @@
 <template>
-  <v-card>
-    <v-card-title>Persönliche Daten</v-card-title>
-    <v-divider></v-divider>
-
+  <v-card class="pa-4 mb-4">
+  <v-card-title class="d-flex justify-space-between align-center">
+        <span>Deine Persönlichen Daten</span>
+      </v-card-title>
     <v-card-text v-if="nwk">
+    <v-divider></v-divider>
+    <p class="mt-4"></p>
       <v-row>
         <v-col><strong>Personalnummer:</strong> {{ nwk.personalnummer }}</v-col>
       </v-row>
@@ -100,6 +102,9 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+
+
 ul { margin: 0; padding-left: 1.2rem; }
 li { list-style-type: disc; }
+
 </style>

@@ -2,7 +2,7 @@
   <v-card class="pa-4 mb-4">
     <v-card-title class="d-flex justify-space-between align-center">
       <span>Dokumente</span>
-      <v-btn small text @click="dialogOpen = true">Hochladen</v-btn>
+      <v-btn color="primary" small text @click="dialogOpen = true">Hochladen</v-btn>
     </v-card-title>
 
     <v-divider></v-divider>
@@ -12,7 +12,7 @@
         <v-list-item v-for="file in files" :key="file.id">
           <v-list-item-content>
             <v-list-item-title>
-              <a :href="file.dateipfad" target="_blank">{{ file.name }}</a>
+              <a href="#" @click.prevent="openFile(file)">{{ file.name }}</a>
             </v-list-item-title>
             <v-list-item-subtitle>Typ: {{ file.typ }}</v-list-item-subtitle>
             <v-list-item-subtitle>Hochgeladen: {{ formatDate(file.hochgeladenAm) }}</v-list-item-subtitle>
@@ -80,8 +80,6 @@ async function loadDocuments() {
     }
 
     const data = await res.json()
-
-    // Hier korrekt auf `documents` zugreifen
     files.value = data.documents.map((d: any) => ({
       id: d.id,
       name: d.dateipfad.split('/').pop() ?? 'Unbekannt',
@@ -93,6 +91,46 @@ async function loadDocuments() {
     console.error('Fehler beim Laden der Dokumente:', err)
     snackbar.value.message = 'Fehler beim Laden der Dokumente'
     snackbar.value.show = true
+  }
+}
+
+// ----------------------------
+// Datei öffnen
+// ----------------------------
+async function openFile(file: StoredFile) {
+  try {
+    const res = await fetch(file.dateipfad, {
+      // Optional Auth-Header, falls notwendig
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem('token') || ''}`
+      }
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        snackbar.value.message = 'Bitte einloggen, um das Dokument zu öffnen.'
+        snackbar.value.show = true
+        return
+      }
+      throw new Error(`Fehler beim Öffnen: ${res.status}`)
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = file.name; // optional, wenn Download gewünscht
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  } catch (err) {
+    console.error('Fehler beim Öffnen der Datei:', err);
+    snackbar.value.message = 'Dokument konnte nicht geöffnet werden.';
+    snackbar.value.show = true;
   }
 }
 
